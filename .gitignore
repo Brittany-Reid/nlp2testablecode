@@ -6,3 +6,5 @@
 # Mac
 .DS_Store
 
+# Ignore xml files for now
+data/*.xml
