@@ -43,6 +43,7 @@ public class Activator extends AbstractUIPlugin {
 		InputHandler.previous_queries = new Vector<String>();
 		InputHandler.doclistener = new CycleDocListener();
 		TaskRecommender.loadTasks();
+		DataHandler.LoadData();
 		saveState();
 		loadState();
 	}
