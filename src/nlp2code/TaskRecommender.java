@@ -34,7 +34,7 @@ public class TaskRecommender implements IJavaCompletionProposalComputer{
 	static HashMap<String,String> queries_map = new HashMap<String,String>();
 	// Stores the list of recommendation tasks/queries for each invocation of the content assist tool.
 	static ArrayList<String> queries = new ArrayList<String>();
-	// Ddefines whether we are querying via a task or not.
+	// Defines whether we are querying via a task or not.
 	static boolean query_task = true;
 	// Defines which types of content assist to load (Developer use only).
 	private boolean task_auto_completes = true;
@@ -196,7 +196,7 @@ public class TaskRecommender implements IJavaCompletionProposalComputer{
 		try {
 			// Using this url assumes nlp2code exists in the 'plugin' folder for eclipse.
 			// This is true when testing the plugin (in a temporary platform) and after installing the plugin.
-		    url = new URL("platform:/plugin/nlp2code/data/task,id.txt");
+		    url = new URL("platform:/plugin/nlp2code/data/task,id50.txt");
 		    InputStream inputStream = url.openConnection().getInputStream();
 		    BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
 		    String inputLine;

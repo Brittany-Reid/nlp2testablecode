@@ -1,0 +1,47 @@
+switch statement,4327798
+get index of substring,2615749
+read last character,5163785
+check equality for strings,5307074
+combine quicksort median selection algorithm,10609602
+Add for loop,30022947
+Get mergesort,22374743
+split string by whitespaces,225337
+implement dijkstra algorithm,17480022
+convert string to integer,1030479
+add lines to text file,26575009
+compare arraylist of string,13207601
+fill array of int array,20986840
+perform bitwise operations,3312853
+break control flow in java,7937029
+complete bubble sort,16088994
+implement depth first search,21508765
+convert byte array to jpg image,3211156
+convert lists into string array,5374311
+sort array for binary search,19492402
+add custom jpanel to jframe,22621415
+add objects with various data members,13690042
+find multiple search results in array,3578954
+call sleep on current thread,3342651
+create java thread,11037551
+implement single thread in java,19901915
+implement autocomplete textfield,22749621
+split user input into arraylist,25939514
+convert camelcase,10310321
+convert uppercase to lowercase,29211222
+create doubly linked list,38290050
+implement linked list class,10042
+change default printer in java,4177531
+print address of variable,16351555
+add try catch,36753531
+compare rgb colors,15262258
+find number of shortest paths,17480022
+return malformed reply from socks server,27215053
+use execution time method,18413315
+compile basic hello world program,21896942
+get data from programmatically added view,3204852
+add signalhandler to abstract java class,18921667
+call with empty parameters,965690
+find longest geometric progression in array,13593245
+generate random integers,20389890
+convert int to string,5071040
+convert inputstream to string,309424

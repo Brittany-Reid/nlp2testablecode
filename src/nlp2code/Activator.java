@@ -44,6 +44,8 @@ public class Activator extends AbstractUIPlugin {
 		InputHandler.doclistener = new CycleDocListener();
 		TaskRecommender.loadTasks();
 		DataHandler.LoadData();
+		DataHandler.LoadQuestions();
+		
 		saveState();
 		loadState();
 	}

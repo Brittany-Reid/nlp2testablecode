@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Vector;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
@@ -62,6 +60,7 @@ public class QueryDocListener implements IDocumentListener {
     			if (!(newline.endsWith("?"))) return;
     			doQuery(event,line);
     		}
+    		
         }
 		
 		/*
@@ -74,6 +73,7 @@ public class QueryDocListener implements IDocumentListener {
 		 */
 		private static int doQuery(DocumentEvent event, String line) {
 			Vector<String> code;
+			Vector<String> searchedCode;
 			// Extract the query from the current line.
 			String whitespace_before = line.substring(0, line.indexOf(line.trim()));
 			line = line.trim();
@@ -97,59 +97,24 @@ public class QueryDocListener implements IDocumentListener {
 			if (ite.equals(null)) return -1;
 			// Get the current document (for isolating substring of text in document using line number from selection).
 			IDocument document = ite.getDocumentProvider().getDocument(ite.getEditorInput());
-			Vector<String> url = new Vector<String>();
-			// is recommended task
+			
+			//retrieve code snippets for recommended tasks
 			if (TaskRecommender.queries_map.containsKey(line)) {
-				//get IDs
-				String[] ids = TaskRecommender.queries_map.get(line).split(",");
-				//if there are no IDs, error
-				if (ids.length == 0) return -1;
-				//use IDs to get code snippets
-				code = new Vector<String>();
-				for(int i=0; i<ids.length; i++) {
-					String key = DataHandler.postIds.get(Integer.parseInt(ids[i]));
-					List<String>cs = DataHandler.posts.get(key);
-					if(DataHandler.posts.containsKey(key) == false) {
-						//System.out.print(key);
-					}
-					if(cs != null) {
-						for(int j=0; j<cs.size(); j++) {
-							code.add(cs.get(j));
-						}
+				code = DataHandler.getRecommendedSnippets(line);
+				//if not enough code snippets, get more
+				if(code.size() < 5 && TaskRecommender.query_task) {
+					searchedCode = DataHandler.getSnippets(line);
+					if(searchedCode.equals(null) == false) {
+						code.addAll(searchedCode);
 					}
 				}
-				
-//				String[] urls = TaskRecommender.queries_map.get(line).split(",");
-//				if (urls.length == 0) return -1;
-//				Vector<String> SO_urls = getUrls(urls);
-//				for (int i=0; i<SO_urls.size(); i++) {
-//					if (i == Searcher.NUM_URLS) break;
-//					url.add(SO_urls.get(i));
-//				}
-//				// Retrieve up to 5 of the most relevant Stack OVerflow urls relevant to the given task.
-//				if (url.size() < 5 && TaskRecommender.query_task) {
-//					Vector<String> result = Searcher.getThreads(line);
-//					if (!(result.size() == 0)) {
-//						for (int i=0; i<result.size(); i++) {
-//					    	if (i-1 == Searcher.NUM_URLS) break;
-//					    	url.add(result.get(i));
-//					    }
-//					}
-//				}
-			} else {
-				// Convert The Stack Overflow thread IDs to specific post URLs.
-				Vector<String> result = Searcher.getThreads(line);
-			    if (result.size() == 0) return -1;
-			    for (int i=0; i<result.size(); i++) {
-			    	if (i == Searcher.NUM_URLS) break;
-			    	url.add(result.get(i));
-			    }
-			    //get code snippets from online
-			   code = Searcher.getCodeSnippets(url);
+			} 
+			//retrieve code snippets for new tasks
+			else {
+				code = DataHandler.getSnippets(line);
 		    }
 			
 			// Get the top code snippets from answers in the list of StackOverflow urls.
-		    //Vector<String> code = Searcher.getCodeSnippets(url);
 		    if (code.size() == 0) return -1;
 		    if (code.equals(null)) {
 		    	System.out.println("Error! Code vector is null!");
