@@ -73,7 +73,6 @@ public class QueryDocListener implements IDocumentListener {
 		 */
 		private static int doQuery(DocumentEvent event, String line) {
 			Vector<String> code;
-			Vector<String> searchedCode;
 			// Extract the query from the current line.
 			String whitespace_before = line.substring(0, line.indexOf(line.trim()));
 			line = line.trim();
@@ -98,28 +97,14 @@ public class QueryDocListener implements IDocumentListener {
 			// Get the current document (for isolating substring of text in document using line number from selection).
 			IDocument document = ite.getDocumentProvider().getDocument(ite.getEditorInput());
 			
-			//retrieve code snippets for recommended tasks
-			if (TaskRecommender.queries_map.containsKey(line)) {
-				code = DataHandler.getRecommendedSnippets(line);
-				//if not enough code snippets, get more
-				if(code.size() < 5 && TaskRecommender.query_task) {
-					searchedCode = DataHandler.getSnippets(line);
-					if(searchedCode.equals(null) == false) {
-						code.addAll(searchedCode);
-					}
-				}
-			} 
-			//retrieve code snippets for new tasks
-			else {
-				code = DataHandler.getSnippets(line);
-		    }
-			
-			// Get the top code snippets from answers in the list of StackOverflow urls.
-		    if (code.size() == 0) return -1;
+			//get snippets
+			code = DataHandler.getSnippets(line);
 		    if (code.equals(null)) {
 		    	System.out.println("Error! Code vector is null!");
 		    	return 9;
 		    }
+		    if (code.size() == 0) return -1;
+		    
 		    // Fix the offset of the code snippets with the offset of the query.
 		    Vector<String> fixed_code = fixSpacing(code,whitespace_before);
 		    // Store some previous search and query data so we can have undo functionality.
@@ -127,6 +112,14 @@ public class QueryDocListener implements IDocumentListener {
 		    InputHandler.previous_search = fixed_code;
 		    InputHandler.previous_query = line;
 		    InputHandler.previous_queries.add("?" + line + "?");
+		    
+		    //print compiler errors
+            IMCompiler compiler = new IMCompiler();
+            
+            fixed_code = compiler.getLeastCompilerErrorSnippet(fixed_code);
+            
+            //System.out.print(compiler.compile(fixed_code.get(0)));
+		    
 		  	// Get the line number we are currently on.
 	      	try {
 	      		int e_offset = event.getOffset();
@@ -169,6 +162,9 @@ public class QueryDocListener implements IDocumentListener {
 	      		InputHandler.previous_length = replacement_text.length();
 	      		ITextEditor editor = (ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 	      		editor.selectAndReveal(l_offset+replacement_text.length(), 0);
+	      		
+	      		//reset changed
+	      		CycleAnswersHandler.changed_doc = false;
 	      	} catch (BadLocationException e) {
 				System.err.println("Error with inserting code after Autocomplete");
 				e.printStackTrace();

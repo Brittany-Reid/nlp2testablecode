@@ -80,17 +80,25 @@ public class InputHandler extends AbstractHandler {
 					String whitespace_before = text.substring(0, text.indexOf(text.trim()));
 		            text = text.trim();
 		            
-		            // Get the vector of URLS from the getPosts query.		            
-		            Vector<String> results = Searcher.getThreads(text);
-		            if (results.size() == 0) return null;
-		            Vector<String> url = new Vector<String>();
-		            for (int i=0; i<results.size(); i++) {
-        		    	url.add(results.get(i));
-        		    }
+//		            // Get the vector of URLS from the getPosts query.		            
+//		            Vector<String> results = Searcher.getThreads(text);
+//		            if (results.size() == 0) return null;
+//		            Vector<String> url = new Vector<String>();
+//		            for (int i=0; i<results.size(); i++) {
+//        		    	url.add(results.get(i));
+//        		    }
+//		            
+//		            // Get the accepted answer code snippet.
+//		            Vector<String> code = Searcher.getCodeSnippets(url);
+//		            if (code.size() == 0) return null;
 		            
-		            // Get the accepted answer code snippet.
-		            Vector<String> code = Searcher.getCodeSnippets(url);
-		            if (code.size() == 0) return null;
+		            Vector<String> code = DataHandler.getSnippets(text);
+		            if (code.equals(null)) {
+				    	System.out.println("Error! Code vector is null!");
+				    	return 9;
+				    }
+				    if (code.size() == 0) return -1;
+		            
 		            Vector<String> fixed_code = fixSpacing(code,whitespace_before);
         		    previous_search.clear();
         		    previous_search = fixed_code;
@@ -115,6 +123,9 @@ public class InputHandler extends AbstractHandler {
 		            //Move cursor to the end of the inserted snippet.
 		            editor.selectAndReveal(previous_offset + previous_length, 0);
 		            doc.addDocumentListener(InputHandler.doclistener);
+		            
+		            //reset changed
+		            CycleAnswersHandler.changed_doc = false;
 		        } catch (BadLocationException e) {
 					System.out.println("Error with getting input query.");
 					e.printStackTrace();

@@ -10,7 +10,9 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.108.0",
  org.eclipse.jface.text;bundle-version="3.11.0",
  org.eclipse.ui.ide;bundle-version="3.12.0",
  org.eclipse.core.runtime;bundle-version="3.12.0",
- org.eclipse.jdt.ui;bundle-version="3.12.0"
+ org.eclipse.jdt.ui;bundle-version="3.12.0",
+ org.eclipse.core.resources;bundle-version="3.13.200",
+ org.eclipse.jdt.core;bundle-version="3.16.0"
 Bundle-ClassPath: .,
  lib/jsoup-1.9.2.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
