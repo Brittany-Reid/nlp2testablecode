@@ -7,23 +7,30 @@ import java.util.Vector;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
+import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaCompiler.CompilationTask;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
 
 /**
  * class IMCompiler
- * Handles In Memory Compilation of code snippets 
+ * Handles in memory compilation of code snippets. 
+ * Compiles from memory but not to memory atm
  */
 
 class IMCompiler{
-	JavaCompiler compiler;
+	private JavaCompiler compiler;
+	private String before;
+	private String after;
 	
 	/*Constructor, setup compiler*/
-	public IMCompiler(){
+	public IMCompiler(String b, String a){
 		compiler = ToolProvider.getSystemJavaCompiler();
+		before = b;
+		after = a;
 	}
 	
 	/*Returns snippet with least compiler errors*/
@@ -56,7 +63,7 @@ class IMCompiler{
 		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
 		
 		//create file from string
-		JavaFileObject file = new JavaSourceFromString("Snippet", code);
+		JavaFileObject file = new JavaSourceFromString("Snippet", before+code+after);
 		//add to compilation units
 		Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file);
 		

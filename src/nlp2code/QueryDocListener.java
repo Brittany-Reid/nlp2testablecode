@@ -113,12 +113,6 @@ public class QueryDocListener implements IDocumentListener {
 		    InputHandler.previous_query = line;
 		    InputHandler.previous_queries.add("?" + line + "?");
 		    
-		    //print compiler errors
-            IMCompiler compiler = new IMCompiler();
-            
-            fixed_code = compiler.getLeastCompilerErrorSnippet(fixed_code);
-            
-            //System.out.print(compiler.compile(fixed_code.get(0)));
 		    
 		  	// Get the line number we are currently on.
 	      	try {
@@ -126,10 +120,20 @@ public class QueryDocListener implements IDocumentListener {
 	      		int line_num = document.getLineOfOffset(e_offset);
 	      		int l_offset = document.getLineOffset(line_num);
 	      		int l_length = document.getLineLength(line_num);
-	      		String replacement_text = fixed_code.get(0);
 	      		if (l_offset < 0 || l_offset > document.getLength()) return -1;
 	      		if (l_length > document.getLength() || l_offset + l_length > document.getLength()) return 11;
 	      		if (document.equals(null)) System.err.println("ERROR, NULL DOC");
+	      		
+	      		//get document text
+	      		String before = document.get(0,l_offset);
+	      		String after = document.get(l_offset+l_length, document.getLength()-(l_offset+l_length));
+	      		
+	      		//print compiler errors
+	            IMCompiler compiler = new IMCompiler(before, after);
+	            
+	            fixed_code = compiler.getLeastCompilerErrorSnippet(fixed_code);
+	            
+	            String replacement_text = fixed_code.get(0);
 	      		
 	      		// To ensure the Document doesnt COMPLETELY BREAK when inserting a code snippet, queue the insertion for when the document is inactive.
 	      		Display.getDefault().asyncExec(new Runnable() 
