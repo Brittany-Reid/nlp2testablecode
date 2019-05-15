@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Vector;
 
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -23,6 +24,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  *    to document changes for a user to type a query in the format: ?{query}?
  */
 public class QueryDocListener implements IDocumentListener {		
+		static Logger logger = Activator.getLogger();
 		
 		/*
 		 * Function documentChanged
@@ -104,6 +106,7 @@ public class QueryDocListener implements IDocumentListener {
 		    	return 9;
 		    }
 		    if (code.size() == 0) return -1;
+		    
 		    
 		    // Fix the offset of the code snippets with the offset of the query.
 		    Vector<String> fixed_code = fixSpacing(code,whitespace_before);

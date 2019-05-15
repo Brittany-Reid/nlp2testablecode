@@ -8,10 +8,13 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
+import edu.stanford.nlp.simple.Sentence;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +26,7 @@ import java.util.Comparator;
  *   and provide functionality to access the resulting data structure.
  */
 class DataHandler{
+	static Logger logger;
 	//ids to surrounding text
 	static HashMap<Integer, String> searchSpace = new HashMap<Integer, String>();
 	//ids to code snippets
@@ -56,7 +60,7 @@ class DataHandler{
 			inputLine = in.readLine();
 			
 			//for each entry
-			while(inputLine != null && num < 2000000) {
+			while(inputLine != null) {
 				num++;
 				
 				//for answers
@@ -133,6 +137,10 @@ class DataHandler{
 	
 	//load question data
 	public static void LoadQuestions() {
+		//get logger
+		logger = Activator.getLogger();
+		
+		Stemmer stemmer;
 		URL url;
 		String id, body, title, inputLine;
 		Integer num;
@@ -159,8 +167,25 @@ class DataHandler{
 					title = title.substring(0, title.indexOf("\""));
 					title = title.toLowerCase();
 					
-					String[] splitTitle = title.split(" ");
+					String[] splitTitle;
+					
+					//lemma
+					Sentence sentence = new Sentence(title);
+					splitTitle = new String[sentence.lemmas().size()];
+					for(int i=0; i<sentence.lemmas().size(); i++) {
+						splitTitle[i] = sentence.lemma(i);
+					}
+					//splitTitle = title.split(" ");
+					
+					//for each word in title
 					for(int i=0; i<splitTitle.length; i++) {
+						
+						//stem
+//						stemmer = new Stemmer();
+//						stemmer.add(splitTitle[i].toCharArray(), splitTitle[i].length());
+//						stemmer.stem();
+//						splitTitle[i] = stemmer.toString();
+						
 						List<Integer> ids = new ArrayList<Integer>();
 						if(titlewords.containsKey(splitTitle[i]) ==  false) {
 							ids.add(Integer.parseInt(id));
@@ -203,7 +228,7 @@ class DataHandler{
 			retrievedSnippets = snippets.get(key);
 			if(retrievedSnippets != null) {
 				for(int j=0; j<retrievedSnippets.size(); j++) {
-					code.add(retrievedSnippets.get(j));
+					code.add(addInfo(retrievedSnippets.get(j), key));
 				}
 			}
 		}
@@ -236,7 +261,7 @@ class DataHandler{
 		return snippets;
 	}
 	
-	/*Gets code snippets using a query*/
+	/*gets code snippets using a query from ids*/
 	public static Vector<String> searchSnippets(String query){
 		Vector<Integer> results;
 		Vector<String> code = new Vector<String>();
@@ -247,16 +272,21 @@ class DataHandler{
 		//search for query and return list of ids
 		final long startTime = System.currentTimeMillis();
 		results = getThreads(query);
-		if(results == null) return null;
 		final long endTime = System.currentTimeMillis();
-		System.out.print("Number of results:" + results.size() + " Time: " + (endTime - startTime) + "ms \n");
-		if(results.size() < 1) return null;
+		if(results == null) {
+			logger.debug(query + ", 0, 0, " + (endTime - startTime)+ "ms\n");
+			return null;
+		}
+		if(results.size() < 1) {
+			logger.debug(query + ", 0, 0, " + (endTime - startTime)+ "ms\n");
+			return null;
+		}
 		
 		count = 0;
 		//for each id, get code snippets
 		for(int i=0; i<results.size(); i++) {
 			//until we reach limit
-			if(count > NUM_POSTS) break;
+			//if(count > NUM_POSTS) break;
 			key = results.get(i);
 			//add to code
 			retrievedSnippets = snippets.get(key);
@@ -267,6 +297,7 @@ class DataHandler{
 				}
 			}
 		}
+		logger.debug(query + ", " + results.size() + ", " + code.size() + ", " + (endTime - startTime)+ "ms\n");
 		
 		CycleAnswersHandler.previous_index = 0;
 		
@@ -299,7 +330,7 @@ class DataHandler{
 		String authouredSnippet;
 		String comment = "//";
 		
-		authouredSnippet = comment+"http://stackoverflow.com/questions/"+key+"\n" + snippet;
+		authouredSnippet = comment+"https://stackoverflow.com/questions/"+key+"\n" + snippet;
 		
 		return authouredSnippet;
 	}
@@ -307,23 +338,49 @@ class DataHandler{
 	/*Accept query string, return ordered non-duplicate array of words*/
 	private static String[] processQuery(String query) {
 		String[] result, temp;
+		Stemmer stemmer;
+		Integer n;
 		Set<String> wordSet = new HashSet<String>();
 		
+		//check for redundant langauge info
+		if(query.contains("in java")) {
+			query.replace("in java", "");
+		}
+		
 		//split by space
-		temp = query.split(" ");
+		//temp = query.split(" ");
 		
-		if(temp == null) return null;
-		if(temp.length < 2) return temp;
+		//lemma
+		Sentence sentence = new Sentence(query);
+		temp = new String[sentence.lemmas().size()];
+		n = 0;
+		for(String lemma : sentence.lemmas()) {
+			temp[n] = lemma;
+			n++;
+		}
 		
-		//add all words to set
+		//if(temp == null) return null;
+		if(temp.length < 1) return temp;
+		
+		
+		//for each word
 		for(int i=0; i<temp.length; i++) {
-			wordSet.add(temp[i]);
+			//add to word set, removing duplicates
+			if(temp[i] != "java") {
+				wordSet.add(temp[i]);
+			}
 		}
 		
 		//add to result array
 		result = new String[wordSet.size()];
-		Integer n = 0;
+		
+		n = 0;
 		for(String s : wordSet) {
+//			//stem
+//			stemmer = new Stemmer();
+//			stemmer.add(s.toCharArray(), s.length());
+//			stemmer.stem();
+//			s = stemmer.toString();
 			result[n] = s;
 			n++;
 		}
@@ -364,9 +421,11 @@ class DataHandler{
 				}
 				//use hashmap to check if new word results exist within old results, add to temp
 				Vector<Integer> temp = new Vector<Integer>();
-				for(int j=0; j<retrieved.size(); j++) {
-					if(ti.containsKey(retrieved.get(j))) {
-						temp.add(retrieved.get(j));
+				if(retrieved != null) {
+					for(int j=0; j<retrieved.size(); j++) {
+						if(ti.containsKey(retrieved.get(j))) {
+							temp.add(retrieved.get(j));
+						}
 					}
 				}
 				//replace threadIDs with temp

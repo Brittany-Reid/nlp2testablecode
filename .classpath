@@ -1,6 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/ejml-0.23.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/javax.activation-api-1.2.0-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/javax.activation-api-1.2.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/javax.json-api-1.0-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/javax.json.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/jaxb-api-2.4.0-b180830.0359-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/jaxb-api-2.4.0-b180830.0359.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/jaxb-core-2.3.0.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/jaxb-core-2.3.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/jaxb-impl-2.4.0-b180830.0438-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/jaxb-impl-2.4.0-b180830.0438.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/joda-time-2.9-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/joda-time.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/jollyday-0.4.9-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/jollyday.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/protobuf.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/slf4j-api.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/slf4j-simple.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-javadoc.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/xom-1.2.10-src.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/xom.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-models.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-api-2.11.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-core-2.11.2.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/jsoup-1.9.2.jar"/>

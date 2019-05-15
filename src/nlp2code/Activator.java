@@ -7,7 +7,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Vector;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.PlatformUI;
@@ -20,6 +25,10 @@ import org.osgi.framework.BundleContext;
  *   The Activator class is the first class to be instsantiated whenever the plugin is invoked.
  */
 public class Activator extends AbstractUIPlugin {
+	
+	//Logger
+    private static final Logger parentLogger = LogManager.getLogger();
+    private static Logger logger = parentLogger;
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "nlp2code";
@@ -33,6 +42,8 @@ public class Activator extends AbstractUIPlugin {
 	 *  saves the Google Custom Search engine defaults to a preferences file.
 	 */
 	public Activator() {
+		long start, end;
+		
 		ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		doc.addDocumentListener(InputHandler.qdl);
@@ -42,9 +53,49 @@ public class Activator extends AbstractUIPlugin {
 		InputHandler.previous_length = 0;
 		InputHandler.previous_queries = new Vector<String>();
 		InputHandler.doclistener = new CycleDocListener();
-		TaskRecommender.loadTasks();
+		
+		start = System.currentTimeMillis();
 		DataHandler.LoadData();
 		DataHandler.LoadQuestions();
+		TaskRecommender.loadTasks();
+		logger.debug("Initialization took: " + (System.currentTimeMillis() - start) + "ms\n");
+		
+		ArrayList<Vector <String>> codeset = new ArrayList<Vector<String>>();
+		logger.debug("SEARCHING 47 TASKS\n");
+		start = System.currentTimeMillis();
+		for(String task : TaskRecommender.queries) {
+			Vector<String> code;
+			code = DataHandler.searchSnippets(task);
+			codeset.add(code);
+		}
+		logger.debug("TOTAL " + (System.currentTimeMillis() - start) + "ms\n");
+		
+		logger.debug("COMPILING FOR 47 TASKS\n");
+		HashMap<String, Integer> errorCount = new HashMap<String, Integer>();
+		//for each task
+		for(int i=0; i<codeset.size(); i++) {
+			logger.debug(TaskRecommender.queries.get(i) + "\n");
+			IMCompiler compiler = new IMCompiler("class Main {\npublic static void main(String[] args){", "\nreturn 0; }\n}");
+			if(codeset.get(i) != null) {
+				compiler.getLeastCompilerErrorSnippet(codeset.get(i));
+				for(String key : compiler.errorKinds.keySet()) {
+					//new entry
+					if(!errorCount.containsKey(key)) {
+						errorCount.put(key, compiler.errorKinds.get(key));
+					}
+					//update old
+					else {
+						Integer count = errorCount.get(key);
+						errorCount.replace(key, count+compiler.errorKinds.get(key));
+					}
+				}
+			}
+		}
+		
+		logger.debug("TOTAL");
+		for(String key : errorCount.keySet()) {
+			logger.debug(", " + key + ", " + errorCount.get(key));
+		}
 		
 		saveState();
 		loadState();
@@ -99,6 +150,11 @@ public class Activator extends AbstractUIPlugin {
 			e.printStackTrace();
 		}		
 	}
+	
+	//returns logger
+	public static Logger getLogger() {
+        return logger;
+    }
 	
 	/* 
 	 * Function saveState
