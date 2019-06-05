@@ -12,7 +12,7 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.108.0",
  org.eclipse.core.runtime;bundle-version="3.12.0",
  org.eclipse.jdt.ui;bundle-version="3.12.0",
  org.eclipse.core.resources;bundle-version="3.13.200",
- org.eclipse.jdt.core;bundle-version="3.16.0"
+ org.apache.commons.io;bundle-version="2.2.0"
 Bundle-ClassPath: .,
  lib/jsoup-1.9.2.jar,
  lib/log4j-api-2.11.2.jar,
@@ -41,7 +41,8 @@ Bundle-ClassPath: .,
  lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-javadoc.jar,
  lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-sources.jar,
  lib/stanford-corenlp-full-2018-10-05/xom-1.2.10-src.jar,
- lib/stanford-corenlp-full-2018-10-05/xom.jar
+ lib/stanford-corenlp-full-2018-10-05/xom.jar,
+ lib/ecj.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: nlp2code.Activator

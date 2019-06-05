@@ -203,6 +203,8 @@ public class TaskRecommender implements IJavaCompletionProposalComputer{
 		 
 		    while ((inputLine = in.readLine()) != null) {
 		    	String task = inputLine.substring(0, inputLine.indexOf(","));
+		    	//guarentee no accidental uppercase letters
+		    	task.toLowerCase();
 		    	String ids = inputLine.substring(inputLine.indexOf(",")+1);
 			    queries_map.put(task, ids);
 			    queries.add(task);

@@ -170,21 +170,22 @@ class DataHandler{
 					String[] splitTitle;
 					
 					//lemma
-					Sentence sentence = new Sentence(title);
-					splitTitle = new String[sentence.lemmas().size()];
-					for(int i=0; i<sentence.lemmas().size(); i++) {
-						splitTitle[i] = sentence.lemma(i);
-					}
-					//splitTitle = title.split(" ");
+//					Sentence sentence = new Sentence(title);
+//					splitTitle = new String[sentence.lemmas().size()];
+//					for(int i=0; i<sentence.lemmas().size(); i++) {
+//						splitTitle[i] = sentence.lemma(i);
+//					}
+					splitTitle = title.split(" ");
 					
 					//for each word in title
 					for(int i=0; i<splitTitle.length; i++) {
 						
 						//stem
-//						stemmer = new Stemmer();
-//						stemmer.add(splitTitle[i].toCharArray(), splitTitle[i].length());
-//						stemmer.stem();
-//						splitTitle[i] = stemmer.toString();
+						stemmer = new Stemmer();
+						stemmer.add(splitTitle[i].toCharArray(), splitTitle[i].length());
+						stemmer.stem();
+						splitTitle[i] = stemmer.toString();
+						
 						
 						List<Integer> ids = new ArrayList<Integer>();
 						if(titlewords.containsKey(splitTitle[i]) ==  false) {
@@ -253,7 +254,7 @@ class DataHandler{
 		
 		if(snippets.size() < 10) {
 			retrieved = searchSnippets(query);
-			if(retrieved.equals(null) == false) {
+			if(retrieved != null) {
 				snippets.addAll(retrieved);
 			}
 		}
@@ -270,15 +271,16 @@ class DataHandler{
 		Integer count;
 		
 		//search for query and return list of ids
+		logger.debug(query + ",");
 		final long startTime = System.currentTimeMillis();
 		results = getThreads(query);
 		final long endTime = System.currentTimeMillis();
 		if(results == null) {
-			logger.debug(query + ", 0, 0, " + (endTime - startTime)+ "ms\n");
+			logger.debug(", 0, 0, " + (endTime - startTime)+ "ms\n");
 			return null;
 		}
 		if(results.size() < 1) {
-			logger.debug(query + ", 0, 0, " + (endTime - startTime)+ "ms\n");
+			logger.debug(", 0, 0, " + (endTime - startTime)+ "ms\n");
 			return null;
 		}
 		
@@ -297,7 +299,11 @@ class DataHandler{
 				}
 			}
 		}
-		logger.debug(query + ", " + results.size() + ", " + code.size() + ", " + (endTime - startTime)+ "ms\n");
+		logger.debug(", " + results.size() + ", " + code.size() + ", " + (endTime - startTime)+ "ms\n");
+		//threads retrieved
+//		for(Integer r : results) {
+//			logger.debug(r + ", " + titles.get(r) + "\n");
+//		}
 		
 		CycleAnswersHandler.previous_index = 0;
 		
@@ -343,23 +349,23 @@ class DataHandler{
 		Set<String> wordSet = new HashSet<String>();
 		
 		//check for redundant langauge info
-		if(query.contains("in java")) {
-			query.replace("in java", "");
+		if(query.contains(" in java")) {
+			query.replace(" in java", "");
 		}
 		
 		//split by space
-		//temp = query.split(" ");
+		temp = query.split(" ");
 		
 		//lemma
-		Sentence sentence = new Sentence(query);
-		temp = new String[sentence.lemmas().size()];
-		n = 0;
-		for(String lemma : sentence.lemmas()) {
-			temp[n] = lemma;
-			n++;
-		}
+//		Sentence sentence = new Sentence(query);
+//		temp = new String[sentence.lemmas().size()];
+//		n = 0;
+//		for(String lemma : sentence.lemmas()) {
+//			temp[n] = lemma;
+//			n++;
+//		}
 		
-		//if(temp == null) return null;
+		if(temp == null) return null;
 		if(temp.length < 1) return temp;
 		
 		
@@ -376,11 +382,12 @@ class DataHandler{
 		
 		n = 0;
 		for(String s : wordSet) {
-//			//stem
-//			stemmer = new Stemmer();
-//			stemmer.add(s.toCharArray(), s.length());
-//			stemmer.stem();
-//			s = stemmer.toString();
+			//stem
+			stemmer = new Stemmer();
+			stemmer.add(s.toCharArray(), s.length());
+			stemmer.stem();
+			s = stemmer.toString();
+			logger.debug(" " + s);
 			result[n] = s;
 			n++;
 		}

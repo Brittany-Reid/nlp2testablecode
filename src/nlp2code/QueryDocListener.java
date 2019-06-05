@@ -74,6 +74,15 @@ public class QueryDocListener implements IDocumentListener {
 		 *          String line - the text in the current line that contains the query.
 		 */
 		private static int doQuery(DocumentEvent event, String line) {
+			if(Activator.first == true) {
+				Activator.first = false;
+				if(logger.isDebugEnabled()) {
+					Activator.tests();
+				}
+			}
+			
+			
+			
 			Vector<String> code;
 			// Extract the query from the current line.
 			String whitespace_before = line.substring(0, line.indexOf(line.trim()));
@@ -131,9 +140,8 @@ public class QueryDocListener implements IDocumentListener {
 	      		String before = document.get(0,l_offset);
 	      		String after = document.get(l_offset+l_length, document.getLength()-(l_offset+l_length));
 	      		
-	      		//print compiler errors
-	            IMCompiler compiler = new IMCompiler(before, after);
-	            
+	      		//get snippet with least compiler errors
+	            IMCompiler compiler = new IMCompiler(before, after, false, false, false);
 	            fixed_code = compiler.getLeastCompilerErrorSnippet(fixed_code);
 	            
 	            String replacement_text = fixed_code.get(0);

@@ -3,8 +3,8 @@ get index of substring,2615749
 read last character,5163785
 check equality for strings,5307074
 combine quicksort median selection algorithm,10609602
-Add for loop,30022947
-Get mergesort,22374743
+add for loop,30022947
+get mergesort,22374743
 split string by whitespaces,225337
 implement dijkstra algorithm,17480022
 convert string to integer,1030479
