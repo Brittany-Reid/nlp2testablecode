@@ -46,9 +46,10 @@ class IMCompiler{
 	private JavaCompiler compiler;
 	private List<String> options;
 	private JavaFileManager fileManager;
-	private String before;
-	private String after;
+	public static String before;
+	public String after;
 	private String fullName = "Main";
+	private DiagnosticCollector<JavaFileObject> diagnostics;
 	/*holds information about errors for this task*/
 	public HashMap<String, Integer> errorKinds = new HashMap<String, Integer>();
 	public HashMap<String, Integer> snippetsAffected = new HashMap<String, Integer>();
@@ -56,52 +57,68 @@ class IMCompiler{
 	private Boolean evaluating = false;
 	public Integer errorFree = 0;
 	public Integer finalLines;
-	public Boolean o, n, l;
+	public Boolean o, n, l, f;
+	public String temp;
 	
 	/*Constructor, setup compiler*/
 	public IMCompiler(String b, String a, Boolean order, Boolean neutrality, Boolean loop){
 		logger = Activator.getLogger();
 		compiler = new EclipseCompiler();
-		options = Arrays.asList("-warn");
+		options = null;
 //		compiler = ToolProvider.getSystemJavaCompiler();
 //		options = Arrays.asList("-Xlint");
-		options = null;
 		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 		before = b;
 		after = a;
 		totalErrors = 0;
+		
+		//options
 		o = order;
 		n = neutrality;
 		l = loop;
+		f = false;
 	}
 	
 	/*Returns snippet with least compiler errors*/
 	public Vector<String> getLeastCompilerErrorSnippet(Vector<String> snippets) {
 		Vector<String> snippet = new Vector<String>();
 		totalErrors = 0;
-		Integer errorCount;
+		Integer errorCount, errorCount2;
 		Integer storedCount = -1;
 		Integer i = 0;
 		finalLines = 0;
 		Integer lines = 0;
 		lineArray.clear();
+		
+		//for each snippet
 		for(String s : snippets) {
+			//snippet number
 			i++;
 			logger.debug("Snippet " + i + ", ");
-			//modify
+			
+			//modify with fix
+			f = true;
 			//s = modify(s);
+			
+			//count compiler errors
 			errorCount = compile(s);
 			if(errorCount == 0) {
+				System.out.println("----");
+				System.out.print(s);
 				errorFree++;
 				lines = s.split("\n").length;
 				finalLines += lines;
 				lineArray.add(lines);
 			}
+			
+			//if first snippet, new min
 			if(storedCount == -1) {
 				snippet.add(s);
 				storedCount = errorCount;
 			}
+			//otherwiese
 			else {
+				//check if min
 				if(errorCount < storedCount) {
 					snippet.clear();
 					snippet.add(s);
@@ -110,6 +127,7 @@ class IMCompiler{
 			}
 		}
 		
+		//error info for logger
 		logger.debug("total for task " + totalErrors);
 		for(String key : errorKinds.keySet()) {
 			logger.debug(", \"" + key + "\", " + errorKinds.get(key));
@@ -124,7 +142,7 @@ class IMCompiler{
 		HashMap<String, Integer> snippetErrorKinds = new HashMap<String, Integer>();
 		//System.out.println("\n" + before+code+after + "\n");
 		Integer errors;
-		DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
+		diagnostics = new DiagnosticCollector<JavaFileObject>();
 		
 		//create file from string
 		JavaFileObject file = new JavaSourceFromString("Main", before+code+after);
@@ -199,7 +217,6 @@ class IMCompiler{
 //	    		
 //	    	}
 	    }
-	    //System.out.println("Success: " + success);
 		
 		return errors;
 	}
@@ -219,12 +236,27 @@ class IMCompiler{
 			return code;
 		}
 		
-		finalSnippet = deletion(code, errors, o, n, l);
-		if(finalSnippet != code) {
+
+		
+		finalSnippet = code;
+		temp = "";
+		
+		if(f == true) {
+			finalSnippet = Fixer.fix(code, diagnostics);
+			errors = compile(finalSnippet);
+			if(errors == 0) {
+				evaluating = false;
+				return finalSnippet;
+			}
+			temp = finalSnippet;
+		}
+		
+		finalSnippet = deletion(finalSnippet, errors, o, n, l);
+		//if(finalSnippet != code) {
 			//logger.debug("MODIFYING SNIPPET:\n");
 			//logger.debug("Original:\n---------------\n" + code + "\n--------------\n");
 			//logger.debug("Modified:\n---------------\n" + finalSnippet + "\n--------------\n");
-		}
+		//}
 		evaluating = false;
 		return finalSnippet;
 	}

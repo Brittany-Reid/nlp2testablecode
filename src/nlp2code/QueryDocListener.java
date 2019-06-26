@@ -77,7 +77,7 @@ public class QueryDocListener implements IDocumentListener {
 			if(Activator.first == true) {
 				Activator.first = false;
 				if(logger.isDebugEnabled()) {
-					Activator.tests();
+					Activator.tests(1);
 				}
 			}
 			

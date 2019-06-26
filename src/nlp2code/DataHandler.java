@@ -35,7 +35,36 @@ class DataHandler{
 	static HashMap<Integer, String> titles = new HashMap<Integer, String>();
 	static HashMap<String, List<Integer>> titlewords = new HashMap<String, List<Integer>>();
 	static int NUM_POSTS = 20;
+	static Integer processing = 1;
 	
+	/* Stemming functionality
+	 * Accepts an array of words and returns an array of stemmed words. */
+	private static String[] stem(String[] words) {
+		Stemmer stemmer = new Stemmer();
+		
+		//stem each word
+		for(String w : words) {
+			stemmer.add(w.toCharArray(), w.length());
+			stemmer.stem();
+			w = stemmer.toString();
+		}
+		
+		return words;
+	}
+	
+	/* Lemmatization functionality
+	 * Accepts a sentence and returns an array of lemmas. */
+	private static String[] lemmatize(String s) {
+		String[] words;
+		Sentence sentence = new Sentence(s);
+		
+		words = new String[sentence.lemmas().size()];
+		for(int i=0; i<sentence.lemmas().size(); i++) {
+			words[i] = sentence.lemma(i);
+		}
+
+		return words;
+	}
 	
 	//loads data from xml file
 	public static void LoadData() {

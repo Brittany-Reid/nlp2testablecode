@@ -11,3 +11,4 @@ data/*.xml
 #ignore these external libraries for now too
 lib/stanford-corenlp-full-2018-10-05/*
 lib/log4j*.jar
+lib/ecj-4.11.jar
