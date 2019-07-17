@@ -3,6 +3,8 @@ package nlp2code;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
@@ -77,7 +79,7 @@ public class QueryDocListener implements IDocumentListener {
 			if(Activator.first == true) {
 				Activator.first = false;
 				if(logger.isDebugEnabled()) {
-					Activator.tests(1);
+					//Activator.tests(1);
 				}
 			}
 			
@@ -141,8 +143,27 @@ public class QueryDocListener implements IDocumentListener {
 	      		String after = document.get(l_offset+l_length, document.getLength()-(l_offset+l_length));
 	      		
 	      		//get snippet with least compiler errors
-	            IMCompiler compiler = new IMCompiler(before, after, false, false, false);
-	            fixed_code = compiler.getLeastCompilerErrorSnippet(fixed_code);
+	            IMCompiler compiler = new IMCompiler(false, false, false);
+	            fixed_code = compiler.getLeastCompilerErrorSnippet(fixed_code, before, after);
+	            
+	            System.out.println(line);
+	            
+	            //test this one task in particular
+	            if(line == "convert string to integer") {
+	            	Vector<String> passed = new Vector<String>();
+		    		List<String> argumentTypes = new ArrayList<String>();
+		    		argumentTypes.add("String");
+//		    		String snip = "String in = \"1\";\nInteger out = Integer.parseInt(in);\n";
+//		    		Tester.test(snip, before, after, argumentTypes, "Integer");
+		    		for(int i=0; i<fixed_code.size(); i++) {
+		    			Integer passNum = Tester.test(fixed_code.get(i), before, after, argumentTypes, "Integer");
+		    			if(passNum > 0) {
+		    				passed.add(fixed_code.get(i));
+		    			}
+		    		}
+		    		
+		    		fixed_code = passed;
+	            }
 	            
 	            String replacement_text = fixed_code.get(0);
 	      		

@@ -63,6 +63,7 @@ public class Activator extends AbstractUIPlugin {
 		
 		saveState();
 		loadState();
+		
 	}
 
 	
@@ -115,9 +116,9 @@ public class Activator extends AbstractUIPlugin {
 				for(int i=0; i<codeset.size(); i++) {
 					logger.debug(TaskRecommender.queries.get(i) + "\n");
 					if(codeset.get(i) != null) {
-						IMCompiler compiler = new IMCompiler("class Main {\npublic static void main(String[] args){", "\nreturn; }\n}", o, n, l);
+						IMCompiler compiler = new IMCompiler(o, n, l);
 						compiler.errorKinds.clear();
-						compiler.getLeastCompilerErrorSnippet(codeset.get(i));
+						compiler.getLeastCompilerErrorSnippet(codeset.get(i), "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
 						errors += compiler.totalErrors;
 						errorFree += compiler.errorFree;
 						lines += compiler.finalLines;
@@ -165,9 +166,9 @@ public class Activator extends AbstractUIPlugin {
 			for(int i=0; i<codeset.size(); i++) {
 				logger.debug(TaskRecommender.queries.get(i) + "\n");
 				if(codeset.get(i) != null) {
-					IMCompiler compiler = new IMCompiler("class Main {\npublic static void main(String[] args){", "\nreturn; }\n}", false, false, false);
+					IMCompiler compiler = new IMCompiler(false, false, false);
 					compiler.errorKinds.clear();
-					compiler.getLeastCompilerErrorSnippet(codeset.get(i));
+					compiler.getLeastCompilerErrorSnippet(codeset.get(i), "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
 					errors += compiler.totalErrors;
 					errorFree += compiler.errorFree;
 					lines += compiler.finalLines;

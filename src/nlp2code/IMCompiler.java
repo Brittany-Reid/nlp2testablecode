@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
@@ -45,31 +46,29 @@ class IMCompiler{
 	public Integer totalErrors;
 	private JavaCompiler compiler;
 	private List<String> options;
-	private JavaFileManager fileManager;
+	public JavaFileManager fileManager;
 	public static String before;
 	public String after;
-	private String fullName = "Main";
-	private DiagnosticCollector<JavaFileObject> diagnostics;
+	public String fullName = "Main";
+	public DiagnosticCollector<JavaFileObject> diagnostics;
 	/*holds information about errors for this task*/
 	public HashMap<String, Integer> errorKinds = new HashMap<String, Integer>();
 	public HashMap<String, Integer> snippetsAffected = new HashMap<String, Integer>();
 	public ArrayList<Integer> lineArray = new ArrayList<Integer>();
-	private Boolean evaluating = false;
+	public Boolean evaluating = false;
 	public Integer errorFree = 0;
 	public Integer finalLines;
 	public Boolean o, n, l, f;
 	public String temp;
 	
 	/*Constructor, setup compiler*/
-	public IMCompiler(String b, String a, Boolean order, Boolean neutrality, Boolean loop){
+	public IMCompiler(Boolean order, Boolean neutrality, Boolean loop){
 		logger = Activator.getLogger();
 		compiler = new EclipseCompiler();
 		options = null;
 //		compiler = ToolProvider.getSystemJavaCompiler();
 //		options = Arrays.asList("-Xlint");
 		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
-		before = b;
-		after = a;
 		totalErrors = 0;
 		
 		//options
@@ -80,7 +79,7 @@ class IMCompiler{
 	}
 	
 	/*Returns snippet with least compiler errors*/
-	public Vector<String> getLeastCompilerErrorSnippet(Vector<String> snippets) {
+	public Vector<String> getLeastCompilerErrorSnippet(Vector<String> snippets, String b, String a) {
 		Vector<String> snippet = new Vector<String>();
 		totalErrors = 0;
 		Integer errorCount, errorCount2;
@@ -89,6 +88,9 @@ class IMCompiler{
 		finalLines = 0;
 		Integer lines = 0;
 		lineArray.clear();
+		
+		before = b;
+		after = a;
 		
 		//for each snippet
 		for(String s : snippets) {
@@ -101,10 +103,10 @@ class IMCompiler{
 			//s = modify(s);
 			
 			//count compiler errors
-			errorCount = compile(s);
+			errorCount = compile(before+s+after);
 			if(errorCount == 0) {
-				System.out.println("----");
-				System.out.print(s);
+//				System.out.println("----");
+//				System.out.print(s);
 				errorFree++;
 				lines = s.split("\n").length;
 				finalLines += lines;
@@ -145,7 +147,7 @@ class IMCompiler{
 		diagnostics = new DiagnosticCollector<JavaFileObject>();
 		
 		//create file from string
-		JavaFileObject file = new JavaSourceFromString("Main", before+code+after);
+		JavaFileObject file = new JavaSourceFromString("Main", code);
 		//add to compilation units
 		Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file);
 		
@@ -352,23 +354,17 @@ class IMCompiler{
 	}
 	
 	/*Runs compiled code
-	 * UNTESTED, DO NOT RUN OUTSIDE VM
+	 * UNTESTED, DO NOT RUN OUTSIDE VM */
 	public void run() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         try {
-            fileManager
-                    .getClassLoader(null)
-                    .loadClass(fullName)
-                    .getDeclaredMethod("main", new Class[]{String[].class})
-                    .invoke(null, new Object[]{null});
-        } catch (InvocationTargetException e) {
-            System.out.print("InvocationTargetException");
-            //logger.error("InvocationTargetException:", e);
-        } catch (NoSuchMethodException e) {
-            System.out.print("NoSuchMethodException ");
-            //logger.error("NoSuchMethodException:", e);
+        	Method method = fileManager.getClassLoader(null).loadClass(fullName).getDeclaredMethod("test", new Class[] {});
+        	method.setAccessible(true);
+        	String result = (String) method.invoke(null);
+        } catch(Exception e) {
+        	e.printStackTrace();
         }
-    }
-    */
+		
+	}
 }
 
 	
