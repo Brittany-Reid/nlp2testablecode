@@ -3,10 +3,19 @@ package nlp2code;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import javax.tools.Diagnostic;
 import javax.tools.JavaFileManager;
+
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.Statement;
 
 /* Class Tester
  * Handles Testing of code snippets through public function test
@@ -23,17 +32,33 @@ class Tester{
 	/*	Function to test a snippet
 	 *  Returns the number of passed tests. */
 	public static Integer test(String s, String b, String a, List<String> argumentTypes, String returnType) {
+		
+		JavaParser parser = new JavaParser();
+		ParseResult<BlockStmt> result = parser.parseBlock("{" + "Integer i = 0;" + "}");
+		BlockStmt block = result.getResult().get();
+		List<Statement> statements = block.getStatements();
+		System.out.println(statements.get(0).isReturnStmt());
+		if(statements.get(0).asExpressionStmt().getExpression() instanceof VariableDeclarationExpr) {System.out.println(1); }
+		
+		
 		//set code fragments
 		snippet = s;
 		before = b;
 		after = a;
 		
+		//System.out.print(snippet);
+		//System.out.println("----");
+		
 		//construct a test function
 		String test = constructFunction(returnType, argumentTypes);
 		//cannot construct function
-		if(test == null) return 0;
+		if(test == null) {
+			System.out.println("Can't construct test function.");
+			return 0;
+		}
 		
 		System.out.print(test);
+		
 		
 		//construct file
 		String code = constructFile(test);
@@ -391,6 +416,14 @@ class Tester{
 		
 		//if a declaration
 		name = parseName(current, type);
+		if(name == null) {
+			//check for alternative
+			//integer = int
+			if(type.equals("Integer")) {
+				type = "int";
+				name = parseName(current, type);
+			}
+		}
 		if(name != null) {
 			returnLine = line + "\n";
 			returnLine += "return " + name + ";";
@@ -401,7 +434,7 @@ class Tester{
 			//get the name
 			name = current.substring(0, current.indexOf("="));
 			returnLine = line + "\n";
-			returnLine += "return " + name;
+			returnLine += "return " + name + ";";
 			return returnLine;
 		}
 		

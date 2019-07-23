@@ -42,6 +42,7 @@ Bundle-ClassPath: .,
  lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-sources.jar,
  lib/stanford-corenlp-full-2018-10-05/xom-1.2.10-src.jar,
  lib/stanford-corenlp-full-2018-10-05/xom.jar,
+ lib/javaparser-core-3.14.8.jar,
  lib/ecj.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy

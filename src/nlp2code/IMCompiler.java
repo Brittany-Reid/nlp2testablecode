@@ -244,7 +244,7 @@ class IMCompiler{
 		temp = "";
 		
 		if(f == true) {
-			finalSnippet = Fixer.fix(code, diagnostics);
+			finalSnippet = Fixer.fix(code, diagnostics, before);
 			errors = compile(finalSnippet);
 			if(errors == 0) {
 				evaluating = false;

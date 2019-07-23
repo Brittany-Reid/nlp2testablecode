@@ -142,29 +142,31 @@ public class QueryDocListener implements IDocumentListener {
 	      		String before = document.get(0,l_offset);
 	      		String after = document.get(l_offset+l_length, document.getLength()-(l_offset+l_length));
 	      		
-	      		//get snippet with least compiler errors
-	            IMCompiler compiler = new IMCompiler(false, false, false);
-	            fixed_code = compiler.getLeastCompilerErrorSnippet(fixed_code, before, after);
-	            
-	            System.out.println(line);
-	            
-	            //test this one task in particular
-	            if(line == "convert string to integer") {
-	            	Vector<String> passed = new Vector<String>();
-		    		List<String> argumentTypes = new ArrayList<String>();
-		    		argumentTypes.add("String");
-//		    		String snip = "String in = \"1\";\nInteger out = Integer.parseInt(in);\n";
-//		    		Tester.test(snip, before, after, argumentTypes, "Integer");
-		    		for(int i=0; i<fixed_code.size(); i++) {
-		    			Integer passNum = Tester.test(fixed_code.get(i), before, after, argumentTypes, "Integer");
-		    			if(passNum > 0) {
-		    				passed.add(fixed_code.get(i));
-		    			}
-		    		}
-		    		
-		    		fixed_code = passed;
-	            }
-	            
+	      		fixed_code = Evaluator.evaluate(fixed_code, before, after);
+	      		
+	      		
+//	      		//get snippet with least compiler errors
+//	            IMCompiler compiler = new IMCompiler(false, false, false);
+//	            fixed_code = compiler.getLeastCompilerErrorSnippet(fixed_code, before, after);
+//	            
+//	            //test this one task in particular
+//	            if(line.equals("convert string to integer")) {
+//	            	
+//	            	Vector<String> passed = new Vector<String>();
+//		    		List<String> argumentTypes = new ArrayList<String>();
+//		    		argumentTypes.add("String");
+////		    		String snip = "String in = \"1\";\nInteger out = Integer.parseInt(in);\n";
+////		    		Tester.test(snip, before, after, argumentTypes, "Integer");
+//		    		for(int i=0; i<fixed_code.size(); i++) {
+//		    			Integer passNum = Tester.test(fixed_code.get(i), before, after, argumentTypes, "Integer");
+//		    			if(passNum > 0) {
+//		    				passed.add(fixed_code.get(i));
+//		    			}
+//		    		}
+//		    		
+//		    		fixed_code = passed;
+//	            }
+//	            if(fixed_code.isEmpty()) return -1;
 	            String replacement_text = fixed_code.get(0);
 	      		
 	      		// To ensure the Document doesnt COMPLETELY BREAK when inserting a code snippet, queue the insertion for when the document is inactive.

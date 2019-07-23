@@ -15,12 +15,12 @@ class Fixer{
 	/* Code fix function
 	 * Reads passed diagnostic collector, and uses information within to fix errors.
 	*/
-	public static String fix(String code, DiagnosticCollector<JavaFileObject> diagnostics) {
+	public static String fix(String code, DiagnosticCollector<JavaFileObject> diagnostics, String before) {
 		String fixed = code;
 		String[] lines;
 		
 		//get number of lines before
-		beforeLines = IMCompiler.before.split("\n", -1).length -1;
+		beforeLines = before.split("\n", -1).length -1;
 		
 		
 		for(Diagnostic<?extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
