@@ -15,6 +15,8 @@ class Evaluator{
 	static Logger logger = Activator.getLogger();
 	static private IMCompiler compiler;
 	static public Integer errorFree = 0;
+	static String testOutput;
+	static List<String> testInput;
 	
 	/* Returns an ordered vector of snippets
 	 * Based on evaluation metrics. */
@@ -29,11 +31,13 @@ class Evaluator{
 		compilerErrors = getCompilerErrors(snippets, before, after);
 		
 		//get passing test cases
-		if(InputHandler.previous_query.equals("convert string to integer")) {
-			passedTests = getPassedTests(compilerErrors);
+		if(QueryDocListener.testInput != null && QueryDocListener.testInput.size() >= 4) {
+			if(InputHandler.previous_query.equals("convert string to integer")) {
+				passedTests = getPassedTests(compilerErrors);
+			}
 		}
 		else {
-			System.out.println("Cannot generate test cases for this task.");
+			//System.out.println("Cannot generate test cases for this task.");
 		}
 		
 		//we need a final for our anon class
@@ -91,14 +95,29 @@ class Evaluator{
 	private static HashMap<String, Integer> getPassedTests(HashMap<String, Integer> snippets){
 		HashMap<String, Integer> passed = new HashMap<String, Integer>();
 		List<String> argumentTypes = new ArrayList<String>();
-		argumentTypes.add("String");
+		testInput = new ArrayList<String>();
+		String returnType;
+		
+		//get arguments
+		for(int i=0; i<QueryDocListener.testInput.size()-2; i++) {
+			if(i % 2 == 0) {
+				argumentTypes.add(QueryDocListener.testInput.get(i));
+			}
+			else {
+				testInput.add(QueryDocListener.testInput.get(i));
+			}
+		}
+		
+		//get return type
+		returnType = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-2);
+		testOutput = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-1);
 		
 		for(String s : snippets.keySet()) {
 			Integer passCount = 0;
 			
 			//if we had no compiler error, try testing
 			if(snippets.get(s) == 0) {
-				passCount = Tester.test(s, compiler.before, compiler.after, argumentTypes, "Integer");
+				passCount = Tester.test(s, compiler.before, compiler.after, argumentTypes, returnType);
 			}
 			
 			//add to pass hashmap

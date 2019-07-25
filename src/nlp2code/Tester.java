@@ -3,19 +3,29 @@ package nlp2code;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.Optional;
 
+import javax.tools.Diagnostic;
 import javax.tools.JavaFileManager;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier.Keyword;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.type.Type;
 
 /* Class Tester
  * Handles Testing of code snippets through public function test
@@ -28,26 +38,23 @@ class Tester{
 	private static String className;
 	private static String functionName;
 	private static IMCompiler compiler;
+	private static JavaParser parser;
+	private static ParseResult<BlockStmt> result;
 	
 	/*	Function to test a snippet
 	 *  Returns the number of passed tests. */
 	public static Integer test(String s, String b, String a, List<String> argumentTypes, String returnType) {
 		
-		JavaParser parser = new JavaParser();
-		ParseResult<BlockStmt> result = parser.parseBlock("{" + "Integer i = 0;" + "}");
-		BlockStmt block = result.getResult().get();
-		List<Statement> statements = block.getStatements();
-		System.out.println(statements.get(0).isReturnStmt());
-		if(statements.get(0).asExpressionStmt().getExpression() instanceof VariableDeclarationExpr) {System.out.println(1); }
-		
-		
+		//parse our snippet
+		parser = new JavaParser();
+		//s = "String s = \"1\";\n String b = \"2\";\n Integer i = 0;\n i = Integer.parseInt(s);\n System.out.print(i);\n";
+		result = parser.parseBlock("{" + s + "}");
+	
+	
 		//set code fragments
 		snippet = s;
 		before = b;
 		after = a;
-		
-		//System.out.print(snippet);
-		//System.out.println("----");
 		
 		//construct a test function
 		String test = constructFunction(returnType, argumentTypes);
@@ -57,7 +64,7 @@ class Tester{
 			return 0;
 		}
 		
-		System.out.print(test);
+		System.out.println(test);
 		
 		
 		//construct file
@@ -74,11 +81,12 @@ class Tester{
 		
 //		System.out.println(errors);
 //		for (Diagnostic diagnostic : compiler.diagnostics.getDiagnostics()) {
-//			System.out.print(diagnostic.getMessage(null));
+//			System.out.println(diagnostic.getMessage(null));
 //		}
 		
 		//if compilation fails, we assume some type mismatch with test and say no passes
 		if(errors != 0) {
+			System.out.println("Compilation failed, errors: " + errors);
 			return 0;
 		}
 		
@@ -87,9 +95,14 @@ class Tester{
 		
 	}
 	
+	/* 
+	 * Function run
+	 *   Runs our test case.
+	 */
 	private static Integer run() {
 		Integer passed = 0;
 		Class[] cArgs = new Class[1];
+		String[] args = Evaluator.testInput.toArray(new String[0]);
 		cArgs[0] = String.class;
 		
 		//get method
@@ -97,9 +110,9 @@ class Tester{
 		try {
 			Method method = fm.getClassLoader(null).loadClass(compiler.fullName).getDeclaredMethod(functionName, cArgs);
 			method.setAccessible(true);
-			Integer result = (Integer) method.invoke(null, "1");
-			System.out.print(result);
-			if(result == 1) {
+			Integer result = (Integer) method.invoke(null, Evaluator.testInput.get(0));
+			//System.out.println(result);
+			if(result == Integer.parseInt(Evaluator.testOutput)) {
 				return 1;
 			}
 			
@@ -110,15 +123,35 @@ class Tester{
 		return passed;
 	}
 	
-	/* Constructs a function for testing */
+	
+	/* 
+	 * Function constructFunction
+	 *   Constructs a function for testing 
+	 */
 	private static String constructFunction(String returnType, List<String> argumentTypes) {
 		List<String> arguments;
+		
+		JavaParser fileParser = new JavaParser();
+		ParseResult<CompilationUnit> fileResult = fileParser.parse(before+after);
+		CompilationUnit cu = fileResult.getResult().get();
+		for (Node childNode : cu.getChildNodes()) {
+			if(childNode instanceof ClassOrInterfaceDeclaration) {
+				ClassOrInterfaceDeclaration c = (ClassOrInterfaceDeclaration) childNode;
+				className = c.getNameAsString();
+			}
+		}
+		
 		String test = "";
 		
 		//get arguments
 		arguments = getArguments(argumentTypes);
 		//if we couldn't find all arguments, fail
 		if(arguments == null) return null;
+		
+		//get return
+		Integer e = addReturn(returnType);
+		//couldn't find return, fail
+		if(e != 0) return null;
 		
 		//construct signature
 		//for now use test but to avoid conflicts check if free
@@ -130,16 +163,11 @@ class Tester{
 			test += " ";
 			test += arguments.get(i);
 		}
-		test += "){\n";
+		test += ")\n";
 		
-		//construct contents
-		addReturn(returnType);
-		//if we couldnt add a return, fail
-		if(snippet == null) return null;
 		
-		test += snippet;
-		
-		test += "}\n";
+		//add contents from parser
+		test += result.getResult().get().toString();
 		
 		return test;
 	}
@@ -147,6 +175,10 @@ class Tester{
 	
 	/* Builds the class file from before, after and the test function */
 	private static String constructFile(String test) {
+		
+		
+		
+		
 		String code = "";
 		
 		//get the current file
@@ -195,257 +227,148 @@ class Tester{
 		return pos;
 	}
 	
-	/*Given a list of argument types, find arguments from snippet
-	 * Return null if fails */
+	/*
+	 * Function getArguments
+	 *   Parse snippet to find arguments. Return null if this fails.
+	 *  
+	 *   Currently, number of arguments and their types are supplied.
+	 *   We work from the assumption that a snippet declares important variables first.
+	 */
 	private static List<String> getArguments(List<String> argumentTypes) {
 		List<String> arguments = new ArrayList<String>();
-		String[] lines = snippet.split("\n");
 		
-		//for each argument type
-		for(String t : argumentTypes) {
-			//run through snippet 
-			for(int i=0; i<lines.length; i++) {
-				String name = parseName(lines[i], t);
-				//if returns a name, valid
-				if(name != null) {
-					//set line to null so no repeats
-					lines[i] = null;
-					arguments.add(name);
-					//stop searching
-					break;
+		//for each argument
+		for(int i = 0; i<argumentTypes.size(); i++) {
+			VariableDeclarator toRemove = null;
+			Statement toRemoveS = null;
+			Boolean toBreak = false;
+			
+			//for each statement
+			List<Statement> statements = result.getResult().get().getStatements();
+			for(Statement statement : statements) {
+				//is our statement an expression
+				if(statement.isExpressionStmt()) {
+					Expression expression = statement.asExpressionStmt().getExpression();
+					//is our expression a variable declaration?
+					if(expression.isVariableDeclarationExpr()) {
+						//get variables from declaration
+						List<VariableDeclarator> vars = ((VariableDeclarationExpr) expression).getVariables();
+						//go through all variables
+						for(VariableDeclarator v : vars) {
+							if(v.getType().toString().equals(argumentTypes.get(i))) {
+								//add variable to arguments list
+								arguments.add(v.getNameAsString());
+								
+								//remove to avoid recounting
+								if(vars.size() > 1) toRemove = v;
+								else toRemoveS = statement;
+								
+								
+								//done for this argument type
+								toBreak = true;
+								break;
+							}
+						}
+						//break for this argument type
+						if(toBreak == true) break;
+					}
 				}
 			}
+			
+			if(toRemove != null) toRemove.remove();
+			if(toRemoveS != null) toRemoveS.remove();
 		}
 		
-		//reconstruct snippet without parameters
-		snippet = "";
-		for(String l : lines) {
-			if(l != null) {
-				snippet += l + "\n";
-			}
+		//each argument type must have a corresponding argument
+		if(arguments.size() != argumentTypes.size()) {
+			return null;
 		}
-		
-		//if we couldnt find all arguments, fail
-		if(arguments.size() != argumentTypes.size()) return null;
 		
 		return arguments;
 	}
 	
-	/*Parses a line to find name of variable if declaration of type type*/
-	private static String parseName(String line, String type) {
-		String name = null;
-		Integer start, end;
-		String currentName;
+	/* 
+	 * Function addReturn
+	 * 	 Searches for last statements to find a valid return.
+	 * 	 Returns 0 on success.
+	 */
+	private static Integer addReturn(String type) {
+		List<Statement> statements = result.getResult().get().getStatements();
 		
-		//handle comments later!!!!
-		
-		//must start with type and space
-		if(line.startsWith(type + " ")) {
-			//name must come after
-			start = 0 + (type + " ").length();
-			currentName = line.substring(start);
-			//if contains an equals
-			if(currentName.contains("=")) {
-				//chop off anything at this point
-				currentName = currentName.substring(0, currentName.indexOf("="));
-			}
-			//remove any spaces or semicolons
-			currentName = currentName.replace(" ", "");
-			currentName = currentName.replace(";", "");
-			name = currentName;
-		}
-		
-		return name;
-	}
-	
-	private static Boolean isDeclaration(String line, String type) {
-		char current = ' ';
-		char previous;
-		String token = "";
-		Integer num = 0;
-		
-		//states
-		Boolean quotes = false;
-		Boolean dQuotes = false;
-		Boolean comment = false;
-		Boolean trailingComment = false;
-		
-		for(int i=0; i<line.length(); i++) {
-			previous = current;
-			current = line.charAt(i);
+		//travel up looking for a return statement
+		for(int i = statements.size()-1; i>=0; i--) {
+			Statement statement = statements.get(i);
 			
-			//if non-canceled quote, toggle state
-			if(current == '\'' && previous != '\\') {
-				if(quotes == false) quotes = true;
-				else if(quotes == true) quotes = false;
-			}
-			
-			//if non-canceled double quote, toggle state
-			if(current == '\"' && previous != '\\') {
-				if(dQuotes == false) dQuotes = true;
-				else if(dQuotes == true) dQuotes = false;
-			}
-			
-			//if comment toggle state
-			if(quotes == false && dQuotes == false) {
-				if(current == '*' && previous == '/') {
-					comment = true;
-				}
+			//is statement an expression?
+			if(statement.isExpressionStmt()) {
+				Expression expression = statement.asExpressionStmt().getExpression();
 				
-				if(current == '/' && previous == '*') {
-					comment = false;
-				}
-				
-				//if trailing comment, no toggle
-				if(comment == false) {
-					if(current == '/' && previous == '/') {
-						trailingComment = true;
-						//no more important info here
-						break;
+				//1: A variable declaration
+				if(expression.isVariableDeclarationExpr()) {
+					List<VariableDeclarator> vars = expression.asVariableDeclarationExpr().getVariables();
+					//go through list 
+					for(int j=vars.size()-1; j>=0; j--) {
+						//if matches our type
+						if(vars.get(j).getTypeAsString().equals(type)){
+							//append a return statement
+							ReturnStmt returnStmt = new ReturnStmt((Expression)new NameExpr(vars.get(j).getName()));
+							result.getResult().get().addStatement(returnStmt);
+							
+							return 0;
+						}
 					}
 				}
-			}
-			
-			//if outside these states
-			if(quotes == false && comment == false && dQuotes == false) {
-				//add to token until we find a whitespace
-				if(!Character.isWhitespace(current) && current != ';' && current != '=') {
-					token += current;
+				
+				//2: an assignment
+				if(expression.isAssignExpr()) {
+					AssignExpr assign = expression.asAssignExpr();
+					
+					//construct our return statement from target
+					ReturnStmt returnStmt = new ReturnStmt(assign.getTarget());
+					result.getResult().get().addStatement(returnStmt);
+					
+					return 0;
 				}
-				//found first whitespace
-				else if(Character.isWhitespace(current) && !Character.isWhitespace(previous)) {
-					//if we have a token
-					if(token != "") {
-						//if first token, check type
-						if(num == 0) {
-							if(token == type) {
-								return true;
+				
+				//3: a method
+				if(expression.isMethodCallExpr()) {
+					MethodCallExpr methodCall = expression.asMethodCallExpr();
+					
+					//3.1 print statement, get argument
+					if(methodCall.getScope().isPresent()) {
+						if(methodCall.getScope().get().toString().equals("System.out")) {
+							if(methodCall.getNameAsString().equals("print") || methodCall.getNameAsString().equals("println")) {
+								
+								//check if an argument exists
+								if(!methodCall.getArguments().isEmpty()) {
+									//construct return statement using
+									ReturnStmt returnStmt = new ReturnStmt(methodCall.getArgument(0));
+									//append
+									result.getResult().get().addStatement(returnStmt);
+									return 0;
+								}
 							}
 						}
+					}
+					
+					//3.2 other methods, append return
+					else {
+						//construct return statement
+						ReturnStmt returnStmt = new ReturnStmt(expression);
 						
+						//remove the call
+						statement.remove();
 						
-						//reset token
-						token = "";
-						num++;
+						//append the return
+						result.getResult().get().addStatement(returnStmt);
+						return 0;
 					}
 				}
 			}
-			
-			
-			
-			
 		}
 		
-		return false;
+		//if we never found a valid return
+		return -1;
 	}
-	
-	/* Adds a return statement to the snippet
-	 * Bottom-up search for first valid candidate 
-	 * Return type for tests is specified but if snippet ends with function
-	 * not assignment, we cannot verify the function return type.
-	 * Until compile? Could use an error message to inform the return type changes
-	 * Quickfix could help? */
-	private static void addReturn(String type) {
-		String[] lines = snippet.split("\n");
-		Boolean found = false;
-		
-		//bottom up search
-		for(int i=lines.length-1; i>=0; i--) {
-			String current = lines[i];
-			//check if line is valid for return
-			String returnLine = parseReturn(current, type);
-			if(returnLine != null) {
-				//replace line
-				lines[i] = returnLine;
-				found = true;
-				break;
-			}
-		}
-		
-		//if we never found a valid return, set snippet to null and end
-		if(found == false) {
-			snippet = null;
-			return;
-		}
-		
-		//reconstruct snippet with changes
-		snippet = "";
-		for(String l : lines) {
-			if(l != null) {
-				snippet += l + "\n";
-			}
-		}
-	}
-	
-	/* Parses a line to determine if it could be a valid return
-	 * Returns the line formatted as a return if true.
-	 * If false, returns null. */
-	private static String parseReturn(String line, String type) {
-		String returnLine = null;
-		String verify;
-		String current = "";
-		String name;
-		String whitespace = "";
-		char previous;
-		char c = ' ';
-		
-		//trim whitespace
-		line.trim();
-		
-		
-		
-		//find leading whitespace
-		for(int i=0; i<line.length(); i++) {
-			previous = c;
-			c = line.charAt(i);
-			
-			//check for non-whitespace
-			if(c != ' ' && c != '\t') {
-				break;
-			}
-			else {
-				whitespace += c;
-			}
-		}
-		
-		//chop off
-		current = line.substring(whitespace.length(), line.length());
-		
-		//check if // comment
-		if(current.startsWith("//")) return null;
-		
-		//if a declaration
-		name = parseName(current, type);
-		if(name == null) {
-			//check for alternative
-			//integer = int
-			if(type.equals("Integer")) {
-				type = "int";
-				name = parseName(current, type);
-			}
-		}
-		if(name != null) {
-			returnLine = line + "\n";
-			returnLine += "return " + name + ";";
-			return returnLine;
-		}
-		
-		if(current.contains("=")) {
-			//get the name
-			name = current.substring(0, current.indexOf("="));
-			returnLine = line + "\n";
-			returnLine += "return " + name + ";";
-			return returnLine;
-		}
-		
-		//if function
-		if(current.contains("(") && current.contains(")")) {
-			returnLine = whitespace + "return " + current;
-			return returnLine;
-		}
-		
-		return returnLine;
-	}
-	
 	
 }

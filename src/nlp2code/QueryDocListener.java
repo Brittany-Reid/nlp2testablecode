@@ -27,6 +27,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class QueryDocListener implements IDocumentListener {		
 		static Logger logger = Activator.getLogger();
+		static List<String> testInput;
 		
 		/*
 		 * Function documentChanged
@@ -76,6 +77,7 @@ public class QueryDocListener implements IDocumentListener {
 		 *          String line - the text in the current line that contains the query.
 		 */
 		private static int doQuery(DocumentEvent event, String line) {
+			
 			if(Activator.first == true) {
 				Activator.first = false;
 				if(logger.isDebugEnabled()) {
@@ -94,6 +96,14 @@ public class QueryDocListener implements IDocumentListener {
 			line = line.trim();
 			// If the query is empty, do nothing.
 			if (line.length() == 0) return -1;
+			
+			String[] subsections = line.split(",");
+			line = subsections[0].trim();
+			if(subsections.length>1) testInput = new ArrayList<String>();
+			for(int i = 1; i<subsections.length; i++) {
+				testInput.add(subsections[i].trim());
+			}
+			
 			line = line.toLowerCase();
 			// If the query has symbols, do nothing.
 			if (!line.matches("[abcdefghijklmnopqrstuvwxyz ]*")) return -1;
