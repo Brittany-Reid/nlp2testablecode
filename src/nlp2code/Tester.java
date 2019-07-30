@@ -3,7 +3,6 @@ package nlp2code;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileManager;
@@ -11,6 +10,7 @@ import javax.tools.JavaFileManager;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Modifier.Keyword;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
@@ -25,7 +25,9 @@ import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.ReturnStmt;
-import com.github.javaparser.ast.type.Type;
+
+import org.junit.Test;
+import org.junit.runner.*;
 
 /* Class Tester
  * Handles Testing of code snippets through public function test
@@ -38,17 +40,17 @@ class Tester{
 	private static String className;
 	private static String functionName;
 	private static IMCompiler compiler;
-	private static JavaParser parser;
-	private static ParseResult<BlockStmt> result;
+	private static BlockStmt block;
 	
 	/*	Function to test a snippet
 	 *  Returns the number of passed tests. */
 	public static Integer test(String s, String b, String a, List<String> argumentTypes, String returnType) {
 		
 		//parse our snippet
-		parser = new JavaParser();
+		JavaParser parser = new JavaParser();
 		//s = "String s = \"1\";\n String b = \"2\";\n Integer i = 0;\n i = Integer.parseInt(s);\n System.out.print(i);\n";
-		result = parser.parseBlock("{" + s + "}");
+		ParseResult<BlockStmt> result = parser.parseBlock("{" + s + "}");
+		block = result.getResult().get();
 	
 	
 		//set code fragments
@@ -57,18 +59,17 @@ class Tester{
 		after = a;
 		
 		//construct a test function
-		String test = constructFunction(returnType, argumentTypes);
+		MethodDeclaration methodDeclaration = constructFunction(returnType, argumentTypes);
 		//cannot construct function
-		if(test == null) {
+		if(methodDeclaration == null) {
 			System.out.println("Can't construct test function.");
 			return 0;
 		}
 		
-		System.out.println(test);
-		
+		//System.out.println(test);
 		
 		//construct file
-		String code = constructFile(test);
+		String code = constructFile(methodDeclaration);
 		//cannot construct file
 		if(code == null) return 0;
 		
@@ -78,21 +79,45 @@ class Tester{
 		Integer errors = compiler.compile(code);
 		compiler.evaluating = false;
 		
-		
-//		System.out.println(errors);
-//		for (Diagnostic diagnostic : compiler.diagnostics.getDiagnostics()) {
-//			System.out.println(diagnostic.getMessage(null));
-//		}
-		
 		//if compilation fails, we assume some type mismatch with test and say no passes
 		if(errors != 0) {
 			System.out.println("Compilation failed, errors: " + errors);
+//			for (Diagnostic diagnostic : compiler.diagnostics.getDiagnostics()) {
+//				System.out.println(diagnostic.getMessage(null));
+//			}
 			return 0;
 		}
 		
 		//attempt to run tests
 		return run();
 		
+	}
+	
+	/*
+	 * Function constructJunit
+	 *   Constructs JUnit test function from our in/out pairs
+	 */
+	private static Integer constructJunit() {
+		//construct declaration
+		MethodDeclaration methodDeclaration = new MethodDeclaration();
+		methodDeclaration.setName("junittest");
+		methodDeclaration.setPublic(true);
+		methodDeclaration.setStatic(true);
+		methodDeclaration.setType("void");
+		
+		//add test
+		methodDeclaration.addAnnotation("test");
+		
+		//construct contents
+		BlockStmt blockStmt = new BlockStmt();
+		
+		MethodCallExpr method = new MethodCallExpr(null, "assertEquals");
+		blockStmt.addAndGetStatement(method);
+		
+		//add contents to method
+		methodDeclaration.setBody(blockStmt);
+		
+		return 0;
 	}
 	
 	/* 
@@ -128,21 +153,9 @@ class Tester{
 	 * Function constructFunction
 	 *   Constructs a function for testing 
 	 */
-	private static String constructFunction(String returnType, List<String> argumentTypes) {
+	private static MethodDeclaration constructFunction(String returnType, List<String> argumentTypes) {
 		List<String> arguments;
-		
-		JavaParser fileParser = new JavaParser();
-		ParseResult<CompilationUnit> fileResult = fileParser.parse(before+after);
-		CompilationUnit cu = fileResult.getResult().get();
-		for (Node childNode : cu.getChildNodes()) {
-			if(childNode instanceof ClassOrInterfaceDeclaration) {
-				ClassOrInterfaceDeclaration c = (ClassOrInterfaceDeclaration) childNode;
-				className = c.getNameAsString();
-			}
-		}
-		
-		String test = "";
-		
+
 		//get arguments
 		arguments = getArguments(argumentTypes);
 		//if we couldn't find all arguments, fail
@@ -153,78 +166,54 @@ class Tester{
 		//couldn't find return, fail
 		if(e != 0) return null;
 		
-		//construct signature
 		//for now use test but to avoid conflicts check if free
 		functionName = "test";
-		test += "public static " + returnType + " " + functionName + "(";
+		
+		//construct method declaration
+		MethodDeclaration methodDeclaration = new MethodDeclaration();
+		methodDeclaration.setName(functionName);
+		methodDeclaration.setPublic(true);
+		methodDeclaration.setStatic(true);
+		methodDeclaration.setType(returnType);
 		for(int i=0; i<arguments.size(); i++) {
-			if(i != 0) test += ", ";
-			test += argumentTypes.get(i);
-			test += " ";
-			test += arguments.get(i);
+			methodDeclaration.addParameter(argumentTypes.get(i), arguments.get(i));
 		}
-		test += ")\n";
 		
+		//add our modified block
+		methodDeclaration.setBody(block);
 		
-		//add contents from parser
-		test += result.getResult().get().toString();
-		
-		return test;
+		return methodDeclaration;
 	}
 
 	
-	/* Builds the class file from before, after and the test function */
-	private static String constructFile(String test) {
+	/* 
+	 * Function constructFile
+	 *   Builds a new file including test function.
+	 */
+	private static String constructFile(MethodDeclaration methodDeclaration) {
 		
-		
-		
-		
-		String code = "";
-		
-		//get the current file
-		code = before + after;
-		
-		String[] lines = code.split("\n");
-		Integer insertPos = findClass(lines);
-		if(insertPos == -1) return null;
-		
-		//reconstruct
-		code = "";
-		for(int i=0; i<lines.length; i++) {
-			if(i == insertPos) {
-				code += test;
-			}
-			code += lines[i] + "\n";
-		}
-		
-		return code;
-	}
-	
-	/*Finds class in source code, returns number of line after*/
-	private static Integer findClass(String[] lines) {
-		Integer pos = -1;
-		Boolean classStart = false;
-		
-		for(int i=0; i<lines.length; i++) {
-			String line = lines[i].trim();
-			if(line.startsWith("class ")) {
-				classStart = true;
-				className = line.split(" ")[1];
-				if(line.endsWith("{")) {
-					classStart = false;
-					pos = i+1;
-					return pos;
-				}
-			}
-			else if(classStart = true) {
-				if(line.endsWith("{")) {
-					pos = i+1;
-					return pos;
-				}
+		//Get class name from file
+		JavaParser fileParser = new JavaParser();
+		ParseResult<CompilationUnit> fileResult = fileParser.parse(before+after);
+		CompilationUnit cu = fileResult.getResult().get();
+		for (Node childNode : cu.getChildNodes()) {
+			if(childNode instanceof ClassOrInterfaceDeclaration) {
+				ClassOrInterfaceDeclaration c = (ClassOrInterfaceDeclaration) childNode;
+				className = c.getNameAsString();
 			}
 		}
 		
-		return pos;
+		//construct our file
+		CompilationUnit newCu = new CompilationUnit();
+		//class declaration
+		ClassOrInterfaceDeclaration newC = newCu.addClass(className).setPublic(true);
+		//add function
+		newC.getMembers().add(methodDeclaration);
+		
+		//add import for junit
+		newCu.addImport("org.junit.Assert");
+		
+		return newCu.toString();
 	}
 	
 	/*
@@ -244,7 +233,7 @@ class Tester{
 			Boolean toBreak = false;
 			
 			//for each statement
-			List<Statement> statements = result.getResult().get().getStatements();
+			List<Statement> statements = block.getStatements();
 			for(Statement statement : statements) {
 				//is our statement an expression
 				if(statement.isExpressionStmt()) {
@@ -293,7 +282,7 @@ class Tester{
 	 * 	 Returns 0 on success.
 	 */
 	private static Integer addReturn(String type) {
-		List<Statement> statements = result.getResult().get().getStatements();
+		List<Statement> statements = block.getStatements();
 		
 		//travel up looking for a return statement
 		for(int i = statements.size()-1; i>=0; i--) {
@@ -312,7 +301,7 @@ class Tester{
 						if(vars.get(j).getTypeAsString().equals(type)){
 							//append a return statement
 							ReturnStmt returnStmt = new ReturnStmt((Expression)new NameExpr(vars.get(j).getName()));
-							result.getResult().get().addStatement(returnStmt);
+							block.addStatement(returnStmt);
 							
 							return 0;
 						}
@@ -325,7 +314,7 @@ class Tester{
 					
 					//construct our return statement from target
 					ReturnStmt returnStmt = new ReturnStmt(assign.getTarget());
-					result.getResult().get().addStatement(returnStmt);
+					block.addStatement(returnStmt);
 					
 					return 0;
 				}
@@ -344,7 +333,7 @@ class Tester{
 									//construct return statement using
 									ReturnStmt returnStmt = new ReturnStmt(methodCall.getArgument(0));
 									//append
-									result.getResult().get().addStatement(returnStmt);
+									block.addStatement(returnStmt);
 									return 0;
 								}
 							}
@@ -360,7 +349,7 @@ class Tester{
 						statement.remove();
 						
 						//append the return
-						result.getResult().get().addStatement(returnStmt);
+						block.addStatement(returnStmt);
 						return 0;
 					}
 				}

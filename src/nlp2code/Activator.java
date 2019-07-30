@@ -43,7 +43,7 @@ public class Activator extends AbstractUIPlugin {
 	 *  saves the Google Custom Search engine defaults to a preferences file.
 	 */
 	public Activator() {
-		long start, end;
+		long start;
 		
 		ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());

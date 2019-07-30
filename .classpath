@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/junit-4.12.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/javaparser-core-3.14.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ecj.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/stanford-corenlp-full-2018-10-05/ejml-0.23.jar"/>

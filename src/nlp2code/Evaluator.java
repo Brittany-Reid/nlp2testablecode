@@ -17,6 +17,9 @@ class Evaluator{
 	static public Integer errorFree = 0;
 	static String testOutput;
 	static List<String> testInput;
+	static Integer passed;
+	static Integer compiled;
+	static Integer retrieved;
 	
 	/* Returns an ordered vector of snippets
 	 * Based on evaluation metrics. */
@@ -25,6 +28,9 @@ class Evaluator{
 		HashMap<String, Integer> passedTests = new HashMap<String, Integer>();
 		Vector<String> ordered;
 		List<String> sorted;
+		
+		retrieved = snippets.size();
+		
 		compiler = new IMCompiler(false, false, false);
 		
 		//compile all snippets and get their errors, modifications are made in this step
@@ -93,7 +99,7 @@ class Evaluator{
 	}
 	
 	private static HashMap<String, Integer> getPassedTests(HashMap<String, Integer> snippets){
-		HashMap<String, Integer> passed = new HashMap<String, Integer>();
+		HashMap<String, Integer> passedMap = new HashMap<String, Integer>();
 		List<String> argumentTypes = new ArrayList<String>();
 		testInput = new ArrayList<String>();
 		String returnType;
@@ -112,19 +118,27 @@ class Evaluator{
 		returnType = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-2);
 		testOutput = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-1);
 		
+		compiled = 0;
+		passed = 0;
+		
 		for(String s : snippets.keySet()) {
 			Integer passCount = 0;
 			
 			//if we had no compiler error, try testing
 			if(snippets.get(s) == 0) {
+				compiled++;
 				passCount = Tester.test(s, compiler.before, compiler.after, argumentTypes, returnType);
+				System.out.println("Passed: " + passCount);
+				if(passCount > 0) {
+					passed++;
+				}
 			}
 			
 			//add to pass hashmap
-			passed.put(s, passCount);
+			passedMap.put(s, passCount);
 		}
 		
-		return passed;
+		return passedMap;
 	}
 	
 }

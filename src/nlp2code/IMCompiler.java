@@ -10,13 +10,13 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
-
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -30,7 +30,11 @@ import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.internal.compiler.tool.EclipseCompiler;
+import org.osgi.framework.Bundle;
 
 /**
  * class IMCompiler
@@ -61,7 +65,20 @@ class IMCompiler{
 	public IMCompiler(Boolean order, Boolean neutrality, Boolean loop){
 		logger = Activator.getLogger();
 		compiler = new EclipseCompiler();
-		options = null;
+		String junitDir = "";
+		try {
+			Bundle bundle = Platform.getBundle("nlp2code");
+			Path path = new Path("lib/junit-4.12.jar");
+			URL fileURL = FileLocator.find(bundle, path, null);
+			fileURL = FileLocator.resolve(fileURL);
+			junitDir = fileURL.toString().replace("file:/", "");
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		//class path will not accept absolute directory with double quotes
+		//at C:\Users\IEUser\Desktop\
+		options = Arrays.asList("-classpath", junitDir);
 //		compiler = ToolProvider.getSystemJavaCompiler();
 //		options = Arrays.asList("-Xlint");
 		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));

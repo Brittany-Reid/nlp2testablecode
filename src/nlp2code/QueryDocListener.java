@@ -126,7 +126,10 @@ public class QueryDocListener implements IDocumentListener {
 		    	System.out.println("Error! Code vector is null!");
 		    	return 9;
 		    }
-		    if (code.size() == 0) return -1;
+		    if (code.size() == 0) {
+		    	System.out.println("Could not find snippets for task.");
+		    	return -1;
+		    }
 		    
 		    
 		    // Fix the offset of the code snippets with the offset of the query.
@@ -153,30 +156,9 @@ public class QueryDocListener implements IDocumentListener {
 	      		String after = document.get(l_offset+l_length, document.getLength()-(l_offset+l_length));
 	      		
 	      		fixed_code = Evaluator.evaluate(fixed_code, before, after);
+	      		InputHandler.previous_search = fixed_code;
 	      		
 	      		
-//	      		//get snippet with least compiler errors
-//	            IMCompiler compiler = new IMCompiler(false, false, false);
-//	            fixed_code = compiler.getLeastCompilerErrorSnippet(fixed_code, before, after);
-//	            
-//	            //test this one task in particular
-//	            if(line.equals("convert string to integer")) {
-//	            	
-//	            	Vector<String> passed = new Vector<String>();
-//		    		List<String> argumentTypes = new ArrayList<String>();
-//		    		argumentTypes.add("String");
-////		    		String snip = "String in = \"1\";\nInteger out = Integer.parseInt(in);\n";
-////		    		Tester.test(snip, before, after, argumentTypes, "Integer");
-//		    		for(int i=0; i<fixed_code.size(); i++) {
-//		    			Integer passNum = Tester.test(fixed_code.get(i), before, after, argumentTypes, "Integer");
-//		    			if(passNum > 0) {
-//		    				passed.add(fixed_code.get(i));
-//		    			}
-//		    		}
-//		    		
-//		    		fixed_code = passed;
-//	            }
-//	            if(fixed_code.isEmpty()) return -1;
 	            String replacement_text = fixed_code.get(0);
 	      		
 	      		// To ensure the Document doesnt COMPLETELY BREAK when inserting a code snippet, queue the insertion for when the document is inactive.
