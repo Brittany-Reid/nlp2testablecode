@@ -25,7 +25,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
  *   Implements the required functionality to conduct code snippet queries by listening
  *    to document changes for a user to type a query in the format: ?{query}?
  */
-public class QueryDocListener implements IDocumentListener {		
+public class QueryDocListener implements IDocumentListener {	
+		public static IEditorPart epart;
 		static Logger logger = Activator.getLogger();
 		static List<String> testInput;
 		
@@ -110,7 +111,7 @@ public class QueryDocListener implements IDocumentListener {
 			
 			// Need to retreive the offset of the query, so we know where to insert retreived code snippets into.
 			// We need the current ITextEditor and document to do this.
-			IEditorPart epart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+			epart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 			ISelectionProvider selectionProvider = ((ITextEditor)epart).getSelectionProvider();
 			if (selectionProvider.equals(null)) return -1;
 			ISelection selection = selectionProvider.getSelection();
@@ -158,8 +159,10 @@ public class QueryDocListener implements IDocumentListener {
 	      		fixed_code = Evaluator.evaluate(fixed_code, before, after);
 	      		InputHandler.previous_search = fixed_code;
 	      		
-	      		
-	            String replacement_text = fixed_code.get(0);
+	      		//get info comment
+	      		String queryComment = whitespace_before + "//Query: " + line + "\n";
+	      		String infoComment = whitespace_before + "//Retrieved: " + Evaluator.retrieved + ", Compiled: " + Evaluator.compiled + ", Passed: " + Evaluator.passed + "\n";
+	            String replacement_text = queryComment + infoComment + fixed_code.get(0);
 	      		
 	      		// To ensure the Document doesnt COMPLETELY BREAK when inserting a code snippet, queue the insertion for when the document is inactive.
 	      		Display.getDefault().asyncExec(new Runnable() 

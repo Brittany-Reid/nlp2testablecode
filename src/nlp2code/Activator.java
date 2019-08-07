@@ -20,6 +20,8 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.osgi.framework.BundleContext;
 
+import nlp2code.compiler.IMCompiler;
+
 /**
  * The activator class controls the plug-in life cycle.
  *   The Activator class is the first class to be instsantiated whenever the plugin is invoked.
@@ -116,26 +118,26 @@ public class Activator extends AbstractUIPlugin {
 				for(int i=0; i<codeset.size(); i++) {
 					logger.debug(TaskRecommender.queries.get(i) + "\n");
 					if(codeset.get(i) != null) {
-						IMCompiler compiler = new IMCompiler(o, n, l);
-						compiler.errorKinds.clear();
-						compiler.getLeastCompilerErrorSnippet(codeset.get(i), "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
-						errors += compiler.totalErrors;
-						errorFree += compiler.errorFree;
-						lines += compiler.finalLines;
-						if(!compiler.lineArray.isEmpty()) lineArray.addAll(compiler.lineArray);
-						for(String key : compiler.errorKinds.keySet()) {
-							//new entry
-							if(!errorCount.containsKey(key)) {
-								errorCount.put(key, compiler.errorKinds.get(key));
-								affected.put(key, compiler.snippetsAffected.get(key));
-							}
-							//update old
-							else {
-								Integer count = errorCount.get(key);
-								errorCount.replace(key, count+compiler.errorKinds.get(key));
-								affected.replace(key, affected.get(key)+1);
-							}
-						}
+//						IMCompiler compiler = new IMCompiler(o, n, l);
+//						compiler.errorKinds.clear();
+//						compiler.getLeastCompilerErrorSnippet(codeset.get(i), "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
+//						errors += compiler.totalErrors;
+//						errorFree += compiler.errorFree;
+//						lines += compiler.finalLines;
+//						if(!compiler.lineArray.isEmpty()) lineArray.addAll(compiler.lineArray);
+//						for(String key : compiler.errorKinds.keySet()) {
+//							//new entry
+//							if(!errorCount.containsKey(key)) {
+//								errorCount.put(key, compiler.errorKinds.get(key));
+//								affected.put(key, compiler.snippetsAffected.get(key));
+//							}
+//							//update old
+//							else {
+//								Integer count = errorCount.get(key);
+//								errorCount.replace(key, count+compiler.errorKinds.get(key));
+//								affected.replace(key, affected.get(key)+1);
+//							}
+//						}
 					}
 				}
 		
@@ -166,26 +168,26 @@ public class Activator extends AbstractUIPlugin {
 			for(int i=0; i<codeset.size(); i++) {
 				logger.debug(TaskRecommender.queries.get(i) + "\n");
 				if(codeset.get(i) != null) {
-					IMCompiler compiler = new IMCompiler(false, false, false);
-					compiler.errorKinds.clear();
-					compiler.getLeastCompilerErrorSnippet(codeset.get(i), "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
-					errors += compiler.totalErrors;
-					errorFree += compiler.errorFree;
-					lines += compiler.finalLines;
-					if(!compiler.lineArray.isEmpty()) lineArray.addAll(compiler.lineArray);
-					for(String key : compiler.errorKinds.keySet()) {
-						//new entry
-						if(!errorCount.containsKey(key)) {
-							errorCount.put(key, compiler.errorKinds.get(key));
-							affected.put(key, compiler.snippetsAffected.get(key));
-						}
-						//update old
-						else {
-							Integer count = errorCount.get(key);
-							errorCount.replace(key, count+compiler.errorKinds.get(key));
-							affected.replace(key, affected.get(key)+1);
-						}
-					}
+//					IMCompiler compiler = new IMCompiler(false, false, false);
+//					compiler.errorKinds.clear();
+//					compiler.getLeastCompilerErrorSnippet(codeset.get(i), "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
+//					errors += compiler.totalErrors;
+//					errorFree += compiler.errorFree;
+//					lines += compiler.finalLines;
+//					if(!compiler.lineArray.isEmpty()) lineArray.addAll(compiler.lineArray);
+//					for(String key : compiler.errorKinds.keySet()) {
+//						//new entry
+//						if(!errorCount.containsKey(key)) {
+//							errorCount.put(key, compiler.errorKinds.get(key));
+//							affected.put(key, compiler.snippetsAffected.get(key));
+//						}
+//						//update old
+//						else {
+//							Integer count = errorCount.get(key);
+//							errorCount.replace(key, count+compiler.errorKinds.get(key));
+//							affected.replace(key, affected.get(key)+1);
+//						}
+//					}
 				}
 			}
 			
