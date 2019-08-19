@@ -3,6 +3,10 @@ package nlp2code.tester;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
@@ -12,8 +16,12 @@ import nlp2code.QueryDocListener;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
+import com.github.javaparser.ParseStart;
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.StreamProvider;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.Node.TreeTraversal;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
@@ -25,9 +33,22 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithIdentifier;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.CatchClause;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.stmt.WhileStmt;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.types.ResolvedPrimitiveType;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.expr.SimpleName;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.IEditorPart;
@@ -50,28 +71,49 @@ public class Tester{
 	private static IMCompiler compiler;
 	private static BlockStmt block;
 	
-	/*	Function to test a snippet
-	 *  Returns the number of passed tests. */
+	/**	
+	 * Function to test a snippet
+	 * Returns the number of passed tests. 
+	 */
 	public static Integer test(String s, String b, String a, List<String> argumentTypes, String returnType) {
+		//DEBUG: test snippet
+		//s = "String s = \"1\";\nString b = \"2\" + s;\nint i = 0;\ni = Integer.parseInt(s);\nSystem.out.print(i);\nInteger.parseInt(s);\n";
 		
 		System.out.println(s);
 		
-		//parse our snippet
-		JavaParser parser = new JavaParser();
-		//DEBUG: test snippet
-		//s = "String s = \"1\";\n String b = \"2\";\n Integer i = 0;\n i = Integer.parseInt(s);\n System.out.print(i);\n";
-		ParseResult<BlockStmt> result = parser.parseBlock("{" + s + "}");
-		block = result.getResult().get();
+		
+		//set up parser with internal classes for type solver
+		ReflectionTypeSolver solver = new ReflectionTypeSolver();
+		ParserConfiguration parserConfiguration = new ParserConfiguration().setSymbolResolver( new JavaSymbolSolver(solver)); 
+		JavaParser parser = new JavaParser(parserConfiguration);
+		
+		//use a compilation unit so we can resolve, add a comment and brackets so we can find our block statement
+		CompilationUnit cu = parser.parse(b + "//snippetbracket\n{\n" + s + "}\n" + a).getResult().get();
+		AtomicReference<Node> walkedResult = new AtomicReference<>();
+		
+		//get our snippet block by walking until we find it
+		cu.walk(node -> {
+			if(node.getClass() == BlockStmt.class) {
+				if(node.getComment().isPresent()) {
+					if(node.getComment().get().getContent().equals("snippetbracket")) {
+						walkedResult.set(node);
+						return; //done
+					}
+				}
+			}
+		});
+		block = (BlockStmt) walkedResult.get();
 	
 		//set code fragments
 		before = b;
 		after = a;
 		
 		//construct a test function
-		MethodDeclaration methodDeclaration = constructFunction(returnType, argumentTypes);
+		//MethodDeclaration methodDeclaration = constructFunction(returnType, argumentTypes);
+		MethodDeclaration methodDeclaration = constructMethodDeclaration();
 		//cannot construct function
 		if(methodDeclaration == null) {
-			System.out.println("Can't construct test function.");
+			//System.out.println("Can't construct test function.");
 			return 0;
 		}
 		
@@ -108,8 +150,240 @@ public class Tester{
 		return run();
 		
 	}
+
 	
-	/*
+	/**
+	 * Constructs a method declaration, determining the arguments
+	 * and return type automatically.
+	 */
+	private static MethodDeclaration constructMethodDeclaration() {
+		String returnType = findReturn();
+		System.out.println(returnType);
+		return null;
+	}
+	
+	
+	/**Finds return type automatically*/
+	private static String findReturn() {
+		//break lambda :)
+		AtomicReference<Node> lastStatement = new AtomicReference<>();
+		AtomicReference<List<Node>> inLoops = new AtomicReference<>();
+		inLoops.set(new ArrayList<>());
+		AtomicReference<List<Node>> argumentNodes = new AtomicReference<>();
+		argumentNodes.set(new ArrayList<>());
+		AtomicReference<List<String>> arguments = new AtomicReference<>();
+		arguments.set(new ArrayList<>());
+		AtomicReference<Node> lastVar = new AtomicReference<>();
+		AtomicReference<String> returnType = new AtomicReference<>();
+		String returnString = "void";
+		//get a list of statements
+		List<Statement> statements = block.getStatements();
+		List<Node> nodes = block.getChildNodes();
+		
+		//walk all nodes within block
+		block.walk(TreeTraversal.PREORDER, node -> {
+			List<Node> currentArgs = argumentNodes.get();
+			List<String> args = arguments.get();
+			//get the class of current node
+			Class<? extends Node> nodeClass = node.getClass();
+			
+			//exclude loop vars
+			if(nodeClass == WhileStmt.class) {
+				WhileStmt w = (WhileStmt) node;
+				Expression condition = w.getCondition();
+				condition.walk(node2 ->{
+					if(node2.getClass() == SimpleName.class) {
+						List<Node> loop = inLoops.get();
+						loop.add(node2);
+						inLoops.set(loop);
+					}
+				});
+			}
+			
+			//look at the statement level for 
+			if(node.getParentNode().isPresent() && node.getParentNode().get().getClass() == ExpressionStmt.class) {
+				//variable declarations
+				if(nodeClass == VariableDeclarationExpr.class) {
+					lastStatement.set(node);
+					VariableDeclarationExpr declaration = (VariableDeclarationExpr) node;
+					for(VariableDeclarator v : declaration.getVariables()) {
+						//arguments should be some var that has a value
+						Expression init;
+						if(v.getInitializer().isPresent()) {
+							init = v.getInitializer().get();
+						}
+						else {
+							continue;
+						}
+						Boolean independant = true;
+						AtomicReference<Boolean> inde = new AtomicReference<>();
+						inde.set(true);
+						if(init != null) {
+							if(init.isNameExpr()) {
+								independant = false;
+							}
+							init.walk(node2 -> {
+					            if(node2.getClass() == NameExpr.class) {
+					            	inde.set(false);
+					            }
+					        });
+							
+							independant = inde.get();
+							if(independant == true) {
+								currentArgs.add(v);
+								args.add(v.getTypeAsString());
+							}
+						}
+					}
+				}
+				
+				//method declarations
+				if(nodeClass == MethodCallExpr.class) {
+					lastStatement.set(node);
+				}
+				
+				//assignments
+				if(nodeClass == AssignExpr.class) {
+					lastStatement.set(node);
+				}
+				
+				//add any arguments to our argument set
+				argumentNodes.set(currentArgs);
+				arguments.set(args);
+			}
+        });
+		
+		Node returnNode = lastStatement.get();
+		Class<? extends Node> nodeClass = returnNode.getClass();
+		if(nodeClass == VariableDeclarationExpr.class) {
+			VariableDeclarator var = ((VariableDeclarationExpr)returnNode).getVariable(0);
+			returnString = var.getTypeAsString();
+		}
+		else if(nodeClass == AssignExpr.class) {
+			Expression target = ((AssignExpr)returnNode).getTarget();
+			try {
+				returnString = target.calculateResolvedType().toString();
+			}catch(Exception e) {
+				returnString = null;
+			}
+		}
+		else if(nodeClass == MethodCallExpr.class) {
+			MethodCallExpr methodCall = ((MethodCallExpr)returnNode);
+			//if we have a system out we can accept a really common case
+			if(methodCall.getScope().isPresent() && methodCall.getScope().get().toString().equals("System.out")) {
+				if(methodCall.getNameAsString().equals("print") || methodCall.getNameAsString().equals("println")) {
+					ResolvedType type  = methodCall.getArgument(0).calculateResolvedType();
+					returnString = processResolvedType(type);
+				}
+			}
+			//otherwise, try to get return type
+			else {
+				try {
+					//resolve method
+					ResolvedMethodDeclaration methodDeclaration = methodCall.resolve();
+					methodDeclaration.getQualifiedSignature();
+					ResolvedType type = methodDeclaration.getReturnType();
+					returnString = processResolvedType(type);
+				}catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		//search bottom up for acceptable candidate
+//		for(int i=nodes.size()-1; i>=0; i--) {
+//			Node node = nodes.get(i);
+//			System.out.println(i);
+//			System.out.println(node);
+			
+//			Statement statement = statements.get(i);
+//			Node node = nodes.get(i);
+//			System.out.println(nodes.get(i).toString());
+//			
+//			
+//			
+//			if(statement.isExpressionStmt()) {
+//				Expression expression = statement.asExpressionStmt().getExpression();
+//				
+//				//check if expression is a variable declaration
+//				VariableDeclarator var = processVariableDeclaration(expression);
+//				if(var != null) { 
+//					return var.getTypeAsString();
+//				}
+//				
+//				//an assignment
+//				Expression target = processAssignment(expression);
+//				if(target != null) {
+//					try {
+//						target.calculateResolvedType().toString();
+//					} catch (IllegalStateException e) {
+//						continue;
+//					}
+//				}
+//				
+//				//a method
+//				else if(expression.isMethodCallExpr()) {
+//					MethodCallExpr methodCall = expression.asMethodCallExpr();
+//					
+//					//derive return from print statement
+//					if(methodCall.getScope().isPresent() && methodCall.getScope().get().toString().equals("System.out")) {
+//						if(methodCall.getNameAsString().equals("print") || methodCall.getNameAsString().equals("println")) {
+//							
+//							//check if an argument exists
+//							if(!methodCall.getArguments().isEmpty()) {
+//								try {
+//									return null;
+//									//return methodCall.getTypeArguments().get().get(0).toString();
+//								}
+//								catch(Exception e) {
+//									e.printStackTrace();
+//								}
+//							}
+//						}
+//					}
+//					return null;
+//					//return methodCall.calculateResolvedType().toString();
+//				}
+//			}
+		
+//		}
+		
+		//print our arguments for now
+		String argumentString = "Argument types: ";
+		for(int i=0; i<arguments.get().size(); i++) {
+			argumentString += arguments.get().get(i) + " ";
+		}
+		System.out.println(argumentString);
+		
+		//found none
+		return "Return type: " + returnString;
+	}
+	
+	
+	/**
+	 * Returns the String type of a ResolvedType Object.
+	 */
+	private static String processResolvedType(ResolvedType resolvedType) {
+		String type = null;
+		
+		if(resolvedType.isReferenceType()) {
+			ResolvedReferenceType reference = resolvedType.asReferenceType();
+			//attempt to get the class name
+			String[] segments = reference.getQualifiedName().split(".");
+			if(segments.length > 0) 
+				type = segments[segments.length-1];
+			else
+				type = reference.getQualifiedName();
+		}
+		else if(resolvedType.isPrimitive()) {
+			ResolvedPrimitiveType prim = resolvedType.asPrimitive();
+			type = prim.describe();
+		}
+		
+		return type;
+	}
+	
+	/**
 	 * Function constructJunit
 	 *   Constructs JUnit test function from our in/out pairs
 	 */
@@ -155,7 +429,7 @@ public class Tester{
 		return methodDeclaration;
 	}
 	
-	/* 
+	/** 
 	 * Function run
 	 *   Runs our test case.
 	 */
@@ -173,11 +447,12 @@ public class Tester{
 		UnitTestResultSet unitTestResultSet = testRunner.runTests(classLoader.getCompiled(className));
 		passed = unitTestResultSet.getSuccessful();
 		
+		
 		return passed;
 	}
 	
 	
-	/* 
+	/** 
 	 * Function constructFunction
 	 *   Constructs a function for testing with supplied return and argument types.
 	 */
@@ -248,7 +523,7 @@ public class Tester{
 		return newCu.toString();
 	}
 	
-	/*
+	/**
 	 * Function getArguments
 	 *   Parse snippet to find arguments. Return null if this fails.
 	 *  
@@ -377,18 +652,16 @@ public class Tester{
 					MethodCallExpr methodCall = expression.asMethodCallExpr();
 					
 					//3.1 print statement, get argument
-					if(methodCall.getScope().isPresent()) {
-						if(methodCall.getScope().get().toString().equals("System.out")) {
-							if(methodCall.getNameAsString().equals("print") || methodCall.getNameAsString().equals("println")) {
-								
-								//check if an argument exists
-								if(!methodCall.getArguments().isEmpty()) {
-									//construct return statement using
-									ReturnStmt returnStmt = new ReturnStmt(methodCall.getArgument(0));
-									//append
-									block.addStatement(returnStmt);
-									return 0;
-								}
+					if(methodCall.getScope().isPresent() && methodCall.getScope().get().toString().equals("System.out")) {
+						if(methodCall.getNameAsString().equals("print") || methodCall.getNameAsString().equals("println")) {
+							
+							//check if an argument exists
+							if(!methodCall.getArguments().isEmpty()) {
+								//construct return statement using
+								ReturnStmt returnStmt = new ReturnStmt(methodCall.getArgument(0));
+								//append
+								block.addStatement(returnStmt);
+								return 0;
 							}
 						}
 					}

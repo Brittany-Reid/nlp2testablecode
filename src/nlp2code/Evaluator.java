@@ -38,7 +38,7 @@ public class Evaluator{
 	static public JavaCompiler javaCompiler = new EclipseCompiler();
 	static private IMCompiler compiler;
 	static public List<String> options;
-	static boolean fix = false;
+	static boolean fix = true;
 	
 	static public String className;
 	static private HashMap<String, DiagnosticCollector<JavaFileObject>> diagnosticMap;
@@ -143,7 +143,7 @@ public class Evaluator{
 			
 			//add snippet to hashmaps
 			compilerErrors.put(s, errorCount);
-			//diagnosticMap.put(s, compiler.getDiagnostics());
+			diagnosticMap.put(s, compiler.getDiagnostics());
 			
 			compiler.clearSaved();
 		}
@@ -168,8 +168,8 @@ public class Evaluator{
 				
 				if(errors != 0) {
 					//line deletion
-					//snippet = Fixer.tryDeletion(b, snippet, a, errors);
-					//errors = Fixer.getLastFixErrorCount();
+					snippet = Fixer.tryDeletion(b, snippet, a, errors);
+					errors = Fixer.getLastFixErrorCount();
 				}
 			}
 			
@@ -183,28 +183,29 @@ public class Evaluator{
 	private static HashMap<String, Integer> getPassedTests(HashMap<String, Integer> snippets, String b, String a){
 		HashMap<String, Integer> passedMap = new HashMap<String, Integer>();
 		
-		if(QueryDocListener.testInput == null || QueryDocListener.testInput.size() < 4 || !InputHandler.previous_query.equals("convert string to integer")) {
-				System.out.println("Cannot generate test cases for this task.");
-				return passedMap;
-		}
-		
-		List<String> argumentTypes = new ArrayList<String>();
-		testInput = new ArrayList<String>();
-		String returnType;
-		
-		//get arguments
-		for(int i=0; i<QueryDocListener.testInput.size()-2; i++) {
-			if(i % 2 == 0) {
-				argumentTypes.add(QueryDocListener.testInput.get(i));
-			}
-			else {
-				testInput.add(QueryDocListener.testInput.get(i));
-			}
-		}
-		
-		//get return type
-		returnType = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-2);
-		testOutput = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-1);
+//		if(QueryDocListener.testInput == null || QueryDocListener.testInput.size() < 4) {
+//				System.out.println("Cannot generate test cases for this task.");
+//				return passedMap;
+//		}
+//		//!InputHandler.previous_query.equals("convert string to integer")
+//		
+//		List<String> argumentTypes = new ArrayList<String>();
+//		testInput = new ArrayList<String>();
+//		String returnType;
+//		
+//		//get arguments
+//		for(int i=0; i<QueryDocListener.testInput.size()-2; i++) {
+//			if(i % 2 == 0) {
+//				argumentTypes.add(QueryDocListener.testInput.get(i));
+//			}
+//			else {
+//				testInput.add(QueryDocListener.testInput.get(i));
+//			}
+//		}
+//		
+//		//get return type
+//		returnType = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-2);
+//		testOutput = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-1);
 		
 		compiled = 0;
 		passed = 0;
@@ -212,11 +213,11 @@ public class Evaluator{
 		for(String s : snippets.keySet()) {
 			Integer passCount = 0;
 			
-			//if we had no compiler error, try testing
-			if(snippets.get(s) == 0) {
+			//if we had no compiler errors and the snippet isnt empty, try testing
+			if(snippets.get(s) == 0 && s.split("\n").length > 1) {
 				compiled++;
-				passCount = Tester.test(s, b, a, argumentTypes, returnType);
-				System.out.println("Passed: " + passCount);
+				passCount = Tester.test(s, b, a, null, null);
+				//System.out.println("Passed: " + passCount);
 				if(passCount > 0) {
 					passed++;
 				}

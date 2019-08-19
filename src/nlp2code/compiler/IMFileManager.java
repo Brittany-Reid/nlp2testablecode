@@ -1,8 +1,6 @@
 package nlp2code.compiler;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;

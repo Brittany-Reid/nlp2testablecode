@@ -68,6 +68,18 @@ public class Activator extends AbstractUIPlugin {
 		
 	}
 
+	public static void checkArgs() {
+		ArrayList<Vector <String>> codeset = new ArrayList<Vector<String>>();
+		
+		for(String task : TaskRecommender.queries) {
+			System.out.println("Query: " + task);
+			Vector<String> code;
+			code = DataHandler.searchSnippets(task);
+			if(code != null) {
+				Evaluator.evaluate(code, "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
+			}
+		}
+	}
 	
 	public static void tests(Integer var) {
 		long start;

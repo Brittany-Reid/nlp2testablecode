@@ -80,6 +80,7 @@ public class QueryDocListener implements IDocumentListener {
 		private static int doQuery(DocumentEvent event, String line) {
 			
 			if(Activator.first == true) {
+				Activator.checkArgs();
 				Activator.first = false;
 				if(logger.isDebugEnabled()) {
 					//Activator.tests(1);

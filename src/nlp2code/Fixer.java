@@ -100,12 +100,11 @@ public class Fixer{
 			Integer toDelete = 1;
 			if(order == true) toDelete = lines - 1;
 			done = true;
-			
+			IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, Evaluator.options);
 			//delete the first line
 			modified = deleteLine(finalSnippet, toDelete);
 			while(modified != null) {
 				//compile modified snippet
-				IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, Evaluator.options);
 				compiler.addSource(Evaluator.className, before+modified+after);
 				try {
 					compiler.compileAll();
@@ -141,6 +140,8 @@ public class Fixer{
 				
 				//next
 				modified = deleteLine(finalSnippet, toDelete);
+				
+				compiler.clearSaved();
 			}
 		}
 		
