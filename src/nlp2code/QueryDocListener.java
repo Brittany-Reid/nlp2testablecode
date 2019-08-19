@@ -26,9 +26,9 @@ import org.eclipse.ui.texteditor.ITextEditor;
  *    to document changes for a user to type a query in the format: ?{query}?
  */
 public class QueryDocListener implements IDocumentListener {	
-		public static IEditorPart epart;
-		static Logger logger = Activator.getLogger();
-		static List<String> testInput;
+	public static IEditorPart epart;
+	static Logger logger = Activator.getLogger();
+	static List<String> testInput;
 		
 		/*
 		 * Function documentChanged
@@ -80,7 +80,7 @@ public class QueryDocListener implements IDocumentListener {
 		private static int doQuery(DocumentEvent event, String line) {
 			
 			if(Activator.first == true) {
-				Activator.checkArgs();
+				//Activator.checkArgs();
 				Activator.first = false;
 				if(logger.isDebugEnabled()) {
 					//Activator.tests(1);
@@ -122,8 +122,14 @@ public class QueryDocListener implements IDocumentListener {
 			// Get the current document (for isolating substring of text in document using line number from selection).
 			IDocument document = ite.getDocumentProvider().getDocument(ite.getEditorInput());
 			
-			//get snippets
-			code = DataHandler.getSnippets(line);
+		//get snippets
+		List<Snippet> snippets = Searcher.getSnippets(line);
+		if(snippets == null) return 9;
+		code = new Vector<String>();
+		for(Snippet s : snippets) {
+			code.add(s.getSourcedCode());
+		}
+			
 		    if (code.equals(null)) {
 		    	System.out.println("Error! Code vector is null!");
 		    	return 9;

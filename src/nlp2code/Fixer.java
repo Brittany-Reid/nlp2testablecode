@@ -82,6 +82,8 @@ public class Fixer{
 	 * Deletion fix, deletes lines to reduce compiler errors.
 	 */
 	public static String tryDeletion(String before, String code, String after, Integer errors) {
+		IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, Evaluator.options);
+		
 		//don't log compiler errors
 		IMCompiler.logging = false;
 		Integer lines = code.split("\n").length;
@@ -100,7 +102,6 @@ public class Fixer{
 			Integer toDelete = 1;
 			if(order == true) toDelete = lines - 1;
 			done = true;
-			IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, Evaluator.options);
 			//delete the first line
 			modified = deleteLine(finalSnippet, toDelete);
 			while(modified != null) {
@@ -150,6 +151,18 @@ public class Fixer{
 		
 		newErrorCount = minErrors;
 		return finalSnippet;
+	}
+
+	
+	/**
+	 * Deletion algorithm, attempts to reduce compiler errors.
+	 */
+	public static String delete(String code, String before, String after, Integer errors) {
+		String modified = null;
+		
+		
+		
+		return modified;
 	}
 	
 	/**

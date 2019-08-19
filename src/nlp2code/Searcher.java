@@ -1,15 +1,9 @@
 package nlp2code;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.util.Vector;
-
-import javax.swing.JOptionPane;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * class Searcher
@@ -17,112 +11,202 @@ import javax.swing.JOptionPane;
  *   to retrieve code snippets.
  *   Uses a combination of Goggle Custom Search Engine API and Jsoup to retrieve snippets.
  */
-class Searcher {
+public class Searcher {
 	
-	// Defaults for the number of snippets to receive, and how many pages to look at for snippets.
-	static int NUM_URLS = 3;
-	static int NUM_ANSWERS_PER_URL = 4;
-	// API key and custom search engine key defaults.
-	static String key = "AIzaSyClq5H_Nd7RdVSIMaRPQhwpG5m_-68fWRU";
-	static String cx = "011454571462803403544:zvy2e2weyy8";
-	
-	/*
-	 * Function getThreads
-	 *   Given a string query to search for, retrieve NUM_URLS Stack Overflow forum
-	 *   thread URLs and return them as a vector.
-	 *   
-	 *   Input: String query - query to serch for.
-	 *   Returns: Vector<String> - vector of URLS related to query.
+	/**
+	 * Searches database for a snippet that matches the given query.
+	 * @param query The query to search with.
+	 * @return A list of Snippet objects.
 	 */
-	public static Vector<String> getThreads(String query) { 
-			if (query.equals("")) {
-				return new Vector<String>();
+	static public List<Snippet> getSnippets(String query){
+		Set<Snippet> retrievedSet = new HashSet<>();
+		List<Snippet> retrieved;
+		List<Snippet> snippets = null;
+		
+		//if query is a recommended task
+		if (TaskRecommender.queries_map.containsKey(query)) {
+			//get snippets
+			retrieved = getRecommendedSnippets(query);
+			if(retrieved == null) return null;
+			//add to map
+			for(Snippet s : retrieved) {
+				retrievedSet.add(s);
 			}
-			query = setTargetLanguage(query);
-			//Create a string vector holding all of the URLS we will find.
-			Vector<String> urls = new Vector<String>();
-	        //This is the input query to do.
-			String qry= query;
-	        //Convert spaces to http-like-spaces (%20).
-			qry = qry.replaceAll(" ", "%20");
-	        URL url;
-	        try {
-	        	//The url is structured to do a custom search which only looks at StackOverflow sites.
-				url = new URL("https://www.googleapis.com/customsearch/v1?key=" + key + "&cx=" + cx + "&q="+ qry + "&alt=json" + "&num="+NUM_URLS);
-				HttpURLConnection conn;
-				//Connect to the URL and set properties of the connection.
-				conn = (HttpURLConnection) url.openConnection();
-				conn.setRequestMethod("GET");
-		        conn.setRequestProperty("Accept", "application/json");
-		        
-		        //Get the stream of json data from the search response.
-		        BufferedReader br;
-				br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-				
-				//For each line in the response,
-		        String output;
-				while ((output = br.readLine()) != null) {
-					//If we find the format for a link to the search result, get the link's substring and add it to the vector of urls.
-					if(output.contains("\"link\": \"")) {                
-						String link=output.substring(output.indexOf("\"link\": \"")+("\"link\": \"").length(), output.indexOf("\","));
-						urls.addElement(link);       //Will add google search links to vector.
-					}
-				}			
-				//Disconnect for safety.
-				conn.disconnect();
-			//Handle all types of errors possible without crashing.
-	        } catch (ProtocolException e1) {
-	        	e1.printStackTrace();
-	        	return new Vector<String>();
-	        } catch (MalformedURLException e1) {
-	        	e1.printStackTrace();
-	        	return new Vector<String>();
-	        } catch (IOException e) {
-	        	JOptionPane.showMessageDialog(null, "Query Failed - Couldn't resolve connection.", "Warning", JOptionPane.INFORMATION_MESSAGE);
-				e.printStackTrace();
-				return new Vector<String>();
-			}
-	        return urls;
 		}
+		
+		retrieved = searchSnippets(query);
+		if(retrieved == null) return null;
+		for(Snippet s : retrieved) {
+			retrievedSet.add(s);
+		}
+		
+		//add the set to snippets
+		snippets = new ArrayList<>(retrievedSet);
+		
+		return snippets;
+	}
+
 	
-	/*
-	 * Function getCodeSnippets
-	 *   Given a vector of StackOverflow forum thread URLs, retrieve the top NUM_ANSWERS_PER_URL answers from each thread (based on upvotes).
-	 *   
-	 *   Input: Vector<String> urls - vector of StackOverflow thread urls.
-	 *   Returns: Vector<String> - vector of top code snippets from each given url.
+	/**
+	 * Gets code snippets from post IDs associated with a recommended task.
+	 * @param task The task string to find posts with.
+	 * @return A List of retieved Snippet objects.
 	 */
-	public static Vector<String> getCodeSnippets(Vector<String> urls) {
-		Vector<String> code = new Vector<String>();
-		for (int i=0; i<urls.size(); i++) {
-			// Create a new url and open using jsoup so we can do easy queries on the results (formats code for us nicely at cost of time).
-	        URLReader ur = new URLReader();
-	        
-	        ur.openHtml(urls.elementAt(i));
-	        Vector<String> top_n_answers = ur.getTopN(NUM_ANSWERS_PER_URL);
-	        if (top_n_answers.size() == 0) {
-	        	System.out.println("ERROR, could not get code from url: " + urls.elementAt(i));
-	        } else {
-	        	for (int j=0; j<top_n_answers.size(); j++) {
-	        		code.add(top_n_answers.get(j));
-	        	}
-	        }
+	private static List<Snippet> getRecommendedSnippets(String task){
+		List<Snippet> snippets = new ArrayList<>();
+		
+		//get array of ids
+		String[] ids = TaskRecommender.queries_map.get(task).split(",");
+		if(ids == null) return null;
+		if(ids.length == 0) return null;
+		
+		//use ids to get code snippets
+		for(int i=0; i<ids.length; i++) {
+			int id = Integer.parseInt(ids[i]);
+			snippets.addAll(DataHandler.getSnippet(id));
 		}
-		return code;
+		
+		return snippets;
+	}
+
+	/**
+	 * Searches for Snippets using a query.
+	 * @param query The query to search with.
+	 * @return A List of Snippet objects.
+	 */
+	private static List<Snippet> searchSnippets(String query){
+		List<Snippet> snippets = new ArrayList<>();
+		
+		//get thread ids
+		List<Integer> ids = getThreads(query);
+		if(ids == null) {
+			return null;
+		}
+		if(ids.size() < 1) {
+			return new ArrayList<Snippet>();
+		}
+		
+		//use ids to find snippets
+		for(int i=0; i<ids.size(); i++) {
+			int id = ids.get(i);
+			snippets.addAll(DataHandler.getSnippet(id));
+		}
+		
+		CycleAnswersHandler.previous_index = 0;
+		
+		return snippets;
 	}
 	
-	/*
-	 * Function setTargetLanguage
-	 *   Given a query to search for, add the text " in java" to the end of the text if it isn't already there.
-	 *   
-	 *   Input: String text - a task query.
-	 *   Returns: String - query + " in java"
+	/**
+	 * Given a query, returns a List of thread IDs.
+	 * @param query The query to search with.
+	 * @return A List of Integer thread IDs.
 	 */
-	private static String setTargetLanguage(String text) {
-		String language = "java";
-		if (text.contains(" in ")) {
-        	return text;
-        }
-		return text + " in " + language;
+	private static List<Integer> getThreads(String query){
+		List<Integer> threads = new ArrayList<>();
+		boolean firstRun = true;
+		
+		//process query
+		String[] words = processQuery(query);
+		if(words == null) return null;
+		if(words.length < 1) return null;
+		
+		//search for each word
+		for(String w : words) {
+			List<Integer> retrieved = DataHandler.getThreadsWith(w);
+			//if we got no results, return an empty thread
+			if(retrieved == null) return new ArrayList<Integer>();
+			
+			//first run, add to threads
+			if(firstRun == true) {
+				threads.addAll(retrieved);
+				firstRun = false;
+			}
+			//otherwise
+			else {
+				//hold in a set for o(1) look up
+				HashSet<Integer> retrievedSet = new HashSet<Integer>();
+				for(int id : threads) {
+					retrievedSet.add(id);
+				}
+				//add to threads if contained in both
+				threads = new ArrayList<>();
+				for(int id : retrieved) {
+					if(retrievedSet.contains(id)) {
+						threads.add(id);
+					}
+				}
+			}
+		}
+		
+		return threads;
+	}
+	
+	/**
+	 * Accept query string, return ordered non-duplicate array of words.
+	 * @return The Array of String words. Returns null on error. May be empty.
+	 */
+	public static String[] processQuery(String query) {
+		Set<String> wordSet = new HashSet<String>();
+		String[] words;
+		
+		if(query == "") return new String[0];
+		
+		//split our query by space
+		words = query.split(" ");
+		
+		//remove stop words from query
+		words = removeStopWords(words);
+		if(words.length < 1) return words;
+		
+		//add our words to a hashset to avoid duplicates
+		for(int i=0; i<words.length; i++) {
+			wordSet.add(words[i]);
+		}
+		
+		//stem results
+		
+		words = new String[wordSet.size()];
+		words = wordSet.toArray(words);
+		words = DataHandler.stem(words);
+		
+		return words;
+	}
+	
+	
+	/**
+	 * Removed stop words, as specified.
+	 * @param words The array of words to filter.
+	 * @return The filtered String array. This may be empty.
+	 */
+	private static String[] removeStopWords(String[] words) {
+		List<String> wordList = new ArrayList<String>();
+		
+		//System.out.println("Before removing stop: " + words.length);
+		
+		//for each word, check it against our list of stop words
+		for(String w : words) {
+			switch(w) {
+				case "in":
+					break;
+				case "java":
+					break;
+				case "with":
+					break;
+				case "the":
+					break;
+				case "a":
+					break;
+				default:
+					wordList.add(w);
+			}
+		}
+		
+		words = new String[wordList.size()];
+		words = wordList.toArray(words);
+		
+		//System.out.println("After removing stop: " + words.length);
+		
+		return words;
 	}
 }

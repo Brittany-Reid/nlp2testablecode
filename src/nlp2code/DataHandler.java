@@ -24,48 +24,22 @@ import java.util.Comparator;
  * 	 Handles offline stack overflow database. Should read in an XML file,
  *   and provide functionality to access the resulting data structure.
  */
-class DataHandler{
+public class DataHandler{
 	static Logger logger;
 	//ids to surrounding text
 	static HashMap<Integer, String> searchSpace = new HashMap<Integer, String>();
 	//ids to code snippets
-	static HashMap<Integer, List<String>> snippets = new HashMap<Integer, List<String>>();
+	private static HashMap<Integer, List<String>> snippets = new HashMap<Integer, List<String>>();
 	//ids to titles
 	static HashMap<Integer, String> titles = new HashMap<Integer, String>();
 	static HashMap<String, List<Integer>> titlewords = new HashMap<String, List<Integer>>();
 	static int NUM_POSTS = 20;
 	static Integer processing = 1;
 	
-	/* Stemming functionality
-	 * Accepts an array of words and returns an array of stemmed words. */
-	private static String[] stem(String[] words) {
-		Stemmer stemmer = new Stemmer();
-		
-		//stem each word
-		for(String w : words) {
-			stemmer.add(w.toCharArray(), w.length());
-			stemmer.stem();
-			w = stemmer.toString();
-		}
-		
-		return words;
-	}
 	
-	/* Lemmatization functionality
-	 * Accepts a sentence and returns an array of lemmas. */
-	private static String[] lemmatize(String s) {
-		String[] words;
-		Sentence sentence = new Sentence(s);
-		
-		words = new String[sentence.lemmas().size()];
-		for(int i=0; i<sentence.lemmas().size(); i++) {
-			words[i] = sentence.lemma(i);
-		}
-
-		return words;
-	}
-	
-	//loads data from xml file
+	/**
+	 * Loads answer data from the answer.xml file.
+	 */
 	public static void LoadData() {
 		URL url;
 		String id;
@@ -163,7 +137,9 @@ class DataHandler{
 		}
 	}
 	
-	//load question data
+	/**
+	 * Loads question data from the question.xml file.
+	 */
 	public static void LoadQuestions() {
 		//get logger
 		logger = Activator.getLogger();
@@ -212,8 +188,7 @@ class DataHandler{
 						stemmer = new Stemmer();
 						stemmer.add(splitTitle[i].toCharArray(), splitTitle[i].length());
 						stemmer.stem();
-						splitTitle[i] = stemmer.toString();
-						
+						splitTitle[i] = stemmer.toString().toLowerCase();
 						
 						List<Integer> ids = new ArrayList<Integer>();
 						if(titlewords.containsKey(splitTitle[i]) ==  false) {
@@ -239,105 +214,34 @@ class DataHandler{
 		}
 	}
 	
-	
-	/*Gets code snippets from post ids associated with a recommended task*/
-	public static Vector<String> getRecommendedSnippets(String task){
-		Vector<String> code = new Vector<String>();
-		List<String> retrievedSnippets;
-		String[] ids;
-		Integer key;
+	/**
+	 * Retrieves a List of Snippet objects from the map given an ID.
+	 * @param id The id to search with.
+	 * @return A List of Snippets for the given ID. Can be empty.
+	 */
+	public static List<Snippet> getSnippet(int id) {
+		List<Snippet> retrieved = new ArrayList<>();
 		
-		//get IDs
-		ids = TaskRecommender.queries_map.get(task).split(",");
-		if (ids.length == 0) return null;
+		//get code list
+		List<String> code = snippets.get(id);
+		if(code == null) return retrieved;
 		
-		//use ids to get code snippets
-		for(int i=0; i<ids.length; i++) {
-			key = Integer.parseInt(ids[i]);
-			retrievedSnippets = snippets.get(key);
-			if(retrievedSnippets != null) {
-				for(int j=0; j<retrievedSnippets.size(); j++) {
-					code.add(addInfo(retrievedSnippets.get(j), key));
-				}
-			}
+		for(String snippet : code) {
+			retrieved.add(new Snippet(snippet, id));
 		}
 		
-		return code;
-	}
-
-	/*accepts a query, returns vector of snippets*/
-	public static Vector<String> getSnippets(String query) {
-		Vector<String> snippets = new Vector<String>();
-		Vector<String> retrieved;
-		
-		//if query is a recommended task
-		if (TaskRecommender.queries_map.containsKey(query)) {
-			//get recommended snippets
-			retrieved = getRecommendedSnippets(query);
-			if(retrieved.equals(null) == false) {
-				snippets.addAll(retrieved);
-			}
-			retrieved.clear();
-		}
-		
-		if(snippets.size() < 10) {
-			retrieved = searchSnippets(query);
-			if(retrieved != null) {
-				snippets.addAll(retrieved);
-			}
-		}
-		
-		return snippets;
+		return retrieved;
 	}
 	
-	/*gets code snippets using a query from ids*/
-	public static Vector<String> searchSnippets(String query){
-		Vector<Integer> results;
-		Vector<String> code = new Vector<String>();
-		List<String> retrievedSnippets;
-		Integer key;
-		Integer count;
-		
-		//search for query and return list of ids
-		logger.debug(query + ",");
-		final long startTime = System.currentTimeMillis();
-		results = getThreads(query);
-		final long endTime = System.currentTimeMillis();
-		if(results == null) {
-			logger.debug(", 0, 0, " + (endTime - startTime)+ "ms\n");
-			return null;
-		}
-		if(results.size() < 1) {
-			logger.debug(", 0, 0, " + (endTime - startTime)+ "ms\n");
-			return null;
-		}
-		
-		count = 0;
-		//for each id, get code snippets
-		for(int i=0; i<results.size(); i++) {
-			//until we reach limit
-			//if(count > NUM_POSTS) break;
-			key = results.get(i);
-			//add to code
-			retrievedSnippets = snippets.get(key);
-			if(retrievedSnippets != null) {
-				for(int j=0; j<retrievedSnippets.size(); j++) {
-					code.add(addInfo(retrievedSnippets.get(j), key));
-					count++;
-				}
-			}
-		}
-		logger.debug(", " + results.size() + ", " + code.size() + ", " + (endTime - startTime)+ "ms\n");
-		//threads retrieved
-//		for(Integer r : results) {
-//			logger.debug(r + ", " + titles.get(r) + "\n");
-//		}
-		
-		CycleAnswersHandler.previous_index = 0;
-		
-		return code;
+	/**
+	 * Returns a List of thread IDs that have titles containing the given word.
+	 * @param word The word to search with.
+	 * @return A List of Integers.
+	 */
+	public static List<Integer> getThreadsWith(String word){
+		return titlewords.get(word);
 	}
-	
+		
 	/*formats xml within a stack overflow post*/
 	private static String formatResponse(String post) {
 		//Fix xml reserved escape chars:
@@ -358,117 +262,39 @@ class DataHandler{
 		post = post.replaceAll("&amp", "&");
 		return post;
 	}
-	
-	/*append url as comment to code snippet*/
-	private static String addInfo(String snippet, Integer key){
-		String authouredSnippet;
-		String comment = "//";
-		
-		authouredSnippet = comment+"https://stackoverflow.com/questions/"+key+"\n" + snippet;
-		
-		return authouredSnippet;
-	}
-	
-	/*Accept query string, return ordered non-duplicate array of words*/
-	private static String[] processQuery(String query) {
-		String[] result, temp;
-		Stemmer stemmer;
-		Integer n;
-		Set<String> wordSet = new HashSet<String>();
-		
-		//check for redundant langauge info
-		if(query.contains(" in java")) {
-			query.replace(" in java", "");
-		}
-		
-		//split by space
-		temp = query.split(" ");
-		
-		//lemma
-//		Sentence sentence = new Sentence(query);
-//		temp = new String[sentence.lemmas().size()];
-//		n = 0;
-//		for(String lemma : sentence.lemmas()) {
-//			temp[n] = lemma;
-//			n++;
-//		}
-		
-		if(temp == null) return null;
-		if(temp.length < 1) return temp;
-		
-		
-		//for each word
-		for(int i=0; i<temp.length; i++) {
-			//add to word set, removing duplicates
-			if(temp[i] != "java") {
-				wordSet.add(temp[i]);
-			}
-		}
-		
-		//add to result array
-		result = new String[wordSet.size()];
-		
-		n = 0;
-		for(String s : wordSet) {
-			//stem
-			stemmer = new Stemmer();
-			stemmer.add(s.toCharArray(), s.length());
-			stemmer.stem();
-			s = stemmer.toString();
-			logger.debug(" " + s);
-			result[n] = s;
-			n++;
-		}
-		
-		//order
-		if(result.length > 1) {
-			Arrays.sort(result, Comparator.comparingInt(String::length).reversed());
-		}
-		
-		return result;
-	}
-	
-	/*Accepts query string and searches for threads that match*/
-	public static Vector<Integer> getThreads(String query){
-		Vector<Integer> threadIDs = new Vector<Integer>();
-		String[] words = processQuery(query);
-		if(words == null) return null;
-		if(words.length < 1) return null;
 
-		//for each word, search
+	/**
+	 * Stemming functionality.
+	 * @param words A String Array of words to stem.
+	 * @return A String Array of stemmed words.
+	 */
+	public static String[] stem(String[] words) {
+		Stemmer stemmer = new Stemmer();
+		
+		//stem each word
 		for(int i=0; i<words.length; i++) {
-			//get list of ids with word
-			List<Integer> retrieved = titlewords.get(words[i]);
-			//first run, add to threadIDs
-			if(i == 0) {
-				if(retrieved != null) {
-					Vector<Integer> temp = new Vector<>(retrieved);
-					threadIDs.addAll(temp);
-				}
-			}
-			//subsequent runs
-			else {
-				//add previous to hashmap for O(1) check
-				HashMap<Integer, Integer> ti = new HashMap<Integer, Integer>();
-				for(int j=0; j<threadIDs.size(); j++) {
-					//
-					ti.put(threadIDs.elementAt(j), 1);
-				}
-				//use hashmap to check if new word results exist within old results, add to temp
-				Vector<Integer> temp = new Vector<Integer>();
-				if(retrieved != null) {
-					for(int j=0; j<retrieved.size(); j++) {
-						if(ti.containsKey(retrieved.get(j))) {
-							temp.add(retrieved.get(j));
-						}
-					}
-				}
-				//replace threadIDs with temp
-				threadIDs = temp;
-			}
-				
+			stemmer.add(words[i].toCharArray(), words[i].length());
+			stemmer.stem();
+			words[i]= stemmer.toString();
 		}
 		
-		return threadIDs;
+		return words;
+	}
+	
+	/**
+	 * Lemmatization functionality.
+	 * @param string A sentence String.
+	 * @return An array of String lemmas.
+	 */
+	public static String[] lemmatize(String string) {
+		String[] words;
+		Sentence sentence = new Sentence(string);
+		
+		words = new String[sentence.lemmas().size()];
+		for(int i=0; i<sentence.lemmas().size(); i++) {
+			words[i] = sentence.lemma(i);
+		}
+
+		return words;
 	}
 }

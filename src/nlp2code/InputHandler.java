@@ -3,6 +3,7 @@ package nlp2code;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 import java.util.Vector;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -92,7 +93,13 @@ public class InputHandler extends AbstractHandler {
 //		            Vector<String> code = Searcher.getCodeSnippets(url);
 //		            if (code.size() == 0) return null;
 		            
-		            Vector<String> code = DataHandler.getSnippets(text);
+		            Vector<String> code = new Vector<String>();
+		    		//get snippets
+		    		List<Snippet> snippets = Searcher.getSnippets(text);
+		    		code = new Vector<String>();
+		    		for(Snippet s : snippets) {
+		    			code.add(s.getSourcedCode());
+		    		}
 		            if (code.equals(null)) {
 				    	System.out.println("Error! Code vector is null!");
 				    	return 9;

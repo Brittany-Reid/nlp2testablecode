@@ -98,7 +98,8 @@ public class Evaluator{
 		final HashMap<String, Integer> finalErrors = compilerErrors;
 		
 		start = System.currentTimeMillis();
-		final HashMap<String, Integer> passedTests = getPassedTests(compilerErrors, before, after);
+		//final HashMap<String, Integer> passedTests = getPassedTests(compilerErrors, before, after);
+		final HashMap<String, Integer> passedTests = new HashMap<String, Integer>();
 		
 		start = System.currentTimeMillis();
 		sorted = new ArrayList<String>(compilerErrors.keySet());
@@ -133,6 +134,7 @@ public class Evaluator{
 			}
 		}
 		compiler  = new IMCompiler(javaCompiler, null);
+		compiled = 0;
 		for(String s : snippets) {
 
 			//it would be here that we make sure to compile multiple files
@@ -140,6 +142,7 @@ public class Evaluator{
 			compiler.compileAll();
 			
 			Integer errorCount = compiler.getErrors();
+			if(errorCount == 0) compiled++;
 			
 			//add snippet to hashmaps
 			compilerErrors.put(s, errorCount);
@@ -163,12 +166,13 @@ public class Evaluator{
 			
 			//only try to fix snippets with errors
 			if(errors != 0) {
-				snippet = Fixer.heuristicFixes(b, snippet, a, errors);
-				errors = Fixer.getLastFixErrorCount();
+				//snippet = Fixer.heuristicFixes(b, snippet, a, errors);
+				//errors = Fixer.getLastFixErrorCount();
 				
 				if(errors != 0) {
 					//line deletion
 					snippet = Fixer.tryDeletion(b, snippet, a, errors);
+					System.out.println("done");
 					errors = Fixer.getLastFixErrorCount();
 				}
 			}
