@@ -4,7 +4,7 @@
 /task_extraction/.settings/
 
 # Mac
-.DS_Store
+*.DS_Store
 
 # Ignore xml files for now
 data/*.xml
