@@ -693,7 +693,7 @@ public class Tester{
 		//cacheclassloader contains code to get bin dir for now, migrate out later
 		
 		//get out original editor
-		IEditorPart epart = QueryDocListener.epart;
+		IEditorPart epart = QueryDocListener.editorPart;
 		//use to get classpath from file
 		IFile file = ((IFileEditorInput)epart.getEditorInput()).getFile();
 		File actualFile = file.getLocation().toFile();

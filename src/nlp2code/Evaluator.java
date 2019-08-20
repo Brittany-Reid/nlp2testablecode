@@ -68,7 +68,13 @@ public class Evaluator{
 	
 	/* Returns an ordered vector of snippets
 	 * Based on evaluation metrics. */
-	public static Vector<String> evaluate(Vector<String> snippets, String before, String after){
+	public static Vector<String> evaluate(List<Snippet> snippetsx, String before, String after){
+		
+		Vector<String> snippets = new Vector<String>();
+		for(Snippet s : snippetsx) {
+			snippets.add(s.getFormattedCode());
+		}
+		
 		Long start;
 		HashMap<String, Integer> compilerErrors, fixedErrors;
 		Vector<String> orderedByEvaluation;

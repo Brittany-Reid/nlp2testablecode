@@ -16,6 +16,7 @@ public class Fixer{
 	private static Boolean neutrality = false;
 	private static Boolean loop = false;
 	public static Integer beforeLines; //Stores lines before code snippet
+	private static IMCompiler compiler;
 	
 	/**
 	 * Sets options for fixing.
@@ -29,6 +30,7 @@ public class Fixer{
 		order = o;
 		neutrality = n;
 		loop = l;
+		compiler = new IMCompiler(Evaluator.javaCompiler, Evaluator.options);
 	}
 	
 	/**
@@ -82,7 +84,7 @@ public class Fixer{
 	 * Deletion fix, deletes lines to reduce compiler errors.
 	 */
 	public static String tryDeletion(String before, String code, String after, Integer errors) {
-		IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, Evaluator.options);
+		compiler = new IMCompiler(Evaluator.javaCompiler, Evaluator.options);
 		
 		//don't log compiler errors
 		IMCompiler.logging = false;

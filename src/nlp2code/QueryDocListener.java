@@ -26,202 +26,234 @@ import org.eclipse.ui.texteditor.ITextEditor;
  *    to document changes for a user to type a query in the format: ?{query}?
  */
 public class QueryDocListener implements IDocumentListener {	
-	public static IEditorPart epart;
+	public static IEditorPart editorPart;
+	private static String whitespaceBefore;
 	static Logger logger = Activator.getLogger();
 	static List<String> testInput;
 		
-		/*
-		 * Function documentChanged
-		 *   Function that activates every time the current edited document is changed.
-		 *   
-		 *   Simply put, this document listener listens for ?{query}? format queries in the document,
-		 *   and conducts a query whenever this format is identified in the document.
-		 *   This allows for easy query-making without using any external buttons or widgets.
-		 */
-		@Override
-        public void documentChanged(DocumentEvent event) 
-        {
-			// This is the part of the code where we format the event (either encounter a ? xxx ? or xxxx? or auto-complete scenario, this will format and isolate
-			// query in 'line' and search for code snippets using query.
-    		String insertion = event.getText();
-    		if (insertion == "") return;
-    		
-    		// Check to see if the document change was an "undo" change.
-    		// If it was, make sure we don't make a query again.
-    		String check_undo = getLine();
-    		check_undo = check_undo.trim();
-    		if (check_undo.startsWith("?")) check_undo = check_undo.substring(1);
-    		if (check_undo.endsWith("?")) check_undo = check_undo.substring(0, check_undo.length()-1);
-    		if (InputHandler.previous_queries.contains(check_undo)) {
-				InputHandler.previous_queries.remove(InputHandler.previous_queries.indexOf(check_undo));
-				return;
-    		}
-			
-    		// Check if we have a correctly formatted query.
-    		// If the query is formatted correctly, perform the query.
-    		if (insertion.length() >= 1)
-    		{
-    			String line = getLine();
-    			String newline = line.trim();
-    			if (!(newline.endsWith("?"))) return;
-    			doQuery(event,line);
-    		}
-    		
-        }
+	/**
+	 * Function that activates every time the current edited document is changed.  
+	 * Simply put, this document listener listens for ?{query}? format queries in the document,
+	 * and conducts a query whenever this format is identified in the document.
+	 * This allows for easy query-making without using any external buttons or widgets.
+	 */
+	@Override
+    public void documentChanged(DocumentEvent event) 
+    {
+		//get the event text
+		String insertion = event.getText();
+		if(insertion == "") return;
 		
-		/*
-		 * Function DoQuery
-		 *   Extracts a query from the current line the cursor is on, and performs that query to retrieve
-		 *   top code snippets for that query.
-		 *   
-		 *   Input: DocumentEvent event - the last document event that was identified to create a legitimate query.
-		 *          String line - the text in the current line that contains the query.
-		 */
-		private static int doQuery(DocumentEvent event, String line) {
-			
-			if(Activator.first == true) {
-				//Activator.checkArgs();
-				Activator.first = false;
-				if(logger.isDebugEnabled()) {
-					//Activator.tests(1);
-				}
+		//was the document change an undo. make sure we don't make a query again.
+		String check_undo = getLine();
+		check_undo = check_undo.trim();
+		if (check_undo.startsWith("?")) check_undo = check_undo.substring(1);
+		if (check_undo.endsWith("?")) check_undo = check_undo.substring(0, check_undo.length()-1);
+		if (InputHandler.previous_queries.contains(check_undo)) {
+			InputHandler.previous_queries.remove(InputHandler.previous_queries.indexOf(check_undo));
+			return;
+		}
+		
+		//otherwise, lets check if we have a correctly formatted query
+		if (insertion.length() >= 1) {
+			String line = getLine();
+			String newline = line.trim();
+			if (!(newline.endsWith("?"))) return;
+			//if formatted correctly, preform the query
+			doQuery(event,line);
+		}
+    }
+		
+	/**
+	 *   Extracts a query from the current line the cursor is on, and performs that query to retrieve
+	 *   top code snippets for that query.
+	 *   @param event The last document event that was identified to create a legitimate query.
+	 *   @param line The text in the current line that contains the query.
+	 */
+	private static int doQuery(DocumentEvent event, String line) {
+		
+		//on first run, preform our tests - move this to junit soon
+		if(Activator.first == true) {
+			//Activator.checkArgs();
+			Activator.first = false;
+			if(logger.isDebugEnabled()) {
+				//Activator.tests(1);
 			}
-			
-			
-			
-			Vector<String> code;
-			// Extract the query from the current line.
-			String whitespace_before = line.substring(0, line.indexOf(line.trim()));
-			line = line.trim();
-			if (line.endsWith("?")) line = line.substring(0, line.length()-1);
-			if (line.startsWith("?")) line = line.substring(1);
-			line = line.trim();
-			// If the query is empty, do nothing.
-			if (line.length() == 0) return -1;
-			
-			String[] subsections = line.split(",");
-			line = subsections[0].trim();
-			if(subsections.length>1) testInput = new ArrayList<String>();
-			for(int i = 1; i<subsections.length; i++) {
-				testInput.add(subsections[i].trim());
-			}
-			
-			line = line.toLowerCase();
-			// If the query has symbols, do nothing.
-			if (!line.matches("[abcdefghijklmnopqrstuvwxyz ]*")) return -1;
-			
-			// Need to retreive the offset of the query, so we know where to insert retreived code snippets into.
-			// We need the current ITextEditor and document to do this.
-			epart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-			ISelectionProvider selectionProvider = ((ITextEditor)epart).getSelectionProvider();
-			if (selectionProvider.equals(null)) return -1;
-			ISelection selection = selectionProvider.getSelection();
-			if (selection.equals(null)) return -1;
-			ITextEditor ite = (ITextEditor)epart;
-			if (ite.equals(null)) return -1;
-			// Get the current document (for isolating substring of text in document using line number from selection).
-			IDocument document = ite.getDocumentProvider().getDocument(ite.getEditorInput());
-			
+		}
+		
+		//get whitespace from line
+		whitespaceBefore = line.substring(0, line.indexOf(line.trim()));
+		
+		//extract query from current line, if empty do nothing
+		String query = getQuery(line);
+		if (query.length() == 0) return -1;
+		
 		//get snippets
-		List<Snippet> snippets = Searcher.getSnippets(line);
-		if(snippets == null) return 9;
-		code = new Vector<String>();
+		List<Snippet> snippets = Searcher.getSnippets(query);
+	    if (snippets.equals(null)) {
+	    	System.out.println("Error! Snippet list is null!");
+	    	return 9;
+	    }
+	    if (snippets.size() == 0) {
+	    	System.out.println("Could not find snippets for task.");
+	    	return -1;
+	    }
+	    
+		// Get the current document (for isolating substring of text in document using line number from selection).
+		IDocument document = getDocument();
+		if(document == null) return -1;
+		
+		Vector<String> code = new Vector<>();
 		for(Snippet s : snippets) {
-			code.add(s.getSourcedCode());
-		}
-			
-		    if (code.equals(null)) {
-		    	System.out.println("Error! Code vector is null!");
-		    	return 9;
-		    }
-		    if (code.size() == 0) {
-		    	System.out.println("Could not find snippets for task.");
-		    	return -1;
-		    }
-		    
-		    
-		    // Fix the offset of the code snippets with the offset of the query.
-		    Vector<String> fixed_code = fixSpacing(code,whitespace_before);
-		    // Store some previous search and query data so we can have undo functionality.
-		    InputHandler.previous_search.clear();
-		    InputHandler.previous_search = fixed_code;
-		    InputHandler.previous_query = line;
-		    InputHandler.previous_queries.add("?" + line + "?");
-		    
-		    
-		  	// Get the line number we are currently on.
-	      	try {
-	      		int e_offset = event.getOffset();
-	      		int line_num = document.getLineOfOffset(e_offset);
-	      		int l_offset = document.getLineOffset(line_num);
-	      		int l_length = document.getLineLength(line_num);
-	      		if (l_offset < 0 || l_offset > document.getLength()) return -1;
-	      		if (l_length > document.getLength() || l_offset + l_length > document.getLength()) return 11;
-	      		if (document.equals(null)) System.err.println("ERROR, NULL DOC");
-	      		
-	      		//get document text
-	      		String before = document.get(0,l_offset);
-	      		String after = document.get(l_offset+l_length, document.getLength()-(l_offset+l_length));
-	      		
-	      		fixed_code = Evaluator.evaluate(fixed_code, before, after);
-	      		InputHandler.previous_search = fixed_code;
-	      		
-	      		//get info comment
-	      		String queryComment = whitespace_before + "//Query: " + line + "\n";
-	      		String infoComment = whitespace_before + "//Retrieved: " + Evaluator.retrieved + ", Compiled: " + Evaluator.compiled + ", Passed: " + Evaluator.passed + "\n";
-	            String replacement_text = queryComment + infoComment + fixed_code.get(0);
-	      		
-	      		// To ensure the Document doesnt COMPLETELY BREAK when inserting a code snippet, queue the insertion for when the document is inactive.
-	      		Display.getDefault().asyncExec(new Runnable() 
-	      	    {
-	      	      public void run()
-	      	      {
-	      	    	try {
-	      	    		ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-	      				IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-						doc.replace(l_offset, l_length, replacement_text);
-					} catch (BadLocationException e) {
-						e.printStackTrace();
-					}
-	      	      }
-	      	    });
-	      		// Get the offset for the inserted code snippet, so we can use it to identify the start and end positions of the inserted code snippet in the document.
-	      		Display.getDefault().asyncExec(new Runnable()
-	      		{
-	      			public void run()
-	      			{
-	      				ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-	      				IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-						String document = doc.get();
-						InputHandler.previous_offset = document.indexOf(replacement_text);
-	      			}
-	      		});
-	      		// Add the CycleDocListener for cycling through snipets.
-	      		document.addDocumentListener(InputHandler.doclistener);
-	      		// Store the previous length so we can have both the previous offset and previous length to know where the inserted snippet is in the document.
-	      		InputHandler.previous_length = replacement_text.length();
-	      		ITextEditor editor = (ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-	      		editor.selectAndReveal(l_offset+replacement_text.length(), 0);
-	      		
-	      		//reset changed
-	      		CycleAnswersHandler.changed_doc = false;
-	      	} catch (BadLocationException e) {
-				System.err.println("Error with inserting code after Autocomplete");
-				e.printStackTrace();
-			} catch (IllegalStateException e) {
-				System.err.println("ILLEGAL STATE EXCEPTION");
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				System.err.println("ILLEGAL ARGUMENT EXCEPTION");
-				e.printStackTrace();
-			} catch (NullPointerException e) {
-				System.err.println("NULL POINTER EXCEPTION"); 
-				e.printStackTrace();
-			}
-	      	return 0;
+			code.add(s.getFormattedCode());
 		}
 		
-		/*
+	    // Store some previous search and query data so we can have undo functionality.
+	    InputHandler.previous_search.clear();
+	    InputHandler.previous_search = code;
+	    InputHandler.previous_query = query;
+	    InputHandler.previous_queries.add("?" + query+ "?");
+	    
+	    try {
+	    	//get insert location information 
+	    	int lineNum = document.getLineOfOffset(event.getOffset());
+	    	int lineOffset = document.getLineOffset(lineNum);
+	    	int lineLength = document.getLineLength(lineNum);
+	    	if (lineOffset < 0 || lineOffset > document.getLength()) return -1;
+      		if (lineLength > document.getLength() || lineOffset + lineLength > document.getLength()) return 11;
+      		
+      		//get surrounding code
+	    	String before = document.get(0,lineOffset);
+	    	String after = document.get(lineOffset + lineLength, document.getLength()-(lineOffset+lineLength));
+	    	
+		    //evaluate our snippets
+		    code = Evaluator.evaluate(snippets, before, after);
+	    	
+	    	//overwrite fixed code
+//			code = new Vector<>();
+//			for(Snippet s : snippets) {
+//				code.add(s.getFormattedCode());
+//			}
+			InputHandler.previous_search = code;
+			
+			//get info comment
+			String queryComment = whitespaceBefore + "//Query: " + query + "\n";
+      		String infoComment = whitespaceBefore + "//Retrieved: " + Evaluator.retrieved + ", Compiled: " + Evaluator.compiled + ", Passed: " + Evaluator.passed + "\n";
+      		String replacementText = queryComment + infoComment + code.get(0);
+      		
+      		//add code to document
+      		addToDocument(replacementText, lineOffset, lineLength);
+      		
+      		// Add the CycleDocListener for cycling through snippets.
+      		document.addDocumentListener(InputHandler.doclistener);
+      		
+      		// Store the previous length so we can have both the previous offset and previous length to know where the inserted snippet is in the document.
+      		InputHandler.previous_length = replacementText.length();
+      		ITextEditor editor = (ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+      		editor.selectAndReveal(lineOffset+replacementText.length(), 0);
+      		
+      		//reset changed
+      		CycleAnswersHandler.changed_doc = false;
+	    } catch (BadLocationException e) {
+			System.err.println("Error with inserting code after Autocomplete");
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			System.err.println("ILLEGAL STATE EXCEPTION");
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			System.err.println("ILLEGAL ARGUMENT EXCEPTION");
+			e.printStackTrace();
+		} catch (NullPointerException e) {
+			System.err.println("NULL POINTER EXCEPTION"); 
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	/**
+	 * Function that extracts query from line.
+	 * @param line The line to extract query from.
+	 * @return A string query.
+	 */
+	private static String getQuery(String line) {
+		String query;
+		
+		//trim whitespace
+		query = line.trim();
+		query = query.toLowerCase();
+		
+		//extract
+		if (query.endsWith("?")) query = query.substring(0, query.length()-1);
+		if (query.startsWith("?")) query = query.substring(1);
+		
+		//trim any whitespace between question mark
+		query = query.trim();
+		
+		//if there are any invalid characters, return empty
+		if (!query.matches("[abcdefghijklmnopqrstuvwxyz ]*")) return "";
+		
+		return query;
+	}
+		
+	/**
+	 * Returns the IDocument. Returns Null if error occurs.
+	 */
+	private static IDocument getDocument() {
+		// Need to retreive the offset of the query, so we know where to insert retreived code snippets into.
+		// We need the current ITextEditor and document to do this.
+		editorPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+		ISelectionProvider selectionProvider = ((ITextEditor)editorPart).getSelectionProvider();
+		if (selectionProvider.equals(null)) return null;
+		ISelection selection = selectionProvider.getSelection();
+		if (selection.equals(null)) return null;
+		ITextEditor ite = (ITextEditor)editorPart;
+		if (ite.equals(null)) return null;
+		// Get the current document (for isolating substring of text in document using line number from selection).
+		
+		return ite.getDocumentProvider().getDocument(ite.getEditorInput());
+	}
+	
+	/**
+	 * Adds given text to the document, returns the offset.
+	 * @param text The text to insert.
+	 */
+	private static Integer addToDocument(String text, int lineOffset, int lineLength) {
+		
+  		// To ensure the Document doesnt COMPLETELY BREAK when inserting a code snippet, queue the insertion for when the document is inactive.
+  		Display.getDefault().asyncExec(new Runnable() 
+  	    {
+  	      public void run()
+  	      {
+  	    	try {
+  	    		ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+  				IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+				doc.replace(lineOffset, lineLength, text);
+			} catch (BadLocationException e) {
+				e.printStackTrace();
+			}
+  	      }
+  	    });
+  		
+  		// Get the offset for the inserted code snippet, so we can use it to identify the start and end positions of the inserted code snippet in the document.
+  		Display.getDefault().asyncExec(new Runnable()
+  		{
+  			public void run()
+  			{
+  				ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+  				IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+				String document = doc.get();
+				InputHandler.previous_offset = document.indexOf(text);
+  			}
+  		});
+  		
+  		return InputHandler.previous_offset;
+	}
+	
+	public static String getWhitespaceBefore() {
+		return whitespaceBefore;
+	}
+	
+	/*
 		 * Function getUrls
 		 * 	 Given a String array of Stack Overflow forum thread IDs, return a vector of Stack Overflow question URLS.
 		 *  
@@ -236,37 +268,7 @@ public class QueryDocListener implements IDocumentListener {
 			return google_urls;
 		}
 		
-		/* 
-		 * Function fixSpacing
-		 *   Given a list of code snippets, and a fixed offset (spacing) for where the code snippet insertion starts,
-		 *     add the fixed offset to each line of each code snippet.
-		 *   Essentially, this function fixes alignment issues when inserting code snippets at an offset.
-		 *   
-		 *   Inputs: Vector<String> queries - vector of different code snippets to insert into the document.
-		 *   		 String spacing - Offset of query to be applied to each code snippet.
-		 *   
-		 *   Retuns: Vector<String> - vector of code snippets with fixed offset.
-		 */
-		private static Vector<String> fixSpacing(Vector<String> queries, String spacing) {
-			Vector<String> fixed_queries = new Vector<String>();
-			
-			for (int i=0; i<queries.size(); i++) {
-				BufferedReader bufReader = new BufferedReader(new StringReader(queries.get(i)));
-				String line;
-				String new_query = "";
-				try {
-					while ( (line=bufReader.readLine()) != null) {
-						line = spacing + line + "\n";
-						new_query += line;
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				fixed_queries.add(new_query);
-			}
-			
-			return fixed_queries;
-		}
+
 		
 		/*
 		 * Function getLine

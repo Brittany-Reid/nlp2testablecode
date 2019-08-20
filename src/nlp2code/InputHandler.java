@@ -98,7 +98,7 @@ public class InputHandler extends AbstractHandler {
 		    		List<Snippet> snippets = Searcher.getSnippets(text);
 		    		code = new Vector<String>();
 		    		for(Snippet s : snippets) {
-		    			code.add(s.getSourcedCode());
+		    			code.add(s.getFormattedCode());
 		    		}
 		            if (code.equals(null)) {
 				    	System.out.println("Error! Code vector is null!");
