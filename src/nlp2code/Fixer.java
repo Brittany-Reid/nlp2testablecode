@@ -81,10 +81,10 @@ public class Fixer{
 						compiler.clearSaved();
 						compiler.addSource(Evaluator.className, before+current.getCode()+after);
 						compiler.compileAll();
+						errors = compiler.getErrors();
 					}
-					
+				
 					//test errors
-					errors = compiler.getErrors();
 					accept = false;
 					
 					//acceptance scheme 1: strict improvement
@@ -92,14 +92,14 @@ public class Fixer{
 						accept = true;
 					}
 					//scheme 2: neutrality
-					if(errors <= best.getErrors() && neutrality == true) {
+					else if(errors <= best.getErrors() && neutrality == true) {
 						accept = true;
 					}
 					
 					//accept?
 					if(accept) {
 						current.updateErrors(errors, compiler.getDiagnostics().getDiagnostics());
-						best = new Snippet(current);		
+						best = new Snippet(current);	
 						
 						//if we reduced errors to 0, break from loop
 						if(best.getErrors() == 0) break;

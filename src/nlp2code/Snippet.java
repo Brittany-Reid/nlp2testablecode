@@ -48,7 +48,13 @@ public class Snippet implements Comparable<Snippet>{
 	 * @param that The snippet to make a copy of.
 	 */
 	public Snippet(Snippet that) {
-		code = that.code;
+		if(that.code == null) code = null;
+		else {
+			code = new ArrayList<>();
+			for(Pair<String, Boolean> line : that.code) {
+				code.add(new MutablePair<String, Boolean>(line.getLeft(), line.getRight()));
+			}
+		}
 		codeString = that.codeString;
 		formattedCodeString = that.formattedCodeString;
 		id = that.id;

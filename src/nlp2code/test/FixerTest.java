@@ -31,12 +31,28 @@ public class FixerTest {
 		String after = "}\n";
 		
 		Evaluator.setupOptions(null, false);
-		Snippet s = new Snippet("public int i\npublic int j;\n", 0);
+		Snippet s = new Snippet("public int k;\npublic int i\npublic int j;\n", 0);
 		s.updateErrors(1, null);
 		snippets.add(s);
 		
 		s = Fixer.deletion(snippets.get(0), before, after);
-		System.out.println(s.getFormattedCode());
+		assertEquals(s.getLOC(), 2);
+	}
+	
+	@Test
+	public void testEmptyDeletion() {
+		List<Snippet> snippets = new ArrayList<Snippet>();
+		String before = "class Main{\n";
+		String after = "}\n";
+		
+		Evaluator.setupOptions(null, false);
+		//all missing commas
+		Snippet s = new Snippet("public int k\npublic int i\npublic int j\n", 0);
+		s.updateErrors(3, null);
+		snippets.add(s);
+		
+		s = Fixer.deletion(snippets.get(0), before, after);
+		assertEquals(s.getLOC(), 0);
 	}
 
 }
