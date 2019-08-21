@@ -24,10 +24,18 @@ public class CycleDocListener implements IDocumentListener {
 	@Override
 	public void documentChanged(DocumentEvent event) {
 		String text = event.getText();
-		if (!InputHandler.previous_search.contains(text)) {
-			IDocument doc = event.getDocument();
-			doc.removeDocumentListener(InputHandler.doclistener);
-			CycleAnswersHandler.changed_doc = true;
+		for(Snippet s : InputHandler.previous_search) {
+			if(!s.getFormattedCode().equals(text)) {
+				IDocument doc = event.getDocument();
+				doc.removeDocumentListener(InputHandler.doclistener);
+				CycleAnswersHandler.changed_doc = true;
+			}
 		}
+		
+//		if (!InputHandler.previous_search.contains(text)) {
+//			IDocument doc = event.getDocument();
+//			doc.removeDocumentListener(InputHandler.doclistener);
+//			CycleAnswersHandler.changed_doc = true;
+//		}
 	}
 }

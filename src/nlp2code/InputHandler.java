@@ -3,6 +3,7 @@ package nlp2code;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import org.eclipse.core.commands.AbstractHandler;
@@ -23,7 +24,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class InputHandler extends AbstractHandler {
 	// Holds history of previous code snippets (from previous queries) to enable undo functionality.
-	static Vector<String> previous_search = new Vector<String>();
+	static List<Snippet> previous_search = new ArrayList<Snippet>();
 	// Holds the previous query (equivilent to previous_search[last]).
 	static String previous_query = "";
 	// Offset of the previous query (to re-insert when using undo).
@@ -96,19 +97,15 @@ public class InputHandler extends AbstractHandler {
 		            Vector<String> code = new Vector<String>();
 		    		//get snippets
 		    		List<Snippet> snippets = Searcher.getSnippets(text);
-		    		code = new Vector<String>();
-		    		for(Snippet s : snippets) {
-		    			code.add(s.getFormattedCode());
-		    		}
-		            if (code.equals(null)) {
-				    	System.out.println("Error! Code vector is null!");
+		            if (snippets.equals(null)) {
+				    	System.out.println("Error! Snippet list is null!");
 				    	return 9;
 				    }
-				    if (code.size() == 0) return -1;
+				    if (snippets.size() == 0) return -1;
 		            
-		            Vector<String> fixed_code = fixSpacing(code,whitespace_before);
+		            //Vector<String> fixed_code = fixSpacing(code,whitespace_before);
         		    previous_search.clear();
-        		    previous_search = fixed_code;
+        		    previous_search = snippets;
         		    previous_query = text;
         		    
         		    // Find line length and offset to replace.
@@ -123,9 +120,10 @@ public class InputHandler extends AbstractHandler {
         				e1.printStackTrace();
         			}
 		            // Replace the code snippet back into the document.
-		            doc.replace(line_offset, line_length, fixed_code.get(0));
+        			String snippet = snippets.get(0).getFormattedCode();
+		            doc.replace(line_offset, line_length, snippet);
 		            previous_offset = line_offset;
-		            previous_length = fixed_code.get(0).length();
+		            previous_length = snippet.length();
 		            
 		            //Move cursor to the end of the inserted snippet.
 		            editor.selectAndReveal(previous_offset + previous_length, 0);

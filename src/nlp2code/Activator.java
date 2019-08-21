@@ -51,7 +51,7 @@ public class Activator extends AbstractUIPlugin {
 		IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		doc.addDocumentListener(InputHandler.qdl);
 		InputHandler.documents.add(doc);
-		InputHandler.previous_search = new Vector<String>();
+		InputHandler.previous_search = new ArrayList();
 		InputHandler.previous_offset = 0;
 		InputHandler.previous_length = 0;
 		InputHandler.previous_queries = new Vector<String>();

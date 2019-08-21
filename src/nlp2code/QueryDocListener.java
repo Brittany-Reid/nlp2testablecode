@@ -103,14 +103,9 @@ public class QueryDocListener implements IDocumentListener {
 		IDocument document = getDocument();
 		if(document == null) return -1;
 		
-		Vector<String> code = new Vector<>();
-		for(Snippet s : snippets) {
-			code.add(s.getFormattedCode());
-		}
-		
 	    // Store some previous search and query data so we can have undo functionality.
 	    InputHandler.previous_search.clear();
-	    InputHandler.previous_search = code;
+	    InputHandler.previous_search = snippets;
 	    InputHandler.previous_query = query;
 	    InputHandler.previous_queries.add("?" + query+ "?");
 	    
@@ -127,19 +122,19 @@ public class QueryDocListener implements IDocumentListener {
 	    	String after = document.get(lineOffset + lineLength, document.getLength()-(lineOffset+lineLength));
 	    	
 		    //evaluate our snippets
-		    code = Evaluator.evaluate(snippets, before, after);
+		    snippets = Evaluator.evaluate(snippets, before, after);
 	    	
 	    	//overwrite fixed code
 //			code = new Vector<>();
 //			for(Snippet s : snippets) {
 //				code.add(s.getFormattedCode());
 //			}
-			InputHandler.previous_search = code;
+			InputHandler.previous_search = snippets;
 			
 			//get info comment
 			String queryComment = whitespaceBefore + "//Query: " + query + "\n";
       		String infoComment = whitespaceBefore + "//Retrieved: " + Evaluator.retrieved + ", Compiled: " + Evaluator.compiled + ", Passed: " + Evaluator.passed + "\n";
-      		String replacementText = queryComment + infoComment + code.get(0);
+      		String replacementText = queryComment + infoComment + snippets.get(0).getFormattedCode();
       		
       		//add code to document
       		addToDocument(replacementText, lineOffset, lineLength);

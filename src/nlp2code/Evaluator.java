@@ -36,7 +36,7 @@ import nlp2code.tester.Tester;
 public class Evaluator{
 	static Logger logger = Activator.getLogger();
 	static public JavaCompiler javaCompiler = new EclipseCompiler();
-	static private IMCompiler compiler;
+	static public IMCompiler compiler;
 	static public List<String> options;
 	static boolean fix = true;
 	
@@ -45,121 +45,147 @@ public class Evaluator{
 	public static String testOutput;
 	public static List<String> testInput;
 	
-	static public Integer passed;
-	static public Integer compiled;
-	static public Integer retrieved;
+	static public Integer passed = 0;
+	static public Integer compiled = 0;
+	static public Integer retrieved = 0;
 	
 	/**
 	 * Sets up options for the compiler.
 	 */
-	public static void setupOptions(String classPath) {
+	public static void setupOptions(String classPath, Boolean useOptions) {
 		String fullClassPath;
-		String junit = getJUnitClassPath();
+		String junit;
 		
-		if(classPath == null) {
-			fullClassPath = System.getProperty("java.class.path") + ";" + junit;
-		}
+		if(useOptions == false) compiler  = new IMCompiler(javaCompiler, null);
 		else {
-			fullClassPath = classPath + ";" + System.getProperty("java.class.path") + ";" + junit;
+			junit = getJUnitClassPath();
+			
+			if(classPath == null) {
+				fullClassPath = System.getProperty("java.class.path") + ";" + junit;
+			}
+			else {
+				fullClassPath = classPath + ";" + System.getProperty("java.class.path") + ";" + junit;
+			}
+			
+			options = Arrays.asList("-classpath", fullClassPath);
+			compiler = new IMCompiler(javaCompiler, options);
 		}
-		
-		options = Arrays.asList("-classpath", fullClassPath);
 	}
 	
 	/* Returns an ordered vector of snippets
 	 * Based on evaluation metrics. */
-	public static Vector<String> evaluate(List<Snippet> snippetsx, String before, String after){
-		
-		Vector<String> snippets = new Vector<String>();
-		for(Snippet s : snippetsx) {
-			snippets.add(s.getFormattedCode());
-		}
-		
-		Long start;
-		HashMap<String, Integer> compilerErrors, fixedErrors;
-		Vector<String> orderedByEvaluation;
-		List<String> sorted;
+	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
 		retrieved = snippets.size();
 		
 		//set up options if first run
-		if(options == null) setupOptions(null);
+		if(options == null) setupOptions(null, false);
 		
-		//set up a new diagnostic map
-		diagnosticMap = new HashMap<String, DiagnosticCollector<JavaFileObject>>();
+		//compile snippet set
+		snippets = compileSnippets(snippets, before, after);
 		
-		//compile snippets and get map of snippets to errors
-		start = System.currentTimeMillis();
-		compilerErrors = getCompilerErrors(snippets, before, after);
+		//attempt fixes on snippet fix
+		if(fix == true) snippets = fixSnippets(snippets, before, after);
 		
-		//attempt to fix snippets with errors
-		if(fix == true) {
-			start = System.currentTimeMillis();
-			fixedErrors = runFixes(compilerErrors, before, after);
-			//overwrite compilerErrors map with new values
-			compilerErrors = fixedErrors;
-			System.out.println("Fix Time: " + (System.currentTimeMillis() - start));
-		}
+		//sort snippet set (this uses comparator defined in Snippet class)
+		Collections.sort(snippets);
 		
-		//set our finals for the compare function
-		final HashMap<String, Integer> finalErrors = compilerErrors;
+		return snippets;
 		
-		start = System.currentTimeMillis();
-		//final HashMap<String, Integer> passedTests = getPassedTests(compilerErrors, before, after);
-		final HashMap<String, Integer> passedTests = new HashMap<String, Integer>();
-		
-		start = System.currentTimeMillis();
-		sorted = new ArrayList<String>(compilerErrors.keySet());
-		Collections.sort(sorted, new Comparator<String>() {
-		    public int compare(String left, String right) {
-		    	Integer compare = Integer.compare(finalErrors.get(left), finalErrors.get(right));
-//		    	//if tied, look at the passed tests
-		    	if(compare == 0 && !passedTests.isEmpty()) {
-		    		compare = Integer.compare(passedTests.get(right), passedTests.get(left));
-		    	}
-		    	return compare;
-		    }
-		});
-		
-		orderedByEvaluation = new Vector<String>(sorted);
-		
-		return orderedByEvaluation;
+//		
+//		Vector<String> snippets = new Vector<String>();
+//		for(Snippet s : snippetsx) {
+//			snippets.add(s.getFormattedCode());
+//		}
+//		
+//		Long start;
+//		Vector<String> orderedByEvaluation;
+//		List<String> sorted;
+//		retrieved = snippets.size();
+//		
+//		//set up a new diagnostic map
+//		diagnosticMap = new HashMap<String, DiagnosticCollector<JavaFileObject>>();
+//		
+//		//compile snippets and get map of snippets to errors
+//		start = System.currentTimeMillis();
+//		compilerErrors = getCompilerErrors(snippets, before, after);
+//		
+//		//attempt to fix snippets with errors
+//		if(fix == false) {
+//			start = System.currentTimeMillis();
+//			fixedErrors = runFixes(compilerErrors, before, after);
+//			//overwrite compilerErrors map with new values
+//			compilerErrors = fixedErrors;
+//			System.out.println("Fix Time: " + (System.currentTimeMillis() - start));
+//		}
+//		
+//		//set our finals for the compare function
+//		final HashMap<String, Integer> finalErrors = compilerErrors;
+//		
+//		start = System.currentTimeMillis();
+//		//final HashMap<String, Integer> passedTests = getPassedTests(compilerErrors, before, after);
+//		final HashMap<String, Integer> passedTests = new HashMap<String, Integer>();
+//		
+//		start = System.currentTimeMillis();
+//		sorted = new ArrayList<String>(compilerErrors.keySet());
+//		Collections.sort(sorted, new Comparator<String>() {
+//		    public int compare(String left, String right) {
+//		    	Integer compare = Integer.compare(finalErrors.get(left), finalErrors.get(right));
+////		    	//if tied, look at the passed tests
+//		    	if(compare == 0 && !passedTests.isEmpty()) {
+//		    		compare = Integer.compare(passedTests.get(right), passedTests.get(left));
+//		    	}
+//		    	return compare;
+//		    }
+//		});
 	}
 	
-	/*Returns a hashmap of code snippets to compiler errors*/
-	private static HashMap<String, Integer> getCompilerErrors(Vector<String> snippets, String b, String a){
-		HashMap<String, Integer> compilerErrors = new HashMap<String, Integer>();
+	public static List<Snippet> compileSnippets(List<Snippet> snippets, String before, String after){
+		Integer errors;
 		
-		//get className from surrounding
-		JavaParser fileParser = new JavaParser();
-		ParseResult<CompilationUnit> fileResult = fileParser.parse(b+a);
-		CompilationUnit cu = fileResult.getResult().get();
-		for (Node childNode : cu.getChildNodes()) {
-			if(childNode instanceof ClassOrInterfaceDeclaration) {
-				ClassOrInterfaceDeclaration c = (ClassOrInterfaceDeclaration) childNode;
-				className = c.getNameAsString();
-			}
-		}
-		compiler  = new IMCompiler(javaCompiler, null);
+		//get the className from code
+		findClassName(before+after);
+		
 		compiled = 0;
-		for(String s : snippets) {
-
-			//it would be here that we make sure to compile multiple files
-			compiler.addSource(className, b+s+a);
+		for(int i=0; i<snippets.size(); i++) {
+			compiler.clearSaved();
+			
+			compiler.addSource(className, before+snippets.get(i).getCode()+after);
 			compiler.compileAll();
 			
-			Integer errorCount = compiler.getErrors();
-			if(errorCount == 0) compiled++;
+			//get errors
+			errors = compiler.getErrors();
 			
-			//add snippet to hashmaps
-			compilerErrors.put(s, errorCount);
-			diagnosticMap.put(s, compiler.getDiagnostics());
-			
-			compiler.clearSaved();
+			//update information
+			if(errors == 0) compiled++;
+			snippets.get(i).updateErrors(errors, compiler.getDiagnostics().getDiagnostics());
 		}
 		
-		return compilerErrors;
+		
+		return snippets;
 	}
 
+	public static List<Snippet> fixSnippets(List<Snippet> snippets, String before, String after){
+		
+		//for each snippet
+		for(int i=0; i<snippets.size(); i++) {
+			int errors = snippets.get(i).getErrors();
+			
+			//try fix snippets with errors
+			if(errors > 0) {
+				//overwrite current snippet with result of fix
+				snippets.set(i, Fixer.deletion(snippets.get(i), before, after));
+				errors = snippets.get(i).getErrors();
+				
+				//if we fixed 
+				if(errors == 0) {
+					compiled++;
+				}
+			}
+			
+		}
+		
+		return snippets;
+	}
 	/**
 	 * For snippets with compiler errors, tries to fix. 
 	 * Returns modified Map.
@@ -177,7 +203,7 @@ public class Evaluator{
 				
 				if(errors != 0) {
 					//line deletion
-					snippet = Fixer.tryDeletion(b, snippet, a, errors);
+					//snippet = Fixer.tryDeletion(b, snippet, a, errors);
 					System.out.println("done");
 					errors = Fixer.getLastFixErrorCount();
 				}
@@ -265,6 +291,23 @@ public class Evaluator{
 		
 		return junitDir + ";" + hamcrestDir;
 		
+	}
+	
+	/**
+	 * Finds class name from given String, sets the global classname to this value.
+	 * @param code The code to extract className from.
+	 */
+	static public void findClassName(String code) {
+		//get className from surrounding code
+		JavaParser fileParser = new JavaParser();
+		ParseResult<CompilationUnit> fileResult = fileParser.parse(code);
+		CompilationUnit cu = fileResult.getResult().get();
+		for (Node childNode : cu.getChildNodes()) {
+			if(childNode instanceof ClassOrInterfaceDeclaration) {
+				ClassOrInterfaceDeclaration c = (ClassOrInterfaceDeclaration) childNode;
+				className = c.getNameAsString();
+			}
+		}
 	}
 	
 }

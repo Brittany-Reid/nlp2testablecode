@@ -34,6 +34,94 @@ public class Fixer{
 	}
 	
 	/**
+	 * Deletion algorithm, attempts to reduce compiler errors.
+	 */
+	public static Snippet deletion(Snippet snippet, String before, String after) {
+		boolean done = false;
+		boolean accept;
+		int startLine = 1;
+		int i = 1;
+		int errors;
+		
+		//if reverse order
+		if(order == true) {
+			startLine = snippet.size();
+			i = -1;
+		}
+		
+		//configure compiler
+		if(compiler == null) compiler = Evaluator.compiler;
+		//disable logging
+		IMCompiler.logging = false;
+		
+		Snippet best = new Snippet(snippet);
+		Snippet current;
+		int line = startLine;
+		while(done == false) {
+			//default end condition
+			done = true;
+			
+			//iterate list of lines
+			for(int j=0; j<snippet.size(); j++) {
+				
+				//make sure we havent already deleted this line and that its not empty or a comment
+				if(!best.getDeleted(line) && !best.getLine(line).equals("") && !best.getLine(line).trim().startsWith("//")) {
+					//get copy of best
+					current = new Snippet(best);
+					
+					//delete line
+					current.deleteLine(line);
+					
+					//if code is empty we know it has 0 errors
+					if(current.getCode() == "") {
+						errors = 0;
+					}
+					else {
+						//compile
+						compiler.clearSaved();
+						compiler.addSource(Evaluator.className, before+current.getCode()+after);
+						compiler.compileAll();
+					}
+					
+					//test errors
+					errors = compiler.getErrors();
+					accept = false;
+					
+					//acceptance scheme 1: strict improvement
+					if(errors < best.getErrors() && neutrality == false) {
+						accept = true;
+					}
+					//scheme 2: neutrality
+					if(errors <= best.getErrors() && neutrality == true) {
+						accept = true;
+					}
+					
+					//accept?
+					if(accept) {
+						current.updateErrors(errors, compiler.getDiagnostics().getDiagnostics());
+						best = new Snippet(current);		
+						
+						//if we reduced errors to 0, break from loop
+						if(best.getErrors() == 0) break;
+						
+						//try another loop only on improvement
+						if(loop == true) done = false;
+					}
+					
+					//increment line
+					line += i;
+				}
+			}
+		}
+		
+		//reenable logging
+		IMCompiler.logging = true;
+		
+		return best;
+	}
+	
+	
+	/**
 	 * Runs our heuristic fixes on the supplied snippet.
 	 */
 	public static String heuristicFixes(String before, String code, String after, Integer errors) {
@@ -80,92 +168,6 @@ public class Fixer{
 		return finalSnippet;
 	}
 	
-	/**
-	 * Deletion fix, deletes lines to reduce compiler errors.
-	 */
-	public static String tryDeletion(String before, String code, String after, Integer errors) {
-		compiler = new IMCompiler(Evaluator.javaCompiler, Evaluator.options);
-		
-		//don't log compiler errors
-		IMCompiler.logging = false;
-		Integer lines = code.split("\n").length;
-		String modified;
-		
-		//get our current best
-		String finalSnippet = code;
-		Integer minErrors = errors;
-		
-		//runs over the snippet
-		Boolean done = false;
-		while(done == false) {
-			//a single loop
-			if(!loop) done = true;
-			//order of deletion
-			Integer toDelete = 1;
-			if(order == true) toDelete = lines - 1;
-			done = true;
-			//delete the first line
-			modified = deleteLine(finalSnippet, toDelete);
-			while(modified != null) {
-				//compile modified snippet
-				compiler.addSource(Evaluator.className, before+modified+after);
-				try {
-					compiler.compileAll();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				
-				//get errors
-				Integer candidateErrors = compiler.getErrors();
-				//if deletion removed errors
-				if(candidateErrors < minErrors && neutrality == false){
-					//new best
-					finalSnippet = modified;
-					minErrors = candidateErrors;
-					if(loop) done = false;
-				}
-				//if deletion removed errors or remained the same
-				else if(candidateErrors <= minErrors && neutrality == true){
-					//new best
-					finalSnippet = modified;
-					minErrors = candidateErrors;
-					//logger.debug("Reduced errors to: " + errors + "\n----------\n");
-					if(loop) done = false;
-				}
-				//if we dont accept this modification
-				else {
-					//skip line
-					if(order == false) toDelete++;
-				}
-				if(order == true) toDelete--;
-				//break loop if we've reduced errors to 0
-				if(minErrors == 0) break;
-				
-				//next
-				modified = deleteLine(finalSnippet, toDelete);
-				
-				compiler.clearSaved();
-			}
-		}
-		
-		//set this back
-		IMCompiler.logging = true;
-		
-		newErrorCount = minErrors;
-		return finalSnippet;
-	}
-
-	
-	/**
-	 * Deletion algorithm, attempts to reduce compiler errors.
-	 */
-	public static String delete(String code, String before, String after, Integer errors) {
-		String modified = null;
-		
-		
-		
-		return modified;
-	}
 	
 	/**
 	 * Returns last fix error count.
@@ -173,36 +175,7 @@ public class Fixer{
 	public static Integer getLastFixErrorCount() {
 		return newErrorCount;
 	}
-
-	/**
-	 * Private: deletes a specified line.
-	 */
-	private static String deleteLine(String code, Integer line) {
-		String modified;
-		String[] lines;
-		Integer length;
-		
-		//split the snippet by nl for lines
-		lines = code.split("\n");
-		length = lines.length;
-		
-		//if selected line longer, return null
-		if(line >= length || line < 0) {
-			return null;
-		}
-		
-		//delete line
-		modified = "";
-		for(Integer i = 0; i<length; i++) {
-			if(i != line) {
-				modified += lines[i] + "\n";
-			}
-		}
-		
-		return modified;
-	}
-
-
+	
 	/* Semi-colon fix function
 	 * Inserts semi-colon at line in passed string code
 	 */

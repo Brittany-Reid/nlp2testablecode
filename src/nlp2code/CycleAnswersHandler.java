@@ -76,8 +76,9 @@ public class CycleAnswersHandler extends AbstractHandler {
 		        	if (index >= InputHandler.previous_search.size() || index < 0) index = 0;
 		        	
 		        	// Replace old snippet with new snippet.
-		        	doc.replace(offset, length, InputHandler.previous_search.get(index));
-		            InputHandler.previous_length = InputHandler.previous_search.get(index).length();
+		        	String snippet = InputHandler.previous_search.get(index).getFormattedCode();
+		        	doc.replace(offset, length, snippet);
+		            InputHandler.previous_length = snippet.length();
 		            previous_index = index;
 		            System.out.println(previous_index);
 		            if (InputHandler.previous_offset + InputHandler.previous_length > doc.getLength()) return null;
