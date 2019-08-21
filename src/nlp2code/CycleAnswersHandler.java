@@ -68,7 +68,14 @@ public class CycleAnswersHandler extends AbstractHandler {
 		        String text = doc.get(offset, length);
 		        
 		        //if exists in lists of snippets
-				if (InputHandler.previous_search.contains(text)) {
+		        boolean match = false;
+		        for(Snippet s : InputHandler.previous_search) {
+		        	if((InputHandler.previousInfo + s.getFormattedCode()).equals(text)) {
+		        		match = true;
+		        	}
+		        }
+		        
+				if (match == true) {
 		        	int index = previous_index;
 		        	index++;
 		        	
@@ -76,7 +83,7 @@ public class CycleAnswersHandler extends AbstractHandler {
 		        	if (index >= InputHandler.previous_search.size() || index < 0) index = 0;
 		        	
 		        	// Replace old snippet with new snippet.
-		        	String snippet = InputHandler.previous_search.get(index).getFormattedCode();
+		        	String snippet = InputHandler.previousInfo + InputHandler.previous_search.get(index).getFormattedCode();
 		        	doc.replace(offset, length, snippet);
 		            InputHandler.previous_length = snippet.length();
 		            previous_index = index;

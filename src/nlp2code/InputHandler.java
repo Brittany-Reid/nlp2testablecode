@@ -31,6 +31,7 @@ public class InputHandler extends AbstractHandler {
 	static int previous_offset = 0;
 	// Length of the previous query (to re-insert when using undo).
 	static int previous_length = 0;
+	static String previousInfo = "";
 	// Holds previous queries.
 	static Vector<String> previous_queries = new Vector<String>();
 	// Listens for when cycling finishes and prompts for feedback afterwards.

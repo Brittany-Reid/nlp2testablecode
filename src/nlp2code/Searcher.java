@@ -2,6 +2,7 @@ package nlp2code;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -19,7 +20,7 @@ public class Searcher {
 	 * @return A list of Snippet objects.
 	 */
 	static public List<Snippet> getSnippets(String query){
-		Set<Snippet> retrievedSet = new HashSet<>();
+		Set<Snippet> retrievedSet = new LinkedHashSet<>(); //preserve order
 		List<Snippet> retrieved;
 		List<Snippet> snippets = null;
 		
@@ -125,7 +126,7 @@ public class Searcher {
 			//otherwise
 			else {
 				//hold in a set for o(1) look up
-				HashSet<Integer> retrievedSet = new HashSet<Integer>();
+				Set<Integer> retrievedSet = new LinkedHashSet<Integer>();
 				for(int id : threads) {
 					retrievedSet.add(id);
 				}

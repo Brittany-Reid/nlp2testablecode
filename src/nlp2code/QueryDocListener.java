@@ -135,6 +135,7 @@ public class QueryDocListener implements IDocumentListener {
 			String queryComment = whitespaceBefore + "//Query: " + query + "\n";
       		String infoComment = whitespaceBefore + "//Retrieved: " + Evaluator.retrieved + ", Compiled: " + Evaluator.compiled + ", Passed: " + Evaluator.passed + "\n";
       		String replacementText = queryComment + infoComment + snippets.get(0).getFormattedCode();
+      		InputHandler.previousInfo = queryComment + infoComment;
       		
       		//add code to document
       		addToDocument(replacementText, lineOffset, lineLength);

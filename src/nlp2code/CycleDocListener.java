@@ -23,13 +23,18 @@ public class CycleDocListener implements IDocumentListener {
 	 */
 	@Override
 	public void documentChanged(DocumentEvent event) {
+		boolean match = false;
 		String text = event.getText();
 		for(Snippet s : InputHandler.previous_search) {
-			if(!s.getFormattedCode().equals(text)) {
-				IDocument doc = event.getDocument();
-				doc.removeDocumentListener(InputHandler.doclistener);
-				CycleAnswersHandler.changed_doc = true;
+			if((InputHandler.previousInfo + s.getFormattedCode()).equals(text)) {
+				match = true;
 			}
+		}
+		
+		if(match == false) {
+			IDocument doc = event.getDocument();
+			doc.removeDocumentListener(InputHandler.doclistener);
+			CycleAnswersHandler.changed_doc = true;
 		}
 		
 //		if (!InputHandler.previous_search.contains(text)) {
