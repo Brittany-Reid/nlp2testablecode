@@ -1,8 +1,19 @@
 package nlp2code;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+
+import org.eclipse.jdt.core.compiler.IProblem;
 
 import nlp2code.compiler.IMCompiler;
 
@@ -151,6 +162,9 @@ public class Fixer{
 					if(finalSnippet != code) hasFix = true;
 				}
 			}
+			else if(errorCode.equals(IProblem.UndefinedType)) {
+				findImport(code);
+			}
 		}
 		
 		//if a fix was applied, compile to get new error count
@@ -168,6 +182,35 @@ public class Fixer{
 		return finalSnippet;
 	}
 	
+	
+	/**
+	 * Function to find an import for a given type.
+	 */
+	public static String findImport(String name) {
+		String importDeclaration = null;
+		
+		try {
+			//URL url = new URL("platform:/plugin/nlp2code/data/java8.txt");
+			File file = new File("data/java8.txt");
+			//InputStream inputStream = url.openConnection().getInputStream();
+			BufferedReader reader = new BufferedReader(new FileReader(file));
+			//BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+			String line;
+			while((line = reader.readLine()) != null) {
+				if(line.endsWith(name + "\",")) {
+					importDeclaration= line.trim().replaceAll("[\",]", "");
+					break;
+				}
+			}
+			 reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.err.println("Cannot read file: java8.json");
+			return null;
+		}
+		
+		return importDeclaration;
+	}
 	
 	/**
 	 * Returns last fix error count.

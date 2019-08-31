@@ -13,5 +13,7 @@ public class DataHandlerTest {
 		String[] lemmas = DataHandler.lemmatize(sentence);
 		assertEquals("String", lemmas[0]);
 	}
+	
+	
 
 }

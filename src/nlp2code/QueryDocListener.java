@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -16,7 +20,12 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -74,6 +83,12 @@ public class QueryDocListener implements IDocumentListener {
 		
 		//on first run, preform our tests - move this to junit soon
 		if(Activator.first == true) {
+			IEditorPart editor2 = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+			IEditorInput input2 = editor2.getEditorInput();
+			IResource file2 = ((IFileEditorInput)input2).getFile();
+			IProject pp = file2.getProject();
+			IJavaProject jp = (IJavaProject) JavaCore.create(pp);
+			
 			//Activator.checkArgs();
 			Activator.first = false;
 			if(logger.isDebugEnabled()) {

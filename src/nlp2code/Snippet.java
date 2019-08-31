@@ -23,6 +23,7 @@ import org.apache.commons.lang3.tuple.Pair;
 public class Snippet implements Comparable<Snippet>{
 	private Boolean showDeletions = true;
 	private List<Pair<String, Boolean>> code;
+	private List<String> importStatements = new ArrayList<>();
 	private String codeString;
 	private String formattedCodeString;
 	private int id;
@@ -98,6 +99,15 @@ public class Snippet implements Comparable<Snippet>{
 	}
 	
 	/**
+	 * Add import statements to a list. This list can later be used to
+	 * insert imports in the users code.
+	 * @param importStatement The statement to add.
+	 */
+	public void addImportStatement(String importStatement) {
+		importStatements.add(importStatement);
+	}
+	
+	/**
 	 * Function to return the stored code string, without any formatting.
 	 * @return A String code.
 	 */
@@ -123,6 +133,23 @@ public class Snippet implements Comparable<Snippet>{
 		return errors;
 	}
 	
+	/**
+	 * Returns a string representing the additional import statements.
+	 * To be appended to the user's import statements.
+	 * @return
+	 */
+	public String getImportStatements() {
+		String importBlock = "";
+		for(String importStatement : importStatements) {
+			importBlock+=importStatement + "\n";
+		}
+		return importBlock;
+	}
+	
+	/**
+	 * Returns true if the current form of the snippet has been compiled.
+	 * @return
+	 */
 	public boolean isCompiled() {
 		return compiled;
 	}

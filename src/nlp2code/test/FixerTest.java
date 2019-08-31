@@ -54,5 +54,11 @@ public class FixerTest {
 		s = Fixer.deletion(snippets.get(0), before, after);
 		assertEquals(s.getLOC(), 0);
 	}
+	
+	@Test
+	public void testGetImport() {
+		String importDeclaration = Fixer.findImport("ArrayList");
+		System.out.println(importDeclaration);
+	}
 
 }
