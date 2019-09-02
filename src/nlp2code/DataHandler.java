@@ -51,6 +51,7 @@ public class DataHandler{
 			BufferedReader reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 			int num = 0;
 			while((line = reader.readLine()) != null) {
+				num++;
 				if(line.contains(" PostTypeId=\"1\"")) {
 					//get id
 					id = line.substring(line.indexOf(" Id=\"")+5, line.length());
@@ -83,7 +84,6 @@ public class DataHandler{
 					//we don't use these, save space for now
 					//titles.put(Integer.parseInt(id), title);
 				}
-				num++;
 			}
 			reader.close();
 		} catch (Exception e) {
@@ -171,182 +171,7 @@ public class DataHandler{
 		}
 	}
 	
-	/**
-	 * Loads answer data from the answer.xml file.
-	 */
-	public static void LoadData() {
-		URL url;
-		String id;
-		String body;
-		String code;
-		String wholeCode;
-		String surrounding;
-		String[] strings;
-		Integer num = 0;
-		List<String> codeSnippets;
-		try {
-			// Using this url assumes nlp2code exists in the 'plugin' folder for eclipse.
-			// This is true when testing the plugin (in a temporary platform) and after installing the plugin.
-			url = new URL("platform:/plugin/nlp2code/data/answers.xml");
-			InputStream inputStream = url.openConnection().getInputStream();
-			BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-			String inputLine = in.readLine();
-			//skip xml ver and post
-			inputLine = in.readLine();
-			inputLine = in.readLine();
-			
-			//for each entry
-			while(inputLine != null && num < 1000) {
-				num++;
-				
-				//for answers
-				if(inputLine.contains(" ParentId=\"")) {
-					codeSnippets = new ArrayList<String>();
-					surrounding = "";
-					
-					//get body
-					body = inputLine.substring(inputLine.indexOf(" Body=\"")+7, inputLine.length());
-					body = body.substring(0, body.indexOf("\""));
-					
-					//get id
-					id = inputLine.substring(inputLine.indexOf(" ParentId=\"")+11, inputLine.length());
-					id = id.substring(0, id.indexOf("\""));
-					
-					//if doesnt't contain a code snippet, skip this answer
-					if(body.contains("&lt;pre&gt;&lt;code&gt;") == false) {
-						inputLine = in.readLine();
-						continue;
-					}
-					
-					//format body
-					body = Jsoup.parse(body.replaceAll("&#xA;", "-xA2nl-")).text().replaceAll("-xA2nl-", "\n");
-					body = formatResponse(body);
-					
-					
-					//split by space before <code> and space after </code>
-					strings = body.split("(?=<pre><code>)|(?<=</code></pre>)");
-					
-					//sort for hashmap
-					wholeCode = "";
-					for(int j=0; j<strings.length; j++) {
-						//contains code tag, is a code snippet
-						if(strings[j].contains("<pre><code>")) {
-							code = strings[j];
-							code = code.replaceAll("<pre><code>", "");
-							code = code.replaceAll("</code></pre>", "");
-							wholeCode += code;
-						}
-						else {
-							surrounding += " " + strings[j];
-						}
-					}
-					
-					//if not already existing
-					if(searchSpace.containsKey(Integer.parseInt(id)) == false) {
-						codeSnippets.add(wholeCode);
-						snippets.put(Integer.parseInt(id), codeSnippets);
-						//searchSpace.put(Integer.parseInt(id), surrounding);
-					}
-					else {
-						//get previous surrounding
-						//String oldSurrounding = searchSpace.get(Integer.parseInt(id));
-						//surrounding += " " + oldSurrounding;
-						//merge code snippets with old
-						if(snippets.get(Integer.parseInt(id)) != null) {
-							codeSnippets.addAll(snippets.get(Integer.parseInt(id)));
-						}
-						//delete old post entry
-						snippets.remove(Integer.parseInt(id));
-						//replace old entry
-						//searchSpace.replace(Integer.parseInt(id), surrounding);
-						snippets.put(Integer.parseInt(id), codeSnippets);
-					}
-				}
-				inputLine = in.readLine();
-			}
-			in.close();
-			
-		} catch (IOException e) {
-		    e.printStackTrace();
-		}
-	}
 	
-	/**
-	 * Loads question data from the question.xml file.
-	 */
-	public static void LoadQuestions() {
-		//get logger
-		logger = Activator.getLogger();
-		
-		Stemmer stemmer;
-		URL url;
-		String id, body, title, inputLine;
-		Integer num;
-		try {
-			// Using this url assumes nlp2code exists in the 'plugin' folder for eclipse.
-			// This is true when testing the plugin (in a temporary platform) and after installing the plugin.
-			url = new URL("platform:/plugin/nlp2code/data/questions.xml");
-			InputStream inputStream = url.openConnection().getInputStream();
-			BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-			inputLine = in.readLine();
-			
-			num = 0;
-			while(inputLine != null && num < 1000) {
-				num++;
-				
-				if(inputLine.contains(" PostTypeId=\"1\"")) {
-					
-					//get id
-					id = inputLine.substring(inputLine.indexOf(" Id=\"")+5, inputLine.length());
-					id = id.substring(0, id.indexOf("\""));
-					
-					//get title
-					title = inputLine.substring(inputLine.indexOf(" Title=\"")+8, inputLine.length());
-					title = title.substring(0, title.indexOf("\""));
-					title = title.toLowerCase();
-					
-					String[] splitTitle;
-					
-					//lemma
-//					Sentence sentence = new Sentence(title);
-//					splitTitle = new String[sentence.lemmas().size()];
-//					for(int i=0; i<sentence.lemmas().size(); i++) {
-//						splitTitle[i] = sentence.lemma(i);
-//					}
-					splitTitle = title.split(" ");
-					
-					//for each word in title
-					for(int i=0; i<splitTitle.length; i++) {
-						
-						//stem
-						stemmer = new Stemmer();
-						stemmer.add(splitTitle[i].toCharArray(), splitTitle[i].length());
-						stemmer.stem();
-						splitTitle[i] = stemmer.toString().toLowerCase();
-						
-						List<Integer> ids = new ArrayList<Integer>();
-						if(titlewords.containsKey(splitTitle[i]) ==  false) {
-							ids.add(Integer.parseInt(id));
-							titlewords.put(splitTitle[i], ids);
-						}
-						else {
-							ids = titlewords.get(splitTitle[i]);
-							ids.add(Integer.parseInt(id));
-							titlewords.replace(splitTitle[i], ids);
-						}
-					}
-					
-					//titles.put(Integer.parseInt(id), title);
-				}
-				
-				inputLine = in.readLine();
-			}
-			in.close();
-			
-		}catch (IOException e) {
-		    e.printStackTrace();
-		}
-	}
 	
 	/**
 	 * Retrieves a List of Snippet objects from the map given an ID. The returned list will 

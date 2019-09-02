@@ -25,7 +25,7 @@ import nlp2code.compiler.IMCompiler;
  * 	class Fixer
  *  Handles error fix functionality
  */
-public class Fixer{
+public class FixerOld{
 	private static Integer newErrorCount;
 	private static Boolean order = false;
 	private static Boolean neutrality = false;

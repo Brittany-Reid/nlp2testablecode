@@ -32,6 +32,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import nlp2code.compiler.IMCompiler;
 import nlp2code.compiler.PatchClassLoader;
 import nlp2code.tester.Tester;
+import nlp2code.fixer.Fixer;
 
 /**
  * Evaluator Class
@@ -60,6 +61,11 @@ public class Evaluator{
 		String fullClassPath;
 		String junit;
 		
+		//ensure we use the correct eclipse compiler patch
+		if(javaCompiler == null) {
+			usePatch();
+		}
+		
 		if(useOptions == false) compiler  = new IMCompiler(javaCompiler, null);
 		else {
 			junit = getJUnitClassPath();
@@ -79,10 +85,12 @@ public class Evaluator{
 	/* Returns an ordered vector of snippets
 	 * Based on evaluation metrics. */
 	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
-		//ensure we use the correct eclipse compiler patch
-		if(javaCompiler == null) {
-			usePatch();
-		}
+//		snippets = new ArrayList<>();
+//		String code = "int i = 0\n";
+//		snippets.add(new Snippet(code, 0));
+//		code = "File file;\n";
+//		snippets.add(new Snippet(code, 0));
+		
 		retrieved = snippets.size();
 		
 		//set up options if first run
@@ -176,13 +184,18 @@ public class Evaluator{
 		
 		//for each snippet
 		for(int i=0; i<snippets.size(); i++) {
-			int errors = snippets.get(i).getErrors();
+			Snippet snippet = snippets.get(i);
+			int errors = snippet.getErrors();
 			
 			//try fix snippets with errors
 			if(errors > 0) {
-				//overwrite current snippet with result of fix
-				snippets.set(i, Fixer.deletion(snippets.get(i), before, after));
-				errors = snippets.get(i).getErrors();
+				snippet = Fixer.errorFixes(snippet, before, after);
+				snippets.set(i, snippet);
+				errors = snippet.getErrors();
+				
+//				//overwrite current snippet with result of fix
+//				snippets.set(i, Fixer.deletion(snippets.get(i), before, after));
+//				errors = snippets.get(i).getErrors();
 				
 				//if we fixed 
 				if(errors == 0) {
@@ -212,8 +225,8 @@ public class Evaluator{
 				if(errors != 0) {
 					//line deletion
 					//snippet = Fixer.tryDeletion(b, snippet, a, errors);
-					System.out.println("done");
-					errors = Fixer.getLastFixErrorCount();
+					//System.out.println("done");
+					//errors = Fixer.getLastFixErrorCount();
 				}
 			}
 			
@@ -322,13 +335,23 @@ public class Evaluator{
 	 * Ensures that our EclipseCompiler object is created using our patched jar.
 	 * See {@link PathClassLoader} for more details.
 	 */
-	static private void usePatch() {
+	static public void usePatch() {
 		ClassLoader cl;
 		try {
 			cl = new PatchClassLoader(new URL[] {new URL("platform:/plugin/nlp2code/lib/ecj-3.18.0_fix.jar")});
 			Class<?> c1 = cl.loadClass("org.eclipse.jdt.internal.compiler.tool.EclipseCompiler");
 			javaCompiler = (JavaCompiler) c1.newInstance();
-		} catch (Exception e) {
+		} catch(MalformedURLException e) {
+			//for testing purposes, platform is plug in dependent and will fail so use a different URL
+			try {
+				cl = new PatchClassLoader(new URL[] {new File("libs/ecj-3.18.0_fix.jar").toURL()});
+				Class<?> c1 = cl.loadClass("org.eclipse.jdt.internal.compiler.tool.EclipseCompiler");
+				javaCompiler = (JavaCompiler) c1.newInstance();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

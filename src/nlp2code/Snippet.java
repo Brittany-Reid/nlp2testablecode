@@ -27,7 +27,7 @@ public class Snippet implements Comparable<Snippet>{
 	private String codeString;
 	private String formattedCodeString;
 	private int id;
-	List<Diagnostic<? extends JavaFileObject>> diagnostics;
+	private List<Diagnostic<? extends JavaFileObject>> diagnostics;
 	private boolean compiled = false;
 	private int errors = -1;
 	private int LOC = -1;
@@ -142,6 +142,10 @@ public class Snippet implements Comparable<Snippet>{
 	public String getCode() {
 		if(codeString != null) return codeString;
 		return constructCode();
+	}
+	
+	public List<Diagnostic<? extends JavaFileObject>> getDiagnostics(){
+		return diagnostics;
 	}
 	
 	/**
