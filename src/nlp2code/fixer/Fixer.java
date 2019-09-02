@@ -151,6 +151,8 @@ public class Fixer {
 			snippet = modified;
 			//compile
 			compiler.clearSaved();
+			before = Snippet.addImportToBefore(snippet, before);
+			offset = before.length();
 			compiler.addSource(Evaluator.className, before+modified.getCode()+after);
 			compiler.compileAll();
 			errors = compiler.getErrors();

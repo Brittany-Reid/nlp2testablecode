@@ -1,21 +1,15 @@
 package nlp2code;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import javax.tools.JavaCompiler;
-
 import org.apache.logging.log4j.Logger;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -24,16 +18,9 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
-
-import nlp2code.compiler.PatchClassLoader;
 
 /**
  * class QueryDocListener
@@ -164,6 +151,8 @@ public class QueryDocListener implements IDocumentListener {
       		ITextEditor editor = (ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
       		editor.selectAndReveal(lineOffset+replacementText.length(), 0);
       		
+      		addImports(snippets.get(0), replacementText);
+      		
       		//reset changed
       		CycleAnswersHandler.changed_doc = false;
 	    } catch (BadLocationException e) {
@@ -223,6 +212,82 @@ public class QueryDocListener implements IDocumentListener {
 		// Get the current document (for isolating substring of text in document using line number from selection).
 		
 		return ite.getDocumentProvider().getDocument(ite.getEditorInput());
+	}
+	
+	/**
+	 * Adds imports to the document if there are any new. We leave these on cycle for the user to clean up.
+	 */
+	public static void addImports(Snippet snippet, String text) {
+		//by default, add to start
+		int offset = 0;
+		String importBlock = "";
+		
+		List<String> imports = new ArrayList<>(snippet.getImportList());
+		if(imports == null || imports.size() < 1) return;
+		
+		//parse the document
+		ASTParser parser = ASTParser.newParser(AST.JLS11);
+		parser.setSource(getDocument().get().toCharArray());
+		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        AST ast = cu.getAST();
+        
+        //get import statements
+        ImportDeclarationVisitor idv = new ImportDeclarationVisitor();
+        cu.getRoot().accept(idv);
+        List<ImportDeclaration> importNodes = idv.imports;
+        if(importNodes != null && importNodes.size() > 0) {
+        	//insert will be before first import
+        	offset = importNodes.get(0).getStartPosition();
+        	//remove duplicates
+        	for(ImportDeclaration i : importNodes) {
+        		if(imports.contains(i.toString().trim())) {
+        			imports.remove(i.toString().trim());
+        		}
+        	}
+        }else {
+        	//find package node
+        	PackageDeclarationVisitor pdv = new PackageDeclarationVisitor();
+        	cu.getRoot().accept(pdv);
+        	PackageDeclaration pk = pdv.pk;
+        	if(pk !=  null) offset = pk.getStartPosition() + pk.getLength() + 1;
+        }
+        
+        //construct import block
+        for(String i : imports) {
+        	importBlock += i + "\n";
+        }
+        
+        final int fOffset = offset;
+        final String finalImportB = importBlock;
+        
+        
+        //based on offset, insert
+        // To ensure the Document doesnt COMPLETELY BREAK when inserting a code snippet, queue the insertion for when the document is inactive.
+  		Display.getDefault().asyncExec(new Runnable() 
+  	    {
+  	      public void run()
+  	      {
+  	    	try {
+  	    		ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+  				IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+				doc.replace(fOffset, 0, finalImportB);
+			} catch (BadLocationException e) {
+				e.printStackTrace();
+			}
+  	      }
+  	    });
+  		
+  		// Get the offset for the inserted code snippet, so we can use it to identify the start and end positions of the inserted code snippet in the document.
+  		Display.getDefault().asyncExec(new Runnable()
+  		{
+  			public void run()
+  			{
+  				ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+  				IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+				String document = doc.get();
+				InputHandler.previous_offset = document.indexOf(text);
+  			}
+  		});
 	}
 	
 	/**
@@ -331,4 +396,9 @@ public class QueryDocListener implements IDocumentListener {
 		// Unused.
 		@Override
         public void documentAboutToBeChanged(DocumentEvent event) { }
+		
+		
+		public static int getImportOffset() {
+			return -1;
+		}
 }

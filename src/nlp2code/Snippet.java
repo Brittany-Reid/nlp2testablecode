@@ -13,6 +13,10 @@ import javax.tools.JavaFileObject;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 
 /**
  * A snippet is an object that contains a code snippet and related information.
@@ -43,7 +47,7 @@ public class Snippet implements Comparable<Snippet>{
 		codeString = code;
 		this.id = id;
 		extractImports();
-		constructLines(code);
+		constructLines(codeString);
 	}
 	
 	/**
@@ -122,11 +126,13 @@ public class Snippet implements Comparable<Snippet>{
 		try {
 			while ( (line = bufReader.readLine()) != null) {
 				copy = line;
+				//if a line starts with import, add to our list
 				if(line.trim().startsWith("import ")) {
 					importStatements.add(copy);
 				}
+				//otherwise, add to code string
 				else {
-				newCodeString += copy+"\n";
+					newCodeString += copy+"\n";
 				}
 			}
 		}catch(Exception e) {
@@ -176,6 +182,10 @@ public class Snippet implements Comparable<Snippet>{
 			importBlock+=importStatement + "\n";
 		}
 		return importBlock;
+	}
+	
+	public List<String> getImportList() {
+		return importStatements;
 	}
 	
 	/**
@@ -262,7 +272,6 @@ public class Snippet implements Comparable<Snippet>{
 		diagnostics = null;
 		errors = -1;
 		LOC = -1;
-		importStatements = new ArrayList<>();
 	}
 	
 	/**
@@ -359,5 +368,47 @@ public class Snippet implements Comparable<Snippet>{
 		}
 		
 		return codeString;
+	}
+	
+	/**
+	 * This static function will accept a snippet and the before segment of the user's code
+	 * and add import statements into the before code.
+	 * @param snippet The snippet to get imports from.
+	 * @param before The before string.
+	 * @return
+	 */
+	public static String addImportToBefore(Snippet snippet, String before) {
+		//no imports, no changes
+		if(snippet.getImportList().size() == 0) return before;
+		//otherwise, parse the before
+		BufferedReader bufReader = new BufferedReader(new StringReader(before));
+		String line;
+		String modifiedBefore = "";
+		boolean added = false;
+		try {
+			while ( (line = bufReader.readLine()) != null) {
+				if(added == false) {
+					//look for package block
+					if(line.trim().startsWith("package ")) {
+						//add imports after
+						modifiedBefore += line + "\n";
+						modifiedBefore += snippet.getImportStatements();
+						added = true;
+					}
+					//some non-empty non package? add imports above
+					else if(line.trim().length() > 0) {
+						modifiedBefore += snippet.getImportStatements();
+						modifiedBefore += line;
+						added = true;
+					}
+				}else {
+					modifiedBefore += line + "\n";
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+
+		return modifiedBefore;
 	}
 }

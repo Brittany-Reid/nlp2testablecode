@@ -86,9 +86,7 @@ public class Evaluator{
 	 * Based on evaluation metrics. */
 	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
 //		snippets = new ArrayList<>();
-//		String code = "int i = 0\n";
-//		snippets.add(new Snippet(code, 0));
-//		code = "File file;\n";
+//		String code = "import java.io.File;\nFile file;\nint i=0\n";
 //		snippets.add(new Snippet(code, 0));
 		
 		retrieved = snippets.size();
@@ -164,8 +162,9 @@ public class Evaluator{
 		compiled = 0;
 		for(int i=0; i<snippets.size(); i++) {
 			compiler.clearSaved();
+			String newBefore = Snippet.addImportToBefore(snippets.get(i), before);
 			
-			compiler.addSource(className, before+snippets.get(i).getCode()+after);
+			compiler.addSource(className, newBefore+snippets.get(i).getCode()+after);
 			compiler.compileAll();
 			
 			//get errors
@@ -189,7 +188,8 @@ public class Evaluator{
 			
 			//try fix snippets with errors
 			if(errors > 0) {
-				snippet = Fixer.errorFixes(snippet, before, after);
+				String newBefore = Snippet.addImportToBefore(snippets.get(i), before);
+				snippet = Fixer.errorFixes(snippet, newBefore, after);
 				snippets.set(i, snippet);
 				errors = snippet.getErrors();
 				
