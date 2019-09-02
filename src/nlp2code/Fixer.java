@@ -1,19 +1,23 @@
 package nlp2code;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IOrdinaryClassFile;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 
 import nlp2code.compiler.IMCompiler;
 
@@ -182,31 +186,49 @@ public class Fixer{
 		return finalSnippet;
 	}
 	
-	
 	/**
 	 * Function to find an import for a given type.
 	 */
 	public static String findImport(String name) {
 		String importDeclaration = null;
+	
+		//get the java project from open editor
+		IEditorInput input2 = QueryDocListener.editorPart.getEditorInput();
+		IResource file2 = ((IFileEditorInput)input2).getFile();
+		IProject pp = file2.getProject();
+		IJavaProject jp = (IJavaProject) JavaCore.create(pp);
 		
+		//search through all packages, for now return the first
+		IPackageFragmentRoot[] roots = null;
 		try {
-			//URL url = new URL("platform:/plugin/nlp2code/data/java8.txt");
-			File file = new File("data/java8.txt");
-			//InputStream inputStream = url.openConnection().getInputStream();
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			//BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-			String line;
-			while((line = reader.readLine()) != null) {
-				if(line.endsWith(name + "\",")) {
-					importDeclaration= line.trim().replaceAll("[\",]", "");
-					break;
+			roots = jp.getPackageFragmentRoots();
+			for (int i = 0; i < roots.length; i++) {
+				roots[i].open(null);
+				for(IJavaElement child : roots[i].getChildren()) {
+					if (child.getElementType()==IJavaElement.PACKAGE_FRAGMENT) {
+						IPackageFragment ff = (IPackageFragment) child;
+						IClassFile[] cc = ff.getAllClassFiles();
+						for(IClassFile cf : cc) {
+							if(cf instanceof IOrdinaryClassFile) {
+								IOrdinaryClassFile ocf = (IOrdinaryClassFile) cf;
+								IType type = ocf.getType();
+								if(!type.isAnonymous()) {
+									if(type.getElementName().equals(name)) {
+										importDeclaration = type.getElementName();
+										return importDeclaration;
+									}
+								}
+							}
+						}
+						
+					}
+						
+						
 				}
 			}
-			 reader.close();
-		} catch (IOException e) {
+		} catch (JavaModelException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			System.err.println("Cannot read file: java8.json");
-			return null;
 		}
 		
 		return importDeclaration;

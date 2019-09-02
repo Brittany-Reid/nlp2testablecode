@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,17 +26,150 @@ import java.util.Comparator;
  *   and provide functionality to access the resulting data structure.
  */
 public class DataHandler{
-	static Logger logger;
+	static Logger logger = Activator.getLogger();
 	//ids to surrounding text
 	static HashMap<Integer, String> searchSpace = new HashMap<Integer, String>();
 	//ids to code snippets
 	private static HashMap<Integer, List<String>> snippets = new HashMap<Integer, List<String>>();
+	private static HashMap<Integer, List<Snippet>> snippetsO = new HashMap<Integer, List<Snippet>>();
 	//ids to titles
 	static HashMap<Integer, String> titles = new HashMap<Integer, String>();
 	static HashMap<String, List<Integer>> titlewords = new HashMap<String, List<Integer>>();
 	static int NUM_POSTS = 20;
 	static Integer processing = 1;
 	
+	/**
+	 * Load data from questions.xml. This file contains stack overflow threads, and this
+	 * function constructs the index table that lets us find thread IDs by word so that
+	 * we can later return relevant code snippets from these threads.
+	 */
+	public static void loadQuestions() {
+		String line, id, title;
+		try {
+			/* This URL assumes the plugin exists in the plugin folder for eclipse.*/
+			URL url = new URL("platform:/plugin/nlp2code/data/questions.xml");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
+			int num = 0;
+			while((line = reader.readLine()) != null) {
+				if(line.contains(" PostTypeId=\"1\"")) {
+					//get id
+					id = line.substring(line.indexOf(" Id=\"")+5, line.length());
+					id = id.substring(0, id.indexOf("\""));
+					
+					//get title
+					title = line.substring(line.indexOf(" Title=\"")+8, line.length());
+					title = title.substring(0, title.indexOf("\""));
+					title = title.toLowerCase();	
+					
+					//get title words
+					String[] words = title.split(" ");
+					words = stem(words);
+					
+					//for each word in title
+					for(int i=0; i<words.length; i++) {
+						
+						List<Integer> ids = new ArrayList<Integer>();
+						if(titlewords.containsKey(words[i]) ==  false) {
+							ids.add(Integer.parseInt(id));
+							titlewords.put(words[i], ids);
+						}
+						else {
+							ids = titlewords.get(words[i]);
+							ids.add(Integer.parseInt(id));
+							titlewords.replace(words[i], ids);
+						}
+					}
+					//add to title set
+					//we don't use these, save space for now
+					//titles.put(Integer.parseInt(id), title);
+				}
+				num++;
+			}
+			reader.close();
+		} catch (Exception e) {
+			//some error reading data
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Load data from answers.xml, the file containing answer posts. This function stores
+	 * code snippets in a hashmap that can be accessed using their thread ID.
+	 */
+	public static void loadAnswers() {
+		String line, body, id, code, partialCode;
+		List<Snippet> codeSnippets;
+		Integer integerID;
+		try {
+			/* This URL assumes the plugin exists in the plugin folder for eclipse.*/
+			URL url = new URL("platform:/plugin/nlp2code/data/answers.xml");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
+			//skip xml ver and post
+			line = reader.readLine();
+			line = reader.readLine();
+			int num = 0;
+			while((line = reader.readLine()) != null) {
+				num++;
+				//ensure this is an answer
+				if(line.contains(" ParentId=\"")) {
+					//get body
+					body = line.substring(line.indexOf(" Body=\"")+7, line.length());
+					body = body.substring(0, body.indexOf("\""));
+					
+					//get id
+					id = line.substring(line.indexOf(" ParentId=\"")+11, line.length());
+					id = id.substring(0, id.indexOf("\""));
+					
+					//if doesnt't contain a code snippet, skip this answer
+					if(!body.contains("&lt;pre&gt;&lt;code&gt;")) continue;
+					
+					//format body
+					body = Jsoup.parse(body.replaceAll("&#xA;", "-xA2nl-")).text().replaceAll("-xA2nl-", "\n");
+					body = formatResponse(body);
+					
+					//split by space before <code> and space after </code>
+					String[] answerFragments = body.split("(?=<pre><code>)|(?<=</code></pre>)");
+					
+					//join all code together
+					code = "";
+					for(int j=0; j<answerFragments.length; j++) {
+						//contains code tag, is a code snippet
+						if(answerFragments[j].contains("<pre><code>")) {
+							partialCode = answerFragments[j];
+							partialCode = partialCode.replaceAll("<pre><code>", "");
+							partialCode = partialCode.replaceAll("</code></pre>", "");
+							code += partialCode;
+						}
+					}
+					
+					//construct the code snippet
+					//we do this in pre-processing to save time on request
+					integerID = Integer.parseInt(id);
+					Snippet snippet = new Snippet(code, integerID);
+					
+					codeSnippets = new ArrayList<>();
+					//if id doesn't already exist, initialize the list
+					if(snippetsO.containsKey(integerID) == false) {
+						codeSnippets.add(snippet);
+						snippetsO.put(integerID, codeSnippets);
+					}
+					else {
+						//get a copy of the existing list for ID
+						if(snippetsO.get(integerID) != null) {
+							codeSnippets.addAll(snippetsO.get(integerID));
+						}
+						//delete the old entry
+						snippetsO.remove(integerID);
+						//replace old entry
+						snippetsO.put(integerID, codeSnippets);
+					}
+				}
+			}
+			reader.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
 	
 	/**
 	 * Loads answer data from the answer.xml file.
@@ -62,7 +196,7 @@ public class DataHandler{
 			inputLine = in.readLine();
 			
 			//for each entry
-			while(inputLine != null) {
+			while(inputLine != null && num < 1000) {
 				num++;
 				
 				//for answers
@@ -157,7 +291,7 @@ public class DataHandler{
 			inputLine = in.readLine();
 			
 			num = 0;
-			while(inputLine != null) {
+			while(inputLine != null && num < 1000) {
 				num++;
 				
 				if(inputLine.contains(" PostTypeId=\"1\"")) {
@@ -215,7 +349,8 @@ public class DataHandler{
 	}
 	
 	/**
-	 * Retrieves a List of Snippet objects from the map given an ID.
+	 * Retrieves a List of Snippet objects from the map given an ID. The returned list will 
+	 * contain copies of the original Snippets so that no context-dependent changes can persist.
 	 * @param id The id to search with.
 	 * @return A List of Snippets for the given ID. Can be empty.
 	 */
@@ -223,11 +358,12 @@ public class DataHandler{
 		List<Snippet> retrieved = new ArrayList<>();
 		
 		//get code list
-		List<String> code = snippets.get(id);
+		List<Snippet> code = snippetsO.get(id);
 		if(code == null) return retrieved;
 		
-		for(String snippet : code) {
-			retrieved.add(new Snippet(snippet, id));
+		//add copies to list
+		for(Snippet snippet : code) {
+			retrieved.add(new Snippet(snippet));
 		}
 		
 		return retrieved;

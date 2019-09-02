@@ -1,7 +1,10 @@
 package nlp2code;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +30,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import nlp2code.compiler.IMCompiler;
+import nlp2code.compiler.PatchClassLoader;
 import nlp2code.tester.Tester;
 
 /**
@@ -35,7 +39,7 @@ import nlp2code.tester.Tester;
  */
 public class Evaluator{
 	static Logger logger = Activator.getLogger();
-	static public JavaCompiler javaCompiler = new EclipseCompiler();
+	static public JavaCompiler javaCompiler = null;
 	static public IMCompiler compiler;
 	static public List<String> options;
 	static boolean fix = true;
@@ -75,6 +79,10 @@ public class Evaluator{
 	/* Returns an ordered vector of snippets
 	 * Based on evaluation metrics. */
 	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
+		//ensure we use the correct eclipse compiler patch
+		if(javaCompiler == null) {
+			usePatch();
+		}
 		retrieved = snippets.size();
 		
 		//set up options if first run
@@ -307,6 +315,21 @@ public class Evaluator{
 				ClassOrInterfaceDeclaration c = (ClassOrInterfaceDeclaration) childNode;
 				className = c.getNameAsString();
 			}
+		}
+	}
+	
+	/**
+	 * Ensures that our EclipseCompiler object is created using our patched jar.
+	 * See {@link PathClassLoader} for more details.
+	 */
+	static private void usePatch() {
+		ClassLoader cl;
+		try {
+			cl = new PatchClassLoader(new URL[] {new URL("platform:/plugin/nlp2code/lib/ecj-3.18.0_fix.jar")});
+			Class<?> c1 = cl.loadClass("org.eclipse.jdt.internal.compiler.tool.EclipseCompiler");
+			javaCompiler = (JavaCompiler) c1.newInstance();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	

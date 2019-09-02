@@ -1,9 +1,7 @@
 package nlp2code.test;
 
 import static org.junit.Assert.*;
-
 import org.junit.Test;
-
 import nlp2code.Snippet;
 
 public class SnippetTest {
@@ -55,4 +53,11 @@ public class SnippetTest {
 		String line = snippet.getLine(2);
 		assertEquals(line, "public int i;");
 	}
+	
+	@Test
+	public void importTest() {
+		Snippet snippet = new Snippet("import java.io.File;\npublic int i;\n", 0);
+		assertEquals(snippet.getCode(), "public int i;\n");
+	}
 }
+

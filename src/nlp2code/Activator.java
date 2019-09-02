@@ -58,8 +58,8 @@ public class Activator extends AbstractUIPlugin {
 		InputHandler.doclistener = new CycleDocListener();
 		
 		start = System.currentTimeMillis();
-		DataHandler.LoadData();
-		DataHandler.LoadQuestions();
+		DataHandler.loadQuestions();
+		DataHandler.loadAnswers();
 		TaskRecommender.loadTasks();
 		logger.debug("Initialization took: " + (System.currentTimeMillis() - start) + "ms\n");
 		

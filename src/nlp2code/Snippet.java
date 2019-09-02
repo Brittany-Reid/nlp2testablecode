@@ -42,6 +42,8 @@ public class Snippet implements Comparable<Snippet>{
 		changed();
 		codeString = code;
 		this.id = id;
+		extractImports();
+		constructLines(code);
 	}
 	
 	/**
@@ -63,6 +65,7 @@ public class Snippet implements Comparable<Snippet>{
 		compiled = that.compiled;
 		errors = that.errors;
 		LOC = that.LOC;
+		importStatements = that.importStatements;
 	}
 	
 	@Override
@@ -105,6 +108,31 @@ public class Snippet implements Comparable<Snippet>{
 	 */
 	public void addImportStatement(String importStatement) {
 		importStatements.add(importStatement);
+	}
+	
+	/**
+	 * Sometimes, code strings contain imports. This will remove them and add
+	 * them to the import representation.
+	 */
+	public void extractImports() {
+		if(codeString == null) return;
+		String newCodeString = "";
+		String line, copy;
+		BufferedReader bufReader = new BufferedReader(new StringReader(codeString));
+		try {
+			while ( (line = bufReader.readLine()) != null) {
+				copy = line;
+				if(line.trim().startsWith("import ")) {
+					importStatements.add(copy);
+				}
+				else {
+				newCodeString += copy+"\n";
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		codeString = newCodeString;
 	}
 	
 	/**
@@ -230,6 +258,7 @@ public class Snippet implements Comparable<Snippet>{
 		diagnostics = null;
 		errors = -1;
 		LOC = -1;
+		importStatements = new ArrayList<>();
 	}
 	
 	/**
@@ -242,7 +271,7 @@ public class Snippet implements Comparable<Snippet>{
 		if(formattedCodeString != null) return formattedCodeString;
 
 		//otherwise, construct
-		String source = "//https://stackoverflow.com/questions" + id + "\n";
+		String source = "//https://stackoverflow.com/questions/" + id + "\n";
 		String line;
 		
 		//get spacing

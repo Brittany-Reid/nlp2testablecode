@@ -3,9 +3,13 @@ package nlp2code;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+
+import javax.tools.JavaCompiler;
 
 import org.apache.logging.log4j.Logger;
 import org.eclipse.core.resources.IProject;
@@ -28,6 +32,8 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
+
+import nlp2code.compiler.PatchClassLoader;
 
 /**
  * class QueryDocListener
@@ -83,11 +89,6 @@ public class QueryDocListener implements IDocumentListener {
 		
 		//on first run, preform our tests - move this to junit soon
 		if(Activator.first == true) {
-			IEditorPart editor2 = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-			IEditorInput input2 = editor2.getEditorInput();
-			IResource file2 = ((IFileEditorInput)input2).getFile();
-			IProject pp = file2.getProject();
-			IJavaProject jp = (IJavaProject) JavaCore.create(pp);
 			
 			//Activator.checkArgs();
 			Activator.first = false;
