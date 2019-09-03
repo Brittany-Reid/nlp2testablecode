@@ -86,8 +86,10 @@ public class Evaluator{
 	 * Based on evaluation metrics. */
 	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
 //		snippets = new ArrayList<>();
-//		String code = "import java.io.File;\nFile file;\nint i=0\n";
+//		String code = "File file;\n";
 //		snippets.add(new Snippet(code, 0));
+//		code = "import java.utils.List;\nList list;\nint i=0\nint j=0\n";
+		//snippets.add(new Snippet(code, 0));
 		
 		retrieved = snippets.size();
 		
@@ -162,9 +164,17 @@ public class Evaluator{
 		compiled = 0;
 		for(int i=0; i<snippets.size(); i++) {
 			compiler.clearSaved();
-			String newBefore = Snippet.addImportToBefore(snippets.get(i), before);
 			
-			compiler.addSource(className, newBefore+snippets.get(i).getCode()+after);
+			//if we have import statements, get the before with these inserted at top
+			String proposedBefore;
+			if(snippets.get(i).getImportList().size() > 0) {
+				proposedBefore = Snippet.addImportToBefore(snippets.get(i), before);
+			}
+			else {
+				proposedBefore = before;
+			}
+			
+			compiler.addSource(className, proposedBefore+snippets.get(i).getCode()+after);
 			compiler.compileAll();
 			
 			//get errors
@@ -188,8 +198,18 @@ public class Evaluator{
 			
 			//try fix snippets with errors
 			if(errors > 0) {
-				String newBefore = Snippet.addImportToBefore(snippets.get(i), before);
-				snippet = Fixer.errorFixes(snippet, newBefore, after);
+				
+				//if we have import statements, get the before with these inserted
+				String proposedBefore;
+				if(snippets.get(i).getImportList().size() > 0) {
+					proposedBefore = Snippet.addImportToBefore(snippets.get(i), before);
+				}
+				else {
+					proposedBefore = before;
+				}
+				
+				//specific error fixes
+				snippet = Fixer.errorFixes(snippet, proposedBefore, after);
 				snippets.set(i, snippet);
 				errors = snippet.getErrors();
 				
@@ -197,7 +217,7 @@ public class Evaluator{
 //				snippets.set(i, Fixer.deletion(snippets.get(i), before, after));
 //				errors = snippets.get(i).getErrors();
 				
-				//if we fixed 
+				//if we fixed the snippet
 				if(errors == 0) {
 					compiled++;
 				}

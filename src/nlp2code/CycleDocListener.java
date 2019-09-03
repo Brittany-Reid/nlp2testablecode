@@ -25,6 +25,13 @@ public class CycleDocListener implements IDocumentListener {
 	public void documentChanged(DocumentEvent event) {
 		boolean match = false;
 		String text = event.getText();
+		
+		//if triggered by import statements being added
+		if(text.equals(InputHandler.previousImports)) {
+			match = true;
+		}
+		
+		//if triggered by snippets being inserted
 		for(Snippet s : InputHandler.previous_search) {
 			if((InputHandler.previousInfo + s.getFormattedCode()).equals(text)) {
 				match = true;

@@ -256,9 +256,12 @@ public class QueryDocListener implements IDocumentListener {
         for(String i : imports) {
         	importBlock += i + "\n";
         }
+        //if only duplicate imports, do nothing
+//        if(importBlock == "") return;
         
         final int fOffset = offset;
         final String finalImportB = importBlock;
+        InputHandler.previousImports = finalImportB;
         
         
         //based on offset, insert

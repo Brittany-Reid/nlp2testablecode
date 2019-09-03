@@ -90,6 +90,7 @@ public class CycleAnswersHandler extends AbstractHandler {
 		            System.out.println(previous_index);
 		            if (InputHandler.previous_offset + InputHandler.previous_length > doc.getLength()) return null;
 		            editor.selectAndReveal(InputHandler.previous_offset + InputHandler.previous_length, 0);
+		            QueryDocListener.addImports(InputHandler.previous_search.get(index), snippet);
 		            return null;
 		        }
 				else {

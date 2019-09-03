@@ -1,5 +1,6 @@
 package nlp2code.fixer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.tools.Diagnostic;
@@ -18,6 +19,7 @@ public class Fixer {
 	public static Integer beforeLines; //Stores lines before code snippet
 	private static IMCompiler compiler;
 	public static int offset;
+	public static int length;
 	
 	/**
 	 * Sets options for fixing.
@@ -135,31 +137,80 @@ public class Fixer {
 	public static Snippet errorFixes(Snippet snippet, String before, String after) {
 		//configure compiler
 		if(compiler == null) compiler = Evaluator.compiler;
-		//disable logging
 		IMCompiler.logging = false;
 		
 		int errors = snippet.getErrors();
-		
 		offset = before.length();
+		length = snippet.getCode().length();
+		
+		//get the initial list of errors
 		List<Diagnostic<? extends JavaFileObject>> diagnostics = snippet.getDiagnostics();
-		for(Diagnostic<? extends JavaFileObject> diagnostic : diagnostics) {
-			//handle this error
-			Snippet modified = handleError(snippet, diagnostic);
-			//no changes could be made, continue
-			if(modified == null) continue;
-			//otherwise, compile and update
-			snippet = modified;
-			//compile
-			compiler.clearSaved();
-			before = Snippet.addImportToBefore(snippet, before);
-			offset = before.length();
-			compiler.addSource(Evaluator.className, before+modified.getCode()+after);
-			compiler.compileAll();
-			errors = compiler.getErrors();
-			snippet.updateErrors(errors, compiler.getDiagnostics().getDiagnostics());
+		//get the first error
+		int num = 0;
+		Diagnostic<? extends JavaFileObject> diagnostic = diagnostics.get(num);
+		Snippet modified = null;
+		
+		//cache the import statements so we only reconstruct before if this has changed
+		List<String> importCache = new ArrayList<>(snippet.getImportList());
+		int steps = errors;
+		
+		//we attempt to fix each error once
+		for(int i=0; i<steps; i++) {
+			//create a copy of the snippet
+			Snippet current = new Snippet(snippet);
+			
+			//handle the error
+			modified = handleError(current, diagnostic);
+			
+			//if we couldn't make a change
+			if(modified == null) {
+				//get next error
+				num++;
+				if(num >= diagnostics.size()) break;
+				diagnostic = diagnostics.get(num);
+			}
+			//if we did make a change
+			else {
+				String proposedBefore = before;
+				//if there are imports and they changed
+				if(modified.getImportList().size() > 0 && !importCache.equals(modified.getImportList())) {
+					proposedBefore = Snippet.addImportToBefore(modified, before);
+					importCache = modified.getImportList();
+				}
+				
+				//compile
+				compiler.clearSaved();
+				compiler.addSource(Evaluator.className, proposedBefore+modified.getCode()+after);
+				compiler.compileAll();
+				int testErrors = compiler.getErrors();
+				
+				//if fix improved our snippet, confirm changes
+				if(testErrors < errors) {
+					before = proposedBefore;
+					offset = before.length();
+					length = snippet.getCode().length();
+					errors = testErrors;
+					
+					//copy modified back to snippet
+					snippet = new Snippet(modified);
+					snippet.updateErrors(errors, compiler.getDiagnostics().getDiagnostics());
+					diagnostics = snippet.getDiagnostics();
+					
+					//if we reached 0, we're done
+					if(errors == 0) {
+						break;
+					}
+				
+				}
+				
+				//get next error
+				if(num >= diagnostics.size()) break;
+				diagnostic = diagnostics.get(num);
+			}
 		}
 		
 		IMCompiler.logging = true;
+		
 		return snippet;
 	}
 	
@@ -172,6 +223,16 @@ public class Fixer {
 	public static Snippet handleError(Snippet snippet, Diagnostic<?extends JavaFileObject> diagnostic) {
 		//get the error code
 		int id = Integer.parseInt(diagnostic.getCode());
+		int start = (int) diagnostic.getStartPosition();
+		int end = (int) diagnostic.getEndPosition();
+		
+		//if the diagnostc is outside our snippet
+		if(start < offset || start > offset+length || end > offset+length) {
+			return null;
+		}
+//		String message2 = diagnostic.getMessage(null);
+//		System.out.println(message2);
+		
 		//process the error
 		switch(id) {
 			case IProblem.ParsingErrorInsertToComplete:
@@ -179,6 +240,9 @@ public class Fixer {
 				if(message.startsWith("Syntax error, insert \";\" to complete ")) {
 					snippet = ParsingFixes.missingSemiColon(snippet, diagnostic, offset);
 				}
+				break;
+			case IProblem.UndefinedType:
+				snippet = UnresovledElementFixes.fixUnresolvedType(snippet, diagnostic, offset);
 				break;
 			default:
 				return null;
@@ -190,8 +254,20 @@ public class Fixer {
 	 * Skeleton: This function will return the sub-string covered by the diagnostic.
 	 * @return
 	 */
-	public static String getCovered() {
-		return null;
+	public static String getCovered(String code, long start, long end, int offset) {
+		String covered;
+		
+		//update start and end with offset
+		start = start - offset;
+		end = end - offset;
+		if(start < 0) return null;
+		//sometimes the compiler fails parsing spectacularly, the offset will be weird
+		//but in general if the error is not inside our snippet, ignore it
+		if(end >= code.length()) return null;
+		
+		covered = code.substring((int)start, (int)end+1);
+		
+		return covered;
 	}
 	
 	/**

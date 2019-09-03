@@ -17,6 +17,8 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
 
 /**
  * A snippet is an object that contains a code snippet and related information.
@@ -378,37 +380,54 @@ public class Snippet implements Comparable<Snippet>{
 	 * @return
 	 */
 	public static String addImportToBefore(Snippet snippet, String before) {
-		//no imports, no changes
-		if(snippet.getImportList().size() == 0) return before;
-		//otherwise, parse the before
-		BufferedReader bufReader = new BufferedReader(new StringReader(before));
-		String line;
-		String modifiedBefore = "";
-		boolean added = false;
-		try {
-			while ( (line = bufReader.readLine()) != null) {
-				if(added == false) {
-					//look for package block
-					if(line.trim().startsWith("package ")) {
-						//add imports after
-						modifiedBefore += line + "\n";
-						modifiedBefore += snippet.getImportStatements();
-						added = true;
-					}
-					//some non-empty non package? add imports above
-					else if(line.trim().length() > 0) {
-						modifiedBefore += snippet.getImportStatements();
-						modifiedBefore += line;
-						added = true;
-					}
-				}else {
-					modifiedBefore += line + "\n";
-				}
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-
-		return modifiedBefore;
+		//get imports
+		List<String> imports = new ArrayList<>(snippet.getImportList());
+		
+		//otherwise, parse to find insert offset, default is start
+		int offset = 0;
+		String modified;
+		
+		ASTParser parser = ASTParser.newParser(AST.JLS11);
+		parser.setSource(before.toCharArray());
+		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        
+        //get import statements
+        ImportDeclarationVisitor idv = new ImportDeclarationVisitor();
+        cu.getRoot().accept(idv);
+        List<ImportDeclaration> importNodes = idv.imports;
+        
+        //if imports exist
+        if(importNodes != null && importNodes.size() > 0) {
+        	//insert will be before first import
+        	offset = importNodes.get(0).getStartPosition();
+        	//check for and remove duplicates from list to add
+        	for(ImportDeclaration i : importNodes) {
+        		if(imports.contains(i.toString().trim())) {
+        			imports.remove(i.toString().trim());
+        		
+        		}
+        	}
+        //if imports do not exist, look for package declaration
+        }else {
+        	//find package node
+        	PackageDeclarationVisitor pdv = new PackageDeclarationVisitor();
+        	cu.getRoot().accept(pdv);
+        	PackageDeclaration pk = pdv.pk;
+        	//if it exists, the offset is on the line after
+        	if(pk !=  null) offset = pk.getStartPosition() + pk.getLength() + 1;
+        }
+        
+        //construct import block
+		String importBlock = "";
+        for(String importStatement : imports) {
+        	importBlock += importStatement + "\n";
+        }
+        
+        //insert import block
+        modified = before.substring(0, offset);
+        modified += importBlock;
+        modified += before.substring(offset, before.length());
+		
+		return modified;
 	}
 }

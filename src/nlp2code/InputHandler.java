@@ -40,6 +40,8 @@ public class InputHandler extends AbstractHandler {
 	static QueryDocListener qdl = new QueryDocListener();
 	// A vector containing all documents that have an active query document listener.
 	static Vector<IDocument> documents = new Vector<IDocument>();
+	// Holds the previously added import block
+	static String previousImports = "";
 	
 	/*
 	 * Function execute
