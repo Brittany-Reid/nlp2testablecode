@@ -160,7 +160,7 @@ public class Fixer {
 			Snippet current = new Snippet(snippet);
 			
 			//handle the error
-			modified = handleError(current, diagnostic);
+			modified = handleError(current, diagnostic, before, after);
 			
 			//if we couldn't make a change
 			if(modified == null) {
@@ -220,7 +220,7 @@ public class Fixer {
 	 * @param diagnostic The error to fix.
 	 * @return The modified snippet, or on error, null.
 	 */
-	public static Snippet handleError(Snippet snippet, Diagnostic<?extends JavaFileObject> diagnostic) {
+	public static Snippet handleError(Snippet snippet, Diagnostic<?extends JavaFileObject> diagnostic, String before, String after) {
 		//get the error code
 		int id = Integer.parseInt(diagnostic.getCode());
 		int start = (int) diagnostic.getStartPosition();
@@ -242,7 +242,7 @@ public class Fixer {
 				}
 				break;
 			case IProblem.UndefinedType:
-				snippet = UnresovledElementFixes.fixUnresolvedType(snippet, diagnostic, offset);
+				snippet = UnresolvedElementFixes.fixUnresolvedType(snippet, diagnostic, offset, before, after);
 				break;
 			default:
 				return null;

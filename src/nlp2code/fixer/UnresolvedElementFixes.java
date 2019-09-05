@@ -25,17 +25,19 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 
+import nlp2code.Evaluator;
 import nlp2code.QueryDocListener;
 import nlp2code.Snippet;
+import nlp2code.compiler.IMCompiler;
 
 /**
  * This class contains fixes for solving unresolved element errors.
  */
-class UnresovledElementFixes {
+public class UnresolvedElementFixes {
 	//A Hashmap of possible types to packages (fully qualified names) from project classpath.
 	private static Map<String, List<String>> classCache = new HashMap<>();
 	
-	public static Snippet fixUnresolvedType(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset) {
+	public static Snippet fixUnresolvedType(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset, String before, String after) {
 		String type = Fixer.getCovered(snippet.getCode(), diagnostic.getStartPosition(), diagnostic.getEndPosition(), offset);
 		
 		List<String> packages = findPackagesForType(type);
@@ -57,7 +59,6 @@ class UnresovledElementFixes {
 		    }
 		});
 		
-		//for now, use the first we found
 		snippet.addImportStatement("import " + packages.get(0) + ";");
 		
 		return snippet;

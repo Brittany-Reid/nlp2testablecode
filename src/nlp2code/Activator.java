@@ -9,12 +9,22 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
+
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.ElementChangedEvent;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -39,7 +49,7 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 
-	/*
+	/**
 	 *  Constructor.
 	 *  Initializes defaults for document listeners, loads the list of tasks from the local database, and
 	 *  saves the Google Custom Search engine defaults to a preferences file.
@@ -50,6 +60,7 @@ public class Activator extends AbstractUIPlugin {
 		ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		doc.addDocumentListener(InputHandler.qdl);
+		JavaCore.addElementChangedListener(new PackagesListener(), ElementChangedEvent.POST_CHANGE );
 		InputHandler.documents.add(doc);
 		InputHandler.previous_search = new ArrayList();
 		InputHandler.previous_offset = 0;
@@ -68,6 +79,84 @@ public class Activator extends AbstractUIPlugin {
 		
 	}
 
+	public static void queryTests() {
+		long start;
+		
+		logger.debug("COMPILING FOR 47 TASKS\n");
+		start = System.currentTimeMillis();
+		String before = "class Main {\npublic static void main(String[] args){\n";
+		String after = "\nreturn; }\n}\n";
+		
+		//for each task
+		int errors;
+		int totalErrors = 0;
+		int test;
+		int compiled;
+		int totalCompiled = 0;
+		for(String task : TaskRecommender.queries) {
+			logger.debug("TASK: " + task + "\n");
+			errors = 0;
+			compiled = 0;
+			
+			//find the snippets
+			List<Snippet> snippets;
+			snippets = Searcher.getSnippets(task);
+			if(snippets == null) continue;
+			
+			//call evaluator
+			snippets = Evaluator.evaluate(snippets, before, after);
+			
+			//with the results of evaluator, we compile to count errors
+			IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, null);
+			for(Snippet snippet : snippets) {
+				compiler.clearSaved();
+				String proposedBefore = before;
+				if(snippet.getImportList() != null || snippet.getImportList().size() > 0) {
+					proposedBefore = Snippet.addImportToBefore(snippet, before);
+				}
+				compiler.addSource("Main", proposedBefore+snippet.getCode()+after);
+				compiler.compileAll();
+				test = compiler.getErrors();
+				errors += test;
+				
+				if(test == 0) {
+					compiled++;
+				}
+			}
+			logger.debug("ERRORS: " + errors + "\n");
+			logger.debug("COMPILED: " + compiled + "\n");
+			totalErrors += errors;
+			totalCompiled += compiled;
+			
+		}
+		
+		logger.debug("TIME: " + (System.currentTimeMillis() - start) + "ms\n");
+		logger.debug("TOTAL ERRORS: " + totalErrors + "\n");
+		logger.debug("TOTAL COMPILED: " + totalCompiled + "\n");
+		
+	}
+	
+	/**
+	 * This function tests and logs the results of search on our 47 queries.
+	 */
+	public static List<Snippet> searchTest() {
+		long start;
+		List<Snippet> totalSnippets = new ArrayList<>();
+		
+		logger.debug("SEARCHING 47 TASKS\n");
+		start = System.currentTimeMillis();
+		for(String task : TaskRecommender.queries) {
+			List<Snippet> snippets;
+			snippets = Searcher.getSnippets(task);
+			if(snippets != null) {
+				totalSnippets.addAll(snippets);
+			}
+		}
+		logger.debug("TIME: " + (System.currentTimeMillis() - start) + "ms\n");
+		logger.debug("TOTAL: " + totalSnippets.size() + " snippets from search.");
+		return totalSnippets;
+	}
+	
 	public static void checkArgs() {
 		ArrayList<Vector <String>> codeset = new ArrayList<Vector<String>>();
 		

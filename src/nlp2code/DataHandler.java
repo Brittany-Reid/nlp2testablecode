@@ -1,24 +1,16 @@
 package nlp2code;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import edu.stanford.nlp.simple.Sentence;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 
 /**
  * class DataHandler
@@ -29,9 +21,7 @@ public class DataHandler{
 	static Logger logger = Activator.getLogger();
 	//ids to surrounding text
 	static HashMap<Integer, String> searchSpace = new HashMap<Integer, String>();
-	//ids to code snippets
-	private static HashMap<Integer, List<String>> snippets = new HashMap<Integer, List<String>>();
-	private static HashMap<Integer, List<Snippet>> snippetsO = new HashMap<Integer, List<Snippet>>();
+	private static HashMap<Integer, List<Snippet>> snippets = new HashMap<Integer, List<Snippet>>();
 	//ids to titles
 	static HashMap<Integer, String> titles = new HashMap<Integer, String>();
 	static HashMap<String, List<Integer>> titlewords = new HashMap<String, List<Integer>>();
@@ -51,7 +41,7 @@ public class DataHandler{
 			BufferedReader reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 			int num = 0;
 			while((line = reader.readLine()) != null) {
-				num++;
+				num = num + 1;
 				if(line.contains(" PostTypeId=\"1\"")) {
 					//get id
 					id = line.substring(line.indexOf(" Id=\"")+5, line.length());
@@ -109,7 +99,7 @@ public class DataHandler{
 			line = reader.readLine();
 			int num = 0;
 			while((line = reader.readLine()) != null) {
-				num++;
+				num = num + 1;
 				//ensure this is an answer
 				if(line.contains(" ParentId=\"")) {
 					//get body
@@ -149,19 +139,19 @@ public class DataHandler{
 					
 					codeSnippets = new ArrayList<>();
 					//if id doesn't already exist, initialize the list
-					if(snippetsO.containsKey(integerID) == false) {
+					if(snippets.containsKey(integerID) == false) {
 						codeSnippets.add(snippet);
-						snippetsO.put(integerID, codeSnippets);
+						snippets.put(integerID, codeSnippets);
 					}
 					else {
 						//get a copy of the existing list for ID
-						if(snippetsO.get(integerID) != null) {
-							codeSnippets.addAll(snippetsO.get(integerID));
+						if(snippets.get(integerID) != null) {
+							codeSnippets.addAll(snippets.get(integerID));
 						}
 						//delete the old entry
-						snippetsO.remove(integerID);
+						snippets.remove(integerID);
 						//replace old entry
-						snippetsO.put(integerID, codeSnippets);
+						snippets.put(integerID, codeSnippets);
 					}
 				}
 			}
@@ -183,7 +173,7 @@ public class DataHandler{
 		List<Snippet> retrieved = new ArrayList<>();
 		
 		//get code list
-		List<Snippet> code = snippetsO.get(id);
+		List<Snippet> code = snippets.get(id);
 		if(code == null) return retrieved;
 		
 		//add copies to list

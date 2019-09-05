@@ -1,8 +1,5 @@
 package nlp2code;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -82,7 +79,6 @@ public class InputHandler extends AbstractHandler {
 					if (text.equals("") || text.equals(null)) return null;
 					boolean eol = false;
 					if (text.endsWith("\n")) eol = true;
-					String whitespace_before = text.substring(0, text.indexOf(text.trim()));
 		            text = text.trim();
 		            
 //		            // Get the vector of URLS from the getPosts query.		            
@@ -97,7 +93,6 @@ public class InputHandler extends AbstractHandler {
 //		            Vector<String> code = Searcher.getCodeSnippets(url);
 //		            if (code.size() == 0) return null;
 		            
-		            Vector<String> code = new Vector<String>();
 		    		//get snippets
 		    		List<Snippet> snippets = Searcher.getSnippets(text);
 		            if (snippets.equals(null)) {
@@ -142,37 +137,5 @@ public class InputHandler extends AbstractHandler {
 		    }
 	    }
 		return null;
-	}
-	
-	/* 
-	 * Function fixSpacing
-	 *   Given a list of code snippets, and a fixed offset (spacing) for where the code snippet insertion starts,
-	 *     add the fixed offset to each line of each code snippet.
-	 *   Essentially, this function fixes alignment issues when inserting code snippets at an offset.
-	 *   
-	 *   Inputs: Vector<String> queries - vector of different code snippets to insert into the document.
-	 *   		 String spacing - Offset of query to be applied to each code snippet.
-	 *   
-	 *   Retuns: Vector<String> - vector of code snippets with fixed offset.
-	 */
-	private static Vector<String> fixSpacing(Vector<String> queries, String spacing) {
-		Vector<String> fixed_queries = new Vector<String>();
-		
-		for (int i=0; i<queries.size(); i++) {
-			BufferedReader bufReader = new BufferedReader(new StringReader(queries.get(i)));
-			String line;
-			String new_query = "";
-			try {
-				while ( (line=bufReader.readLine()) != null) {
-					line = spacing + line + "\n";
-					new_query += line;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			fixed_queries.add(new_query);
-		}
-		
-		return fixed_queries;
 	}
 }

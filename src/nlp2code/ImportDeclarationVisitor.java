@@ -7,10 +7,11 @@ import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ImportDeclaration;
 
 /**
- * This class is used to find import statements in the open document.
+ * Custom visitor to find import declarations.
  */
 public class ImportDeclarationVisitor extends ASTVisitor {
-	public List<ImportDeclaration> imports = new ArrayList<>();;
+	public List<ImportDeclaration> imports = new ArrayList<>();
+	
 	@Override
 	public boolean visit(ImportDeclaration node) {
 		imports.add(node);

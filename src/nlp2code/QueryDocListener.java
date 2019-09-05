@@ -32,7 +32,7 @@ public class QueryDocListener implements IDocumentListener {
 	private static String whitespaceBefore;
 	static Logger logger = Activator.getLogger();
 	static List<String> testInput;
-		
+	
 	/**
 	 * Function that activates every time the current edited document is changed.  
 	 * Simply put, this document listener listens for ?{query}? format queries in the document,
@@ -74,13 +74,16 @@ public class QueryDocListener implements IDocumentListener {
 	 */
 	private static int doQuery(DocumentEvent event, String line) {
 		
+		//get the selected resource
+		editorPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+		
 		//on first run, preform our tests - move this to junit soon
 		if(Activator.first == true) {
 			
 			//Activator.checkArgs();
 			Activator.first = false;
 			if(logger.isDebugEnabled()) {
-				//Activator.tests(1);
+				//Activator.queryTests();
 			}
 		}
 		
@@ -93,7 +96,7 @@ public class QueryDocListener implements IDocumentListener {
 		
 		//get snippets
 		List<Snippet> snippets = Searcher.getSnippets(query);
-	    if (snippets.equals(null)) {
+	    if (snippets == null) {
 	    	System.out.println("Error! Snippet list is null!");
 	    	return 9;
 	    }
