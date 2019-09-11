@@ -27,25 +27,47 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 
 public class FixerTest {
 	
-	@Test
-	public void testGetVariableName(){
-		ReflectionTypeSolver solver = new ReflectionTypeSolver();
-		ParserConfiguration parserConfiguration = new ParserConfiguration().setSymbolResolver( new JavaSymbolSolver(solver)); 
-		JavaParser parser = new JavaParser(parserConfiguration);
-		//static surrounding code
-		String before = "class Main {\n public static void main(String[] args) {\n";
-		String after = "return;\n}\n}\n";
-		
-		String snippet;
+	ReflectionTypeSolver solver = new ReflectionTypeSolver();
+	ParserConfiguration parserConfiguration = new ParserConfiguration().setSymbolResolver( new JavaSymbolSolver(solver)); 
+	JavaParser parser = new JavaParser(parserConfiguration);
+	//static surrounding code
+	String before = "class Main {\n public static void main(String[] args) {\n";
+	String after = "return;\n}\n}\n";
+	String snippet, name, type;
+	CompilationUnit cu;
+	Statement nodeStatement;
+	Expression expression;
 	
-		
-		//for a method call where unresolved is the name
-		snippet = "String s = x;\n";
-		CompilationUnit cu = parser.parse(before + snippet + after).getResult().get();
-		Statement nodeStatement =  UnresolvedElementFixes.getStatementFromLine(cu, 3);
-		String name = "x";
-		Expression expression = UnresolvedElementFixes.findContainingInStatement(name, nodeStatement);
-		String type = UnresolvedElementFixes.extractTypeFromExpression(expression, name);
+	@Test
+	public void testResolveSimpleCondition(){
+		snippet = "if(i == 1) {\n return;\n}\n";
+		cu = parser.parse(before + snippet + after).getResult().get();
+		nodeStatement =  UnresolvedElementFixes.getStatementFromLine(cu, 3);
+		name = "i";
+		expression = UnresolvedElementFixes.findContainingInStatement(name, nodeStatement);
+		type = UnresolvedElementFixes.extractTypeFromExpression(expression, name);
+		System.out.println(type);
+	}
+	
+	@Test
+	public void testResolveSimpleWhile(){
+		snippet = "while(i==true){\n return;\n}\n";
+		cu = parser.parse(before + snippet + after).getResult().get();
+		nodeStatement =  UnresolvedElementFixes.getStatementFromLine(cu, 3);
+		name = "i";
+		expression = UnresolvedElementFixes.findContainingInStatement(name, nodeStatement);
+		type = UnresolvedElementFixes.extractTypeFromExpression(expression, name);
+		System.out.println(type);
+	}
+	
+	@Test
+	public void testResolveFunctionArgument(){
+		snippet = "System.out.println(i + \"a\");\n";
+		cu = parser.parse(before + snippet + after).getResult().get();
+		nodeStatement =  UnresolvedElementFixes.getStatementFromLine(cu, 3);
+		name = "i";
+		expression = UnresolvedElementFixes.findContainingInStatement(name, nodeStatement);
+		type = UnresolvedElementFixes.extractTypeFromExpression(expression, name);
 		System.out.println(type);
 	}
 

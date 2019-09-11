@@ -343,6 +343,7 @@ public class UnresolvedElementFixes {
 			int test = statement.getBegin().get().line;
 			if(test == line) {
 				nodeStatement = statement;
+				break;
 			}
 		}
 		
@@ -427,6 +428,19 @@ public class UnresolvedElementFixes {
 		}
 		else if(expression instanceof VariableDeclarationExpr) {
 			Expression toResolve = getResolvableFromDeclaration(expression.asVariableDeclarationExpr(), name);
+			if(toResolve != null) {
+				try {
+					resolvedType = toResolve.calculateResolvedType();
+					type = processResolvedType(resolvedType);
+				} catch (Exception e) {
+					//in the case of not being able to resolve, our type is null
+					type = null;
+				}
+			}
+		}
+		//binary expression
+		else if(expression instanceof BinaryExpr) {
+			Expression toResolve = getResolvableFromBinaryExpr(expression.asBinaryExpr(), name);
 			if(toResolve != null) {
 				try {
 					resolvedType = toResolve.calculateResolvedType();
@@ -553,6 +567,24 @@ public class UnresolvedElementFixes {
 				toResolve = getResolvableFromEnclosedExpr(toResolve.asEnclosedExpr(), name);
 			}
 		}
+		
+		//if it didn't
+		if(toResolve == null) {
+			//get arguments
+			List<Expression> arguments = call.getArguments();
+			for(Expression argument : arguments) {
+				//when we find an argument that contains our name
+				if(containsName(argument, name)) {
+					//attempt to parse
+					if(argument instanceof BinaryExpr) {
+						toResolve = getResolvableFromBinaryExpr(argument.asBinaryExpr(), name);
+					}
+					
+					break;
+				}
+			}
+		}
+		
 		
 		return toResolve;
 	}
