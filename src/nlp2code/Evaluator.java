@@ -86,10 +86,11 @@ public class Evaluator{
 	 * Based on evaluation metrics. */
 	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
 //		snippets = new ArrayList<>();
-//		String code = "File file;\n";
+//		String code = "a.paint();\n";
 //		snippets.add(new Snippet(code, 0));
 //		code = "import java.utils.List;\nList list;\nint i=0\nint j=0\n";
 		//snippets.add(new Snippet(code, 0));
+		
 		
 		retrieved = snippets.size();
 		
@@ -227,35 +228,7 @@ public class Evaluator{
 		
 		return snippets;
 	}
-	/**
-	 * For snippets with compiler errors, tries to fix. 
-	 * Returns modified Map.
-	 */
-	private static HashMap<String, Integer> runFixes(HashMap<String, Integer> snippets, String b, String a){
-		HashMap<String, Integer> fixedMap = new HashMap<String, Integer>();
-		
-		for(String snippet : snippets.keySet()) {
-			Integer errors = snippets.get(snippet);
-			
-			//only try to fix snippets with errors
-			if(errors != 0) {
-				//snippet = Fixer.heuristicFixes(b, snippet, a, errors);
-				//errors = Fixer.getLastFixErrorCount();
-				
-				if(errors != 0) {
-					//line deletion
-					//snippet = Fixer.tryDeletion(b, snippet, a, errors);
-					//System.out.println("done");
-					//errors = Fixer.getLastFixErrorCount();
-				}
-			}
-			
-			fixedMap.put(snippet, errors);
-			
-		}
-		
-		return fixedMap;
-	}
+
 	
 	private static HashMap<String, Integer> getPassedTests(HashMap<String, Integer> snippets, String b, String a){
 		HashMap<String, Integer> passedMap = new HashMap<String, Integer>();

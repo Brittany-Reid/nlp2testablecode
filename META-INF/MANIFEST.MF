@@ -52,7 +52,9 @@ Bundle-ClassPath: .,
  lib/javaparser-core-3.14.8.jar,
  lib/javaparser-symbol-solver-logic-3.14.10.jar,
  lib/javaparser-symbol-solver-model-3.14.10.jar,
- lib/ecj-3.18.0_fix.jar
+ lib/ecj-3.18.0_fix.jar,
+ lib/guava-28.1-jre.jar,
+ lib/javassist-3.25.0-GA.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: nlp2code.Activator

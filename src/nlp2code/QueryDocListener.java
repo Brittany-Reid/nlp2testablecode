@@ -83,7 +83,7 @@ public class QueryDocListener implements IDocumentListener {
 			//Activator.checkArgs();
 			Activator.first = false;
 			if(logger.isDebugEnabled()) {
-				//Activator.queryTests();
+				Activator.queryTests();
 			}
 		}
 		

@@ -232,6 +232,7 @@ public class Fixer {
 		}
 //		String message2 = diagnostic.getMessage(null);
 //		System.out.println(message2);
+//		System.out.println(id);
 		
 		//process the error
 		switch(id) {
@@ -243,6 +244,12 @@ public class Fixer {
 				break;
 			case IProblem.UndefinedType:
 				snippet = UnresolvedElementFixes.fixUnresolvedType(snippet, diagnostic, offset, before, after);
+				break;
+			case IProblem.UnresolvedVariable:
+				snippet = UnresolvedElementFixes.fixUnresolvedVariable(snippet, diagnostic, offset, before, after);
+				break;
+			case IProblem.UndefinedName:
+				snippet = UnresolvedElementFixes.fixUnresolved(snippet, diagnostic, offset, before, after);
 				break;
 			default:
 				return null;
@@ -293,6 +300,30 @@ public class Fixer {
 		modified = code.substring(0, (int)start+1);
 		modified += toInsert;
 		modified += code.substring((int)end+1, code.length());
+		
+		return modified;
+	}
+	
+	/**
+	 * Adds a line of code at the given line number. Unlike insertAt, this
+	 * function uses a line-based representation of code.
+	 */
+	public static String addLineAt(String code, String toInsert, int line) {
+		
+		//toInsert must end with a newline
+		if(!toInsert.endsWith("\n")) toInsert += "\n";
+		
+		//get our lines
+		String[] lines = code.split("\n");
+		
+		//reconstruct our code
+		String modified = "";
+		for(int i=0; i<lines.length; i++) {
+			if(i+1 == line) {
+				modified += toInsert;
+			}
+			modified += lines[i] + "\n";
+		}
 		
 		return modified;
 	}

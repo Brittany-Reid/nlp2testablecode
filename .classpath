@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/guava-28.1-jre.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/javassist-3.25.0-GA.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ecj-3.18.0_fix.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/javaparser-symbol-solver-logic-3.14.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/javaparser-symbol-solver-model-3.14.10.jar"/>

@@ -9,7 +9,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.tools.Diagnostic;
@@ -80,6 +83,8 @@ public class Activator extends AbstractUIPlugin {
 	}
 
 	public static void queryTests() {
+		Map<String, Integer> errorIDs = new HashMap<>();
+		Map<String, String> errorMessages = new HashMap<>();
 		long start;
 		
 		logger.debug("COMPILING FOR 47 TASKS\n");
@@ -119,6 +124,21 @@ public class Activator extends AbstractUIPlugin {
 				test = compiler.getErrors();
 				errors += test;
 				
+				//add to error map
+				for(Diagnostic<? extends JavaFileObject> d : compiler.getDiagnostics().getDiagnostics()) {
+					String id = d.getCode();
+					String message = d.getMessage(null);
+					if(!errorIDs.containsKey(id)) {
+						errorIDs.put(id, 1);
+						errorMessages.put(id, message);
+					}
+					else {
+						int num = errorIDs.get(id);
+						num++;
+						errorIDs.put(id, num);
+					}
+				}
+				
 				if(test == 0) {
 					compiled++;
 				}
@@ -133,6 +153,16 @@ public class Activator extends AbstractUIPlugin {
 		logger.debug("TIME: " + (System.currentTimeMillis() - start) + "ms\n");
 		logger.debug("TOTAL ERRORS: " + totalErrors + "\n");
 		logger.debug("TOTAL COMPILED: " + totalCompiled + "\n");
+		
+		//sort list
+		List<Entry<String, Integer>> list = new ArrayList<>(errorIDs.entrySet());
+        list.sort(Entry.<String, Integer>comparingByValue().reversed());
+
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (Entry<String, Integer> entry : list) {
+        	logger.debug(entry.getValue() + ", " + errorMessages.get(entry.getKey()) + ", " + entry.getKey() + "\n");
+            //result.put(entry.getKey(), entry.getValue());
+        }
 		
 	}
 	
