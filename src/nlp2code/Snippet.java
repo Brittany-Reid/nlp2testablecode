@@ -113,7 +113,7 @@ public class Snippet implements Comparable<Snippet>{
 	 * @param importStatement The statement to add.
 	 */
 	public void addImportStatement(String importStatement) {
-		importStatements.add(importStatement);
+		if(!importStatements.contains(importStatement)) importStatements.add(importStatement);
 	}
 	
 	/**

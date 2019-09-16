@@ -148,14 +148,29 @@ public class Fixer {
 		//get the first error
 		int num = 0;
 		Diagnostic<? extends JavaFileObject> diagnostic = diagnostics.get(num);
+//		for( Diagnostic <? extends JavaFileObject> d : diagnostics) {
+//			System.out.println(d.getMessage(null));
+//		}
+		System.out.println("");
 		Snippet modified = null;
 		
 		//cache the import statements so we only reconstruct before if this has changed
 		List<String> importCache = new ArrayList<>(snippet.getImportList());
+		//previous error cache
+		List<Diagnostic<? extends JavaFileObject> > processedErrors = new ArrayList<>();
+		Diagnostic<? extends JavaFileObject> previousError = null;
 		int steps = errors;
 		
 		//we attempt to fix each error once
 		for(int i=0; i<steps; i++) {
+//			System.out.println("STEP " + i + ", ERROR: ");
+//			System.out.println(diagnostic.getMessage(null));
+//			System.out.println(diagnostic.getCode());
+			
+			
+			
+			
+			
 			//create a copy of the snippet
 			Snippet current = new Snippet(snippet);
 			
@@ -164,6 +179,10 @@ public class Fixer {
 			
 			//if we couldn't make a change
 			if(modified == null) {
+				
+				//add to processed
+				processedErrors.add(diagnostic);
+				
 				//get next error
 				num++;
 				if(num >= diagnostics.size()) break;
@@ -175,32 +194,50 @@ public class Fixer {
 				//if there are imports and they changed
 				if(modified.getImportList().size() > 0 && !importCache.equals(modified.getImportList())) {
 					proposedBefore = Snippet.addImportToBefore(modified, before);
-					importCache = modified.getImportList();
+					importCache = new ArrayList<>(modified.getImportList());
 				}
 				
 				//compile
 				compiler.clearSaved();
 				compiler.addSource(Evaluator.className, proposedBefore+modified.getCode()+after);
+				//System.out.println(proposedBefore+modified.getCode()+after);
 				compiler.compileAll();
 				int testErrors = compiler.getErrors();
 				
 				//if fix improved our snippet, confirm changes
 				if(testErrors < errors) {
+					
 					before = proposedBefore;
 					offset = before.length();
 					length = snippet.getCode().length();
-					errors = testErrors;
 					
 					//copy modified back to snippet
 					snippet = new Snippet(modified);
-					snippet.updateErrors(errors, compiler.getDiagnostics().getDiagnostics());
+					snippet.updateErrors(testErrors, compiler.getDiagnostics().getDiagnostics());
 					diagnostics = snippet.getDiagnostics();
 					
 					//if we reached 0, we're done
-					if(errors == 0) {
+					if(testErrors == 0) {
 						break;
 					}
-				
+					
+					//we can resolve multiple errors, so just incrementing or retaining num means we can skip errors
+					if(errors - testErrors > 1 && processedErrors.size() > 0) {
+						num = 0;
+						int s = 0;
+						//for each diagnostic
+						for(int j=0; j<diagnostics.size(); j++) {
+							//does it match a processed?
+							for(int k=s; k<processedErrors.size(); k++) {
+								if(diagnostics.get(j).equals(processedErrors.get(k))){
+									s=k; //dont look at matching processed errors again
+									num = j + 1;
+								}
+							}
+						}
+					}
+					
+					errors = testErrors;
 				}
 				
 				//get next error
@@ -233,9 +270,12 @@ public class Fixer {
 //		String message2 = diagnostic.getMessage(null);
 //		System.out.println(message2);
 //		System.out.println(id);
-		
+//		
 		//process the error
 		switch(id) {
+			case IProblem.MissingSemiColon:
+				snippet = ParsingFixes.missingSemiColon(snippet, diagnostic, offset);
+				break;
 			case IProblem.ParsingErrorInsertToComplete:
 				String message = diagnostic.getMessage(null);
 				if(message.startsWith("Syntax error, insert \";\" to complete ")) {
