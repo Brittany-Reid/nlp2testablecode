@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.Flags;
@@ -69,14 +70,19 @@ import nlp2code.compiler.IMCompiler;
  * This class contains fixes for solving unresolved element errors.
  */
 public class UnresolvedElementFixes {
-	//A Hashmap of possible types to packages (fully qualified names) from project classpath.
-	private static Map<String, List<String>> classCache = new HashMap<>();
+	private static Map<String, List<String>> classCache = new HashMap<>(); //cache of short to qualified names
+	private static String[] types = {"Integer", "String", "Character", "Boolean", "Double", "Float", "Long"}; //common types to brute force
 	public static JavaParser parser;
+	private static String before;
+	private static String after;
 	
 	/**
 	 * Fix unresolved. Using information from expression we can defer to other unresolved functions.
 	 */
-	public static Snippet fixUnresolved(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset, String before, String after) {
+	public static Snippet fixUnresolved(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset, String b, String a) {
+		before = b;
+		after = a;
+		
 		//get name from code
 		String name = Fixer.getCovered(snippet.getCode(), diagnostic.getStartPosition(), diagnostic.getEndPosition(), offset);
 		//if the name is lowercase, resolve as variable
@@ -93,34 +99,60 @@ public class UnresolvedElementFixes {
 	public static Snippet fixUnresolvedType(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset, String before, String after) {
 		String type = Fixer.getCovered(snippet.getCode(), diagnostic.getStartPosition(), diagnostic.getEndPosition(), offset);
 		
-		List<String> packages = findPackagesForType(type);
+		snippet = addImportFor(snippet, type);
 		
-		//if we couldn't find a type, no change
-		if(packages == null || packages.isEmpty()) return null;
+		return snippet;
+	}
+	
+	/**
+	 * Finds and adds an import statement for a given type.
+	 */
+	private static Snippet addImportFor(Snippet snippet, String type) {
+		String importStatement = commonTypes(type);
+		if(importStatement == null) {
 		
-		//sort so java packages come first
-		Collections.sort(packages, new Comparator<String>() {
-		    @Override
-		    public int compare(String o1, String o2) {
-		    	if(o1.startsWith("java") && !o2.startsWith("java")) {
-		    		return -1;
-		    	}
-		    	else if(o2.startsWith("java") && !o1.startsWith("java")) {
-		    		return 1;
-		    	}
-		        return o1.compareTo(o2);
-		    }
-		});
+			List<String> packages = findPackagesForType(type);
+				
+			//if we couldn't find a type, no change
+			if(packages == null || packages.isEmpty()) return null;
+			
+			
+			//sort so java packages come first
+			Collections.sort(packages, new Comparator<String>() {
+			    @Override
+			    public int compare(String o1, String o2) {
+			    	//preference java
+			    	if(o1.startsWith("java") && !o2.startsWith("java")) {
+			    		return -1;
+			    	}
+			    	else if(o2.startsWith("java") && !o1.startsWith("java")) {
+			    		return 1;
+			    	}
+			    	//preference utils
+			    	else {
+			    		if(o1.contains(".util.") && !o2.contains(".util.")) {
+			    			return -1;
+			    		}
+			    		if(o2.contains(".util.") && !o1.contains(".util.")) {
+			    			return 1;
+			    		}
+			    	}
+			        return o1.compareTo(o2);
+			    }
+			});
+			importStatement = packages.get(0);
+		}
 		
-		snippet.addImportStatement("import " + packages.get(0) + ";");
-		
+		snippet.addImportStatement("import " + importStatement + ";");
 		return snippet;
 	}
 
 	/**
 	 * Function to fix an unresolved variable.
 	 */
-	public static Snippet fixUnresolvedVariable(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset, String before, String after) {
+	public static Snippet fixUnresolvedVariable(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset, String b, String a) {
+		before = b;
+		after = a;
 		
 		//set up parser with internal classes for type solver
 		ReflectionTypeSolver solver = new ReflectionTypeSolver();
@@ -142,6 +174,24 @@ public class UnresolvedElementFixes {
 		//get the type
 		String type = extractTypeFromExpression(expression, name);
 		//if we were unable to do this, try a default object
+		
+		//if we failed to get a type, brute force 
+		if(type == null) {
+			Snippet test = tryDefaults(snippet, name, nodeStatement.getBegin().get().line-before.split("\n").length);
+			if(test != null) return test;
+		}
+		
+		//for complex types, try to gather information from variable name
+		if(type == null) {
+			type = typeFromName(name);
+			if(type != null) {
+				//add import
+				snippet = addImportFor(snippet, type);
+			}
+		}
+		
+		
+		//otherwise, just use object
 		if(type == null) type = "Object";
 		
 		String variableDeclaration = getVariableDeclaration(type, name);
@@ -150,6 +200,53 @@ public class UnresolvedElementFixes {
 		snippet.setCode(code);
 		
 		return snippet;
+	}
+	
+	/**
+	 * Checks if the variable name contains type information. Sometimes
+	 * a variable name may just be a lowercase version of the type.
+	 * @param name
+	 * @return
+	 */
+	private static String typeFromName(String name) {
+		//theoretical type
+		String type = StringUtils.capitalize(name);
+		//look for this type in packages
+		List<String> packages = findPackagesForType(type);
+		
+		//if there exists a package for this name
+		if(packages != null) {
+			//for now just return
+			return type;
+		}
+		
+		return null;
+	}
+	
+	private static Snippet tryDefaults(Snippet snippet, String name, int pos) {
+		
+		//try each type
+		for(String type : types) {
+			//construct code with this type
+			Snippet test = new Snippet(snippet);
+			String variableDeclaration = getVariableDeclaration(type, name);
+			String code = Fixer.addLineAt(test.getCode(), variableDeclaration, pos);
+			test.setCode(code);
+			
+			//compile
+			IMCompiler compiler = Fixer.compiler;
+			compiler.clearSaved();
+			compiler.addSource(Evaluator.className, before+test.getCode()+after);
+			compiler.compileAll();
+			int errors = compiler.getErrors();
+			
+			//compare
+			if(errors < snippet.getErrors()) {
+				return test;
+			}
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -223,6 +320,22 @@ public class UnresolvedElementFixes {
 			}
 		}
 		return packages;
+	}
+	
+	/**
+	 * Some common types and their packages.
+	 * @param type
+	 * @return
+	 */
+	private static String commonTypes(String type) {
+		switch(type) {
+			case "List":
+				return "java.util.List";
+			case "ArrayList":
+				return "java.util.ArrayList";
+			default:
+				return null;
+		}
 	}
 	
 	/**
@@ -303,6 +416,8 @@ public class UnresolvedElementFixes {
 			case "boolean":
 				value = new BooleanLiteralExpr();
 				break;
+			case "Float":
+			case "float":
 			case "Double":
 			case "double":
 				value = new DoubleLiteralExpr();
@@ -401,6 +516,7 @@ public class UnresolvedElementFixes {
 		
 		//assignment expression
 		if(expression instanceof AssignExpr) {
+
 			Expression toResolve = getResolvableFromAssignment(expression.asAssignExpr(), name);
 			if(toResolve != null) {
 				try {

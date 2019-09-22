@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -128,6 +129,8 @@ public class Activator extends AbstractUIPlugin {
 				for(Diagnostic<? extends JavaFileObject> d : compiler.getDiagnostics().getDiagnostics()) {
 					String id = d.getCode();
 					String message = d.getMessage(null);
+					
+					
 					if(!errorIDs.containsKey(id)) {
 						errorIDs.put(id, 1);
 						errorMessages.put(id, message);

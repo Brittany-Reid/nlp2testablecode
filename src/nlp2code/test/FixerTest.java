@@ -70,5 +70,12 @@ public class FixerTest {
 		type = UnresolvedElementFixes.extractTypeFromExpression(expression, name);
 		System.out.println(type);
 	}
+	
+	@Test
+	public void testIntegration() {
+		snippet = "public static void main(String[] args) {\nint a;\n}\n";
+		Snippet s = new Snippet(snippet, 0);
+		Fixer.integrate(s, before, after);
+	}
 
 }

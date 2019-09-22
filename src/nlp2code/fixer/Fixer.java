@@ -17,7 +17,7 @@ public class Fixer {
 	private static Boolean neutrality = false;
 	private static Boolean loop = false;
 	public static Integer beforeLines; //Stores lines before code snippet
-	private static IMCompiler compiler;
+	public static IMCompiler compiler;
 	public static int offset;
 	public static int length;
 	
@@ -34,6 +34,25 @@ public class Fixer {
 		neutrality = n;
 		loop = l;
 		compiler = new IMCompiler(Evaluator.javaCompiler, Evaluator.options);
+	}
+	
+	/**
+	 * Integrates a snippet depending on existing code.
+	 */
+	public static Snippet integrate(Snippet snippet, String before, String after) {
+		//get the context
+		int context = Integrator.getType(snippet);
+		
+		//if just a snippet, make no changes
+		if(context == Integrator.SNIPPET) return snippet;
+		
+		//handle method
+		if(context == Integrator.METHOD) {
+			String code = Integrator.integrateMethod(before, after);
+		}
+		
+		
+		return snippet;
 	}
 	
 	/**
@@ -148,10 +167,6 @@ public class Fixer {
 		//get the first error
 		int num = 0;
 		Diagnostic<? extends JavaFileObject> diagnostic = diagnostics.get(num);
-//		for( Diagnostic <? extends JavaFileObject> d : diagnostics) {
-//			System.out.println(d.getMessage(null));
-//		}
-		System.out.println("");
 		Snippet modified = null;
 		
 		//cache the import statements so we only reconstruct before if this has changed
@@ -166,10 +181,6 @@ public class Fixer {
 //			System.out.println("STEP " + i + ", ERROR: ");
 //			System.out.println(diagnostic.getMessage(null));
 //			System.out.println(diagnostic.getCode());
-			
-			
-			
-			
 			
 			//create a copy of the snippet
 			Snippet current = new Snippet(snippet);
@@ -277,10 +288,11 @@ public class Fixer {
 				snippet = ParsingFixes.missingSemiColon(snippet, diagnostic, offset);
 				break;
 			case IProblem.ParsingErrorInsertToComplete:
+				ParsingFixes.insertToComplete(snippet, diagnostic, offset);
 				String message = diagnostic.getMessage(null);
-				if(message.startsWith("Syntax error, insert \";\" to complete ")) {
-					snippet = ParsingFixes.missingSemiColon(snippet, diagnostic, offset);
-				}
+//				if(message.startsWith("Syntax error, insert \";\" to complete ")) {
+//					snippet = ParsingFixes.missingSemiColon(snippet, diagnostic, offset);
+//				}
 				break;
 			case IProblem.UndefinedType:
 				snippet = UnresolvedElementFixes.fixUnresolvedType(snippet, diagnostic, offset, before, after);
@@ -291,6 +303,12 @@ public class Fixer {
 			case IProblem.UndefinedName:
 				snippet = UnresolvedElementFixes.fixUnresolved(snippet, diagnostic, offset, before, after);
 				break;
+			case IProblem.ParsingErrorDeleteToken:
+				snippet = ParsingFixes.deleteToken(snippet, diagnostic, offset);
+				break;
+//			case IProblem.ParsingErrorInsertTokenAfter:
+//				snippet = ParsingFixes.insertAfter(snippet, diagnostic, offset);
+//				break;
 			default:
 				return null;
 		}
@@ -339,6 +357,25 @@ public class Fixer {
 		
 		modified = code.substring(0, (int)start+1);
 		modified += toInsert;
+		modified += code.substring((int)end+1, code.length());
+		
+		return modified;
+	}
+	
+	public static String deleteAt(String code, long start, long end, int offset) {
+		String modified = null;
+		
+		//update start and end with offset
+		start = start - offset;
+		end = end - offset;
+		if(start < 0) return null;
+		//sometimes the compiler fails parsing spectacularly, the offset will be weird
+		//but in general if the error is not inside our snippet, ignore it
+		if(end >= code.length()) return null;
+		
+		modified = code.substring(0, (int)start);
+//		System.out.println(modified);
+//		System.out.println("[" + code.substring((int)start, (int)end+1) + "]");
 		modified += code.substring((int)end+1, code.length());
 		
 		return modified;

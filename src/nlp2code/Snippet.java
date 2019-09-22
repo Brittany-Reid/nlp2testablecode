@@ -130,7 +130,7 @@ public class Snippet implements Comparable<Snippet>{
 				copy = line;
 				//if a line starts with import, add to our list
 				if(line.trim().startsWith("import ")) {
-					importStatements.add(copy);
+					addImportStatement(copy);
 				}
 				//otherwise, add to code string
 				else {

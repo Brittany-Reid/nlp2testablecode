@@ -86,12 +86,11 @@ public class Evaluator{
 	 * Based on evaluation metrics. */
 	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
 //		snippets = new ArrayList<>();
-		//String code = "a.paint();\n";
-//		String code = "try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(\"File.txt\", true)))) {\r\n" + 
-//				" out.println(\"How are you?\");\r\n" + 
-//				"}catch (IOException e) {\r\n" + 
-//				" //exception handling left as an exercise for the reader\r\n" + 
-//				"}";
+//		String code = "class A{\n"
+//				+ "public static void main(String[] args){\n"
+//				+ "int = 0;\n"
+//				+ "}\n"
+//				+ "}\n";
 //		snippets.add(new Snippet(code, 0));
 //		code = "import java.utils.List;\nList list;\nint i=0\nint j=0\n";
 		//snippets.add(new Snippet(code, 0));
@@ -214,10 +213,16 @@ public class Evaluator{
 					proposedBefore = before;
 				}
 				
-				//specific error fixes
-				snippet = Fixer.errorFixes(snippet, proposedBefore, after);
-				snippets.set(i, snippet);
-				errors = snippet.getErrors();
+//				snippet = Fixer.integrate(snippet, proposedBefore, after);
+//				snippets.set(i, snippet);
+//				errors = snippet.getErrors();
+				
+				if(errors > 0) {
+					//specific error fixes
+					snippet = Fixer.errorFixes(snippet, proposedBefore, after);
+					snippets.set(i, snippet);
+					errors = snippet.getErrors();
+				}
 				
 //				//overwrite current snippet with result of fix
 //				snippets.set(i, Fixer.deletion(snippets.get(i), before, after));
