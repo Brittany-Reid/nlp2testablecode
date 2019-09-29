@@ -46,7 +46,7 @@ public class FixerTest {
 		name = "i";
 		expression = UnresolvedElementFixes.findContainingInStatement(name, nodeStatement);
 		type = UnresolvedElementFixes.extractTypeFromExpression(expression, name);
-		System.out.println(type);
+		//System.out.println(type);
 	}
 	
 	@Test
@@ -57,7 +57,7 @@ public class FixerTest {
 		name = "i";
 		expression = UnresolvedElementFixes.findContainingInStatement(name, nodeStatement);
 		type = UnresolvedElementFixes.extractTypeFromExpression(expression, name);
-		System.out.println(type);
+		//System.out.println(type);
 	}
 	
 	@Test
@@ -68,14 +68,14 @@ public class FixerTest {
 		name = "i";
 		expression = UnresolvedElementFixes.findContainingInStatement(name, nodeStatement);
 		type = UnresolvedElementFixes.extractTypeFromExpression(expression, name);
-		System.out.println(type);
+		//System.out.println(type);
 	}
 	
 	@Test
 	public void testIntegration() {
 		snippet = "public static void main(String[] args) {\nint a;\n}\n";
 		Snippet s = new Snippet(snippet, 0);
-		Fixer.integrate(s, before, after);
+		//Fixer.integrate(s, before, after);
 	}
 
 }

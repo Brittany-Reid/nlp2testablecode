@@ -40,18 +40,45 @@ public class Fixer {
 	 * Integrates a snippet depending on existing code.
 	 */
 	public static Snippet integrate(Snippet snippet, String before, String after) {
+		//configure compiler
+		if(compiler == null) compiler = Evaluator.compiler;
+		IMCompiler.logging = false;
+				
 		//get the context
 		int context = Integrator.getType(snippet);
+		Snippet copy = new Snippet(snippet);
 		
 		//if just a snippet, make no changes
 		if(context == Integrator.SNIPPET) return snippet;
 		
 		//handle method
 		if(context == Integrator.METHOD) {
-			String code = Integrator.integrateMethod(before, after);
+			copy = Integrator.integrateMethod(copy, before, after);
+		}
+		else {
+			copy = null;
 		}
 		
+		//compile
+		if(copy != null) {
+			int errors = snippet.getErrors();
+			//compile
+			compiler.clearSaved();
+			compiler.addSource(Evaluator.className, before+copy.getCode()+after);
+			//System.out.println(proposedBefore+modified.getCode()+after);
+			compiler.compileAll();
+			int testErrors = compiler.getErrors();
+			if(testErrors < errors) {
+				copy.updateErrors(testErrors, compiler.getDiagnostics().getDiagnostics());
+				snippet = copy;
+			}
+			else {
+				//System.out.println(snippet.getCode());
+			}
+		}
+
 		
+		IMCompiler.logging = true;
 		return snippet;
 	}
 	

@@ -213,9 +213,10 @@ public class Evaluator{
 					proposedBefore = before;
 				}
 				
-//				snippet = Fixer.integrate(snippet, proposedBefore, after);
-//				snippets.set(i, snippet);
-//				errors = snippet.getErrors();
+				//run integrator
+				snippet = Fixer.integrate(snippet, proposedBefore, after);
+				snippets.set(i, snippet);
+				errors = snippet.getErrors();
 				
 				if(errors > 0) {
 					//specific error fixes
