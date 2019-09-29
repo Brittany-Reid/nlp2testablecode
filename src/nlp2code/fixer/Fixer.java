@@ -55,6 +55,10 @@ public class Fixer {
 		if(context == Integrator.METHOD) {
 			copy = Integrator.integrateMethod(copy, before, after);
 		}
+		//handle class
+		else if(context == Integrator.CLASS) {
+			copy = Integrator.integrateClass(copy, before, after);
+		}
 		else {
 			copy = null;
 		}
@@ -311,12 +315,17 @@ public class Fixer {
 //		
 		//process the error
 		switch(id) {
+			case IProblem.ParsingError:
+//				String message = diagnostic.getMessage(null);
+//				System.out.println(message);
+				//Syntax error on token "(", ; expected
+				break;
 			case IProblem.MissingSemiColon:
 				snippet = ParsingFixes.missingSemiColon(snippet, diagnostic, offset);
 				break;
 			case IProblem.ParsingErrorInsertToComplete:
 				ParsingFixes.insertToComplete(snippet, diagnostic, offset);
-				String message = diagnostic.getMessage(null);
+				//String message = diagnostic.getMessage(null);
 //				if(message.startsWith("Syntax error, insert \";\" to complete ")) {
 //					snippet = ParsingFixes.missingSemiColon(snippet, diagnostic, offset);
 //				}

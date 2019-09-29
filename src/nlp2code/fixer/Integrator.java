@@ -10,6 +10,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.comments.Comment;
@@ -85,6 +86,33 @@ public class Integrator {
 			snippet = integrateMain(snippet, before, after);
 			return snippet;
 		}
+		return null;
+	}
+	
+	/**
+	 * Given a non-compiling snippet containing a class, will integrate the snippet.
+	 */
+	public static Snippet integrateClass(Snippet snippet, String before, String after) {
+		ClassOrInterfaceDeclaration c = body.asClassOrInterfaceDeclaration();
+		
+		//process fields
+		List<FieldDeclaration> fields = c.getFields();
+		if(fields != null && fields.size() > 0) {
+			//for now, ignore
+			return null;
+		}
+		
+		//process methods
+		List<MethodDeclaration> methods = c.getMethods();
+		if(methods == null || methods.isEmpty()) return null;
+		
+		//a single method
+		if(methods.size() == 1) {
+			//pass to the integrate method class
+			snippet = integrateMethod(snippet, before, after);
+			return snippet;
+		}
+		
 		return null;
 	}
 	

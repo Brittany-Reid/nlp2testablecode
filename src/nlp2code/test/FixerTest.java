@@ -13,6 +13,7 @@ import org.eclipse.jdt.internal.compiler.tool.EclipseCompiler;
 import nlp2code.*;
 import nlp2code.compiler.*;
 import nlp2code.fixer.Fixer;
+import nlp2code.fixer.Integrator;
 import nlp2code.fixer.UnresolvedElementFixes;
 
 import org.junit.Test;
@@ -73,8 +74,10 @@ public class FixerTest {
 	
 	@Test
 	public void testIntegration() {
-		snippet = "public static void main(String[] args) {\nint a;\n}\n";
+		snippet = "class A{\npublic static void main(String[] args) {\nint a;\n}\n}\n";
 		Snippet s = new Snippet(snippet, 0);
+		int context = Integrator.getType(s);
+		Integrator.integrateClass(s, before, after);
 		//Fixer.integrate(s, before, after);
 	}
 
