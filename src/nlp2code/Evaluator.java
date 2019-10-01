@@ -44,6 +44,7 @@ public class Evaluator{
 	static public IMCompiler compiler;
 	static public List<String> options;
 	static boolean fix = true;
+	static boolean test = true;
 	
 	static public String className;
 	static private HashMap<String, DiagnosticCollector<JavaFileObject>> diagnosticMap;
@@ -85,17 +86,6 @@ public class Evaluator{
 	/* Returns an ordered vector of snippets
 	 * Based on evaluation metrics. */
 	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
-//		snippets = new ArrayList<>();
-//		String code = "class A{\n"
-//				+ "public static void main(String[] args){\n"
-//				+ "int = 0;\n"
-//				+ "}\n"
-//				+ "}\n";
-//		snippets.add(new Snippet(code, 0));
-//		code = "import java.utils.List;\nList list;\nint i=0\nint j=0\n";
-		//snippets.add(new Snippet(code, 0));
-		
-		
 		retrieved = snippets.size();
 		
 		//set up options if first run
@@ -104,60 +94,15 @@ public class Evaluator{
 		//compile snippet set
 		snippets = compileSnippets(snippets, before, after);
 		
-		//attempt fixes on snippet fix
+		//attempt fixes on snippets
 		if(fix == true) snippets = fixSnippets(snippets, before, after);
+		
+		//if(test == true) snippets = testSnippets(snippets, before, after);
 		
 		//sort snippet set (this uses comparator defined in Snippet class)
 		Collections.sort(snippets);
 		
 		return snippets;
-		
-//		
-//		Vector<String> snippets = new Vector<String>();
-//		for(Snippet s : snippetsx) {
-//			snippets.add(s.getFormattedCode());
-//		}
-//		
-//		Long start;
-//		Vector<String> orderedByEvaluation;
-//		List<String> sorted;
-//		retrieved = snippets.size();
-//		
-//		//set up a new diagnostic map
-//		diagnosticMap = new HashMap<String, DiagnosticCollector<JavaFileObject>>();
-//		
-//		//compile snippets and get map of snippets to errors
-//		start = System.currentTimeMillis();
-//		compilerErrors = getCompilerErrors(snippets, before, after);
-//		
-//		//attempt to fix snippets with errors
-//		if(fix == false) {
-//			start = System.currentTimeMillis();
-//			fixedErrors = runFixes(compilerErrors, before, after);
-//			//overwrite compilerErrors map with new values
-//			compilerErrors = fixedErrors;
-//			System.out.println("Fix Time: " + (System.currentTimeMillis() - start));
-//		}
-//		
-//		//set our finals for the compare function
-//		final HashMap<String, Integer> finalErrors = compilerErrors;
-//		
-//		start = System.currentTimeMillis();
-//		//final HashMap<String, Integer> passedTests = getPassedTests(compilerErrors, before, after);
-//		final HashMap<String, Integer> passedTests = new HashMap<String, Integer>();
-//		
-//		start = System.currentTimeMillis();
-//		sorted = new ArrayList<String>(compilerErrors.keySet());
-//		Collections.sort(sorted, new Comparator<String>() {
-//		    public int compare(String left, String right) {
-//		    	Integer compare = Integer.compare(finalErrors.get(left), finalErrors.get(right));
-////		    	//if tied, look at the passed tests
-//		    	if(compare == 0 && !passedTests.isEmpty()) {
-//		    		compare = Integer.compare(passedTests.get(right), passedTests.get(left));
-//		    	}
-//		    	return compare;
-//		    }
-//		});
 	}
 	
 	public static List<Snippet> compileSnippets(List<Snippet> snippets, String before, String after){
@@ -218,16 +163,23 @@ public class Evaluator{
 				snippets.set(i, snippet);
 				errors = snippet.getErrors();
 				
+				//if we still have errors, try targeted fixes
 				if(errors > 0) {
-					//specific error fixes
 					snippet = Fixer.errorFixes(snippet, proposedBefore, after);
 					snippets.set(i, snippet);
 					errors = snippet.getErrors();
 				}
 				
-//				//overwrite current snippet with result of fix
-//				snippets.set(i, Fixer.deletion(snippets.get(i), before, after));
-//				errors = snippets.get(i).getErrors();
+				//again, try deletion
+				if(errors > 0) {
+					//recompute proposed before
+					if(snippets.get(i).getImportList().size() > 0) {
+						proposedBefore = Snippet.addImportToBefore(snippets.get(i), before);
+					}
+					snippet = Fixer.deletion(snippet, proposedBefore, after);
+					snippets.set(i, snippet);
+					errors = snippet.getErrors();
+				}
 				
 				//if we fixed the snippet
 				if(errors == 0) {
@@ -240,6 +192,25 @@ public class Evaluator{
 		return snippets;
 	}
 
+	public static List<Snippet> testSnippets(List<Snippet> snippets, String before, String after){
+		int passedTests = 0;
+		passed = 0;
+		
+		//for each snippet
+		for(int i=0; i<snippets.size(); i++) {
+			Snippet snippet = snippets.get(i);
+			
+			//test compilable snippets
+			if(snippet.getErrors() == 0) {
+				passedTests = Tester.test(snippet, before, after);
+				if(passedTests > 0) {
+					passed++;
+				}
+			}
+		}
+		
+		return snippets;
+	}
 	
 	private static HashMap<String, Integer> getPassedTests(HashMap<String, Integer> snippets, String b, String a){
 		HashMap<String, Integer> passedMap = new HashMap<String, Integer>();
@@ -268,31 +239,27 @@ public class Evaluator{
 //		returnType = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-2);
 //		testOutput = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-1);
 		
-		compiled = 0;
-		passed = 0;
-		
-		for(String s : snippets.keySet()) {
-			Integer passCount = 0;
-			
-			//if we had no compiler errors and the snippet isnt empty, try testing
-			if(snippets.get(s) == 0 && s.split("\n").length > 1) {
-				compiled++;
-				passCount = Tester.test(s, b, a, null, null);
-				//System.out.println("Passed: " + passCount);
-				if(passCount > 0) {
-					passed++;
-				}
-			}
-			
-			//add to pass hashmap
-			passedMap.put(s, passCount);
-		}
-		
+//		compiled = 0;
+//		passed = 0;
+//		
+//		for(String s : snippets.keySet()) {
+//			Integer passCount = 0;
+//			
+//			//if we had no compiler errors and the snippet isnt empty, try testing
+//			if(snippets.get(s) == 0 && s.split("\n").length > 1) {
+//				compiled++;
+//				passCount = Tester.test(s, b, a, null, null);
+//				//System.out.println("Passed: " + passCount);
+//				if(passCount > 0) {
+//					passed++;
+//				}
+//			}
+//			
+//			//add to pass hashmap
+//			passedMap.put(s, passCount);
+//		}
+//		
 		return passedMap;
-	}
-	
-	static public DiagnosticCollector<JavaFileObject> getDiagnostics(String snippet) {
-		return diagnosticMap.get(snippet);
 	}
 	
 	/**

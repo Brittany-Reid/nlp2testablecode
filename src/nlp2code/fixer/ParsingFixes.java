@@ -53,13 +53,23 @@ public class ParsingFixes {
 	
 	public static Snippet insertAfter(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset) {
 		List<String> arguments = getArguments(diagnostic.getMessage(null));
-		if(arguments == null || arguments.size() < 1) return snippet;
+		if(arguments == null || arguments.size() < 1) return null;
 		String insertion = arguments.get(0);
 		
 		//insert the string
 		String code = Fixer.insertAt(snippet.getCode(), insertion, diagnostic.getStartPosition(), diagnostic.getEndPosition(), offset);
 		if(code == null) return null;
 		snippet.setCode(code);
+		
+		return snippet;
+	}
+	
+	public static Snippet parsingError(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset) {
+		
+		//get error arguments
+		List<String> arguments = getArguments(diagnostic.getMessage(null));
+		if(arguments == null || arguments.size() < 1) return null;
+		
 		
 		return null;
 	}
@@ -83,11 +93,20 @@ public class ParsingFixes {
 			arguments.add(argument);
 		}
 		//for insert after
-		if(message.startsWith("Syntax error on token ") && message.endsWith("expected after this token")) {
+		else if(message.startsWith("Syntax error on token ") && message.endsWith("expected after this token")) {
 			start = message.indexOf("\"") + 1; //first quote ["] in [")", ]
 			message = message.substring(start);
 			start = message.indexOf("\"") + 3; //second and trailing [", ]
 			end = message.indexOf(" expected after this token");
+			argument = message.substring(start, end);
+			arguments.add(argument);
+		}
+		else if(message.startsWith("Syntax error on token ") && message.endsWith("expected")) {
+			//Syntax error on token "(", ; expected
+			start = message.indexOf("\"") + 1; //first quote ["] in [")", ]
+			message = message.substring(start);
+			start = message.indexOf("\"") + 3; //second and trailing [", ]
+			end = message.indexOf(" expected");
 			argument = message.substring(start, end);
 			arguments.add(argument);
 		}

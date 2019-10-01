@@ -13,6 +13,7 @@ import javax.tools.JavaFileObject;
 
 import nlp2code.Evaluator;
 import nlp2code.QueryDocListener;
+import nlp2code.Snippet;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
@@ -22,21 +23,29 @@ import com.github.javaparser.StreamProvider;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.Node.TreeTraversal;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.CastExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithArguments;
 import com.github.javaparser.ast.nodeTypes.NodeWithIdentifier;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.CatchClause;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.stmt.ForEachStmt;
+import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
@@ -60,6 +69,11 @@ import nlp2code.compiler.*;
  */
 
 public class Tester{
+	private static String returnType;
+	private static List<String> argTypes;
+	private static List<String> arguments;
+	
+	
 	private static String before;
 	private static String after;
 	
@@ -70,6 +84,248 @@ public class Tester{
 	
 	private static IMCompiler compiler;
 	private static BlockStmt block;
+	private static JavaParser parser = null;
+	
+	/**
+	 * Tests a snippet and returns the number of passed tests.
+	 * @param snippet The snippet to test.
+	 * @param before The user's code before the insertion point.
+	 * @param after The user's code after the insertion point.
+	 * @return The integer number of passed tests.
+	 */
+	public static Integer test(Snippet snippet, String before, String after) {
+		if(parser == null) {
+			initializeParser();
+		}
+		
+		block = getSnippetAST(snippet, before, after);
+		if(block == null) return 0;
+		
+		findTestIO();
+		
+		return 0;
+	}
+	
+	/**
+	 * This function sets up a parser with internal classes for type resolution.
+	 */
+	public static void initializeParser() {
+		//set up parser with internal classes for type solver
+		ReflectionTypeSolver solver = new ReflectionTypeSolver();
+		ParserConfiguration parserConfiguration = new ParserConfiguration().setSymbolResolver( new JavaSymbolSolver(solver)); 
+		parser = new JavaParser(parserConfiguration);
+	}
+	
+	/**
+	 * Given a snippet, parses and returns the snippet's AST as a block statement.
+	 */
+	public static BlockStmt getSnippetAST(Snippet snippet, String before, String after) {
+		BlockStmt blockStmt = null;
+		String flag = "NLP3Code_comment"; //it would be a good idea to add some random key to this
+		
+		//add import statements to before
+		String proposedBefore = before;
+		if(snippet.getImportList().size() > 0) {
+			proposedBefore = Snippet.addImportToBefore(snippet, before);
+		}
+		
+		//parse with added flag and block
+		ParseResult result = parser.parse(proposedBefore + "//" + flag +"\n{\n" + snippet.getCode() + "}\n" + after);
+		if(result.getResult().isEmpty()) return null;
+		CompilationUnit cu = (CompilationUnit) result.getResult().get();
+		
+		//get list of comments
+		for(Comment c : cu.getComments()) {
+			if(c.getContent().equals(flag)) {
+				if(c.getCommentedNode().isPresent()) {
+					Node node = c.getCommentedNode().get();
+					if(node.getClass() == BlockStmt.class) {
+						blockStmt = (BlockStmt) c.getCommentedNode().get();
+					}
+				}
+			}
+		}
+		
+		return blockStmt;
+	}
+	
+	/**
+	 * This function tries to find input and output for a JUnit test from the snippet.
+	 */
+	public static void findTestIO() {
+		//use atomic references so we can do things inside the lambda walk
+		AtomicReference<List<Node>> noInits = new AtomicReference<>();
+		AtomicReference<List<Node>> argumentNodes = new AtomicReference<>();
+		AtomicReference<List<Node>> argumentTypes = new AtomicReference<>();
+		AtomicReference<Node> lastStatement = new AtomicReference<>();
+		AtomicReference<Node> lastVar = new AtomicReference<>();
+		argumentNodes.set(new ArrayList<>());
+		argumentTypes.set(new ArrayList<>());
+		noInits.set(new ArrayList<>());
+		
+		//walk the ast tree
+		block.walk(TreeTraversal.PREORDER, node -> {
+			
+			//nodes wihin the block that are the contents of an expression statement
+			if(node.getParentNode().isPresent() && node.getParentNode().get().getClass() == ExpressionStmt.class) {
+				List<Node> currentArgs = argumentNodes.get();
+				List<Node> currentTypes = argumentTypes.get();
+				
+				//variable declarations
+				if(node.getClass() == VariableDeclarationExpr.class) {
+					//initialization must be in the highest scope
+					if(node.findAncestor(BlockStmt.class).isPresent() && node.findAncestor(BlockStmt.class).get() == block) {
+						List<Node> currentNoInits = noInits.get();
+						//check all vars
+						for(VariableDeclarator v : ((VariableDeclarationExpr)node).getVariables()) {
+							lastVar.set(v.getName());
+							
+							//has no initialization
+							if(v.getInitializer().isEmpty()) {
+//								//add to check later
+//								currentNoInits.add(v.getName());
+//								currentArgs.add(node);
+								continue;
+							}
+							//otherwise get init value
+							Expression init = v.getInitializer().get();
+							if(isIndependent(init)) {
+								currentArgs.add(v.getName());
+								currentTypes.add(v.getType());
+							}
+						}
+						noInits.set(currentNoInits);
+					}
+				}
+				
+				//variable assignment
+				if(node.getClass() == AssignExpr.class) {
+					lastVar.set(((AssignExpr)node).getTarget());
+				}
+				
+				//store last statement
+				lastStatement.set(node);
+				argumentNodes.set(currentArgs);
+				argumentTypes.set(currentTypes);
+			}
+			
+		});
+		
+		//process last statement
+		String returnString = null;
+		Node returnNode = lastStatement.get();
+		
+		//variable declaration
+		if(returnNode.getClass() == VariableDeclarationExpr.class) {
+			VariableDeclarator var = ((VariableDeclarationExpr)returnNode).getVariable(0);
+			returnString = var.getTypeAsString();
+			returnNode = var.getName();
+		}
+		//variable assignment
+		else if(returnNode.getClass() == AssignExpr.class) {
+			Expression target = ((AssignExpr)returnNode).getTarget();
+			try {
+				returnString = target.calculateResolvedType().toString();
+				returnNode = target;
+			}catch(Exception e) {
+				returnString = null;
+				returnNode = null;
+			}
+		}
+		//method call
+		else if(returnNode.getClass() == MethodCallExpr.class) {
+			MethodCallExpr methodCall = ((MethodCallExpr)returnNode);
+			//if we have a system out we can accept a really common case
+			if(methodCall.getScope().isPresent() && methodCall.getScope().get().toString().equals("System.out")) {
+				if(methodCall.getNameAsString().equals("print") || methodCall.getNameAsString().equals("println")) {
+					ResolvedType type  = methodCall.getArgument(0).calculateResolvedType();
+					returnString = processResolvedType(type);
+				}
+			}
+			//otherwise, try to get return type
+			else {
+				try {
+					//resolve method
+					ResolvedMethodDeclaration methodDeclaration = methodCall.resolve();
+					methodDeclaration.getQualifiedSignature();
+					ResolvedType type = methodDeclaration.getReturnType();
+					returnString = processResolvedType(type);
+				}catch(Exception e) {
+					returnString = null;
+				}
+			}
+			returnNode = null;
+		}
+		else {
+			returnNode = null;
+		}
+		
+		if(returnString == null) returnString = "void";
+		
+		
+		List<Node> args = argumentNodes.get();
+		List<Node> types = argumentTypes.get();
+		for(int i=0; i<args.size(); i++) {
+			Node n = args.get(i);
+			boolean accept = true;
+			if(returnNode != null) {
+				if(returnNode.toString().equals(n.toString())) {
+					accept = false;
+				}
+			}
+			if(accept == true) {
+				System.out.println(types.get(i).toString());
+				argTypes.add(types.get(i).toString());
+				arguments.add(n.toString());
+			}
+		}
+		
+		System.out.println("Return type: " + returnString);
+		
+		//set fields
+		returnType = returnString;
+	}
+	
+	private static boolean isIndependent(Node node) {
+		//is the node a name expression
+		if(node.getClass() == NameExpr.class) {
+			return false;
+		}
+		
+		//otherwise, traverse ast
+		AtomicReference<Boolean> accept = new AtomicReference();
+		accept.set(true);
+		node.walk(node2 ->{
+			//anything that can have arguments, check if they are not names
+			if(NodeWithArguments.class.isAssignableFrom(node2.getClass())) {
+				NodeList<Node> arguments = ((NodeWithArguments)node2).getArguments();
+				for(Node arg : arguments){
+					if(arg.getClass() == NameExpr.class) {
+						accept.set(false);
+					}
+				}
+			}
+			//check if binary expression sides are names
+			if(node2.getClass() == BinaryExpr.class) {
+				if(((BinaryExpr) node2).getRight().isNameExpr()) {
+					accept.set(false);
+				}
+				else if(((BinaryExpr) node2).getLeft().isNameExpr()) {
+					accept.set(false);
+				}
+			}
+			//check if a unary expr is a name
+			if(node2.getClass() == UnaryExpr.class) {
+				if(((UnaryExpr)node2).getExpression().isNameExpr()) {
+					accept.set(false);
+				}
+			}
+		});
+		
+		return accept.get();
+	}
+	
+	
 	
 	/**	
 	 * Function to test a snippet

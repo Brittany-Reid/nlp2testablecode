@@ -316,6 +316,7 @@ public class Fixer {
 		//process the error
 		switch(id) {
 			case IProblem.ParsingError:
+				snippet = ParsingFixes.parsingError(snippet, diagnostic, offset);
 //				String message = diagnostic.getMessage(null);
 //				System.out.println(message);
 				//Syntax error on token "(", ; expected
