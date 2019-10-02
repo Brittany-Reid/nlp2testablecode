@@ -63,15 +63,17 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import nlp2code.compiler.*;
+import nlp2code.fixer.UnresolvedElementFixes;
 
 /* Class Tester
  * Handles Testing of code snippets through public function test
  */
 
 public class Tester{
-	private static String returnType;
-	private static List<String> argTypes;
-	private static List<String> arguments;
+	public static String returnType = null;
+	public static List<String> argTypes = null;
+	private static Node returnNode = null;
+	private static List<String> arguments = null;
 	
 	
 	private static String before;
@@ -83,8 +85,8 @@ public class Tester{
 	private static String functionName;
 	
 	private static IMCompiler compiler;
-	private static BlockStmt block;
-	private static JavaParser parser = null;
+	public static BlockStmt block;
+	public static JavaParser parser = null;
 	
 	/**
 	 * Tests a snippet and returns the number of passed tests.
@@ -93,17 +95,27 @@ public class Tester{
 	 * @param after The user's code after the insertion point.
 	 * @return The integer number of passed tests.
 	 */
-	public static Integer test(Snippet snippet, String before, String after) {
+	public static Snippet test(Snippet snippet, String before, String after) {
 		if(parser == null) {
 			initializeParser();
 		}
 		
 		block = getSnippetAST(snippet, before, after);
-		if(block == null) return 0;
+		if(block == null) return null;
 		
 		findTestIO();
+		if(returnNode == null) return null;
 		
-		return 0;
+		//return 1 if we found arguments
+		if(argTypes.size() > 0) {
+			snippet.setPassed(1);
+			snippet.setArguments(argTypes);
+			snippet.setReturn(returnType);
+			return snippet;
+		}
+		
+		snippet.setPassed(0);
+		return snippet;
 	}
 	
 	/**
@@ -163,6 +175,13 @@ public class Tester{
 		argumentTypes.set(new ArrayList<>());
 		noInits.set(new ArrayList<>());
 		
+		//init values
+		returnType = null;
+		returnNode = null;
+		arguments = new ArrayList<>();
+		argTypes = new ArrayList<>();
+		
+		
 		//walk the ast tree
 		block.walk(TreeTraversal.PREORDER, node -> {
 			
@@ -211,9 +230,10 @@ public class Tester{
 			
 		});
 		
-		//process last statement
+		//process return
 		String returnString = null;
-		Node returnNode = lastStatement.get();
+		returnNode = lastStatement.get();
+		if(returnNode == null) return;
 		
 		//variable declaration
 		if(returnNode.getClass() == VariableDeclarationExpr.class) {
@@ -225,7 +245,7 @@ public class Tester{
 		else if(returnNode.getClass() == AssignExpr.class) {
 			Expression target = ((AssignExpr)returnNode).getTarget();
 			try {
-				returnString = target.calculateResolvedType().toString();
+				returnString = processResolvedType(target.calculateResolvedType());
 				returnNode = target;
 			}catch(Exception e) {
 				returnString = null;
@@ -238,8 +258,10 @@ public class Tester{
 			//if we have a system out we can accept a really common case
 			if(methodCall.getScope().isPresent() && methodCall.getScope().get().toString().equals("System.out")) {
 				if(methodCall.getNameAsString().equals("print") || methodCall.getNameAsString().equals("println")) {
-					ResolvedType type  = methodCall.getArgument(0).calculateResolvedType();
-					returnString = processResolvedType(type);
+					if(methodCall.getArguments().size() > 0) {
+						ResolvedType type  = methodCall.getArgument(0).calculateResolvedType();
+						returnString = processResolvedType(type);
+					}
 				}
 			}
 			//otherwise, try to get return type
@@ -274,26 +296,31 @@ public class Tester{
 				}
 			}
 			if(accept == true) {
-				System.out.println(types.get(i).toString());
+				//System.out.println(types.get(i).toString());
 				argTypes.add(types.get(i).toString());
 				arguments.add(n.toString());
 			}
 		}
 		
-		System.out.println("Return type: " + returnString);
+		//System.out.println("Return type: " + returnString);
 		
 		//set fields
 		returnType = returnString;
 	}
 	
+	/**
+	 * Checks if a given node is independent. A node is independent if it doesn't rely on
+	 * some other variable. JavaParser considers functions to be SimpleNames so we can't simply
+	 * check if a node contains SimpleNames.
+	 */
 	private static boolean isIndependent(Node node) {
 		//is the node a name expression
 		if(node.getClass() == NameExpr.class) {
 			return false;
 		}
 		
-		//otherwise, traverse ast
-		AtomicReference<Boolean> accept = new AtomicReference();
+		//otherwise, traverse tree
+		AtomicReference<Boolean> accept = new AtomicReference<Boolean>();
 		accept.set(true);
 		node.walk(node2 ->{
 			//anything that can have arguments, check if they are not names
@@ -509,8 +536,10 @@ public class Tester{
 			}
         });
 		
+		//process return
 		Node returnNode = lastStatement.get();
 		Class<? extends Node> nodeClass = returnNode.getClass();
+		
 		if(nodeClass == VariableDeclarationExpr.class) {
 			VariableDeclarator var = ((VariableDeclarationExpr)returnNode).getVariable(0);
 			returnString = var.getTypeAsString();
@@ -620,23 +649,7 @@ public class Tester{
 	 * Returns the String type of a ResolvedType Object.
 	 */
 	private static String processResolvedType(ResolvedType resolvedType) {
-		String type = null;
-		
-		if(resolvedType.isReferenceType()) {
-			ResolvedReferenceType reference = resolvedType.asReferenceType();
-			//attempt to get the class name
-			String[] segments = reference.getQualifiedName().split(".");
-			if(segments.length > 0) 
-				type = segments[segments.length-1];
-			else
-				type = reference.getQualifiedName();
-		}
-		else if(resolvedType.isPrimitive()) {
-			ResolvedPrimitiveType prim = resolvedType.asPrimitive();
-			type = prim.describe();
-		}
-		
-		return type;
+		return UnresolvedElementFixes.processResolvedType(resolvedType);
 	}
 	
 	/**

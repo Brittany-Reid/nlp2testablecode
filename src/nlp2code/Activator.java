@@ -111,7 +111,7 @@ public class Activator extends AbstractUIPlugin {
 			
 			//call evaluator
 			snippets = Evaluator.evaluate(snippets, before, after);
-			
+		 
 			//with the results of evaluator, we compile to count errors
 			IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, null);
 			for(Snippet snippet : snippets) {
@@ -145,6 +145,18 @@ public class Activator extends AbstractUIPlugin {
 				if(test == 0) {
 					compiled++;
 				}
+				
+				
+				//test in/out
+				if(snippet.getPassed() > 0) {
+					System.out.println(snippet.getCode());
+					logger.debug("Return: " + snippet.getReturnType() + ", Argument Types: ");
+					for(String arg : snippet.getArgumentTypes()) {
+						logger.debug(arg + " ");
+					}
+					logger.debug("\n");
+				}
+				
 			}
 			logger.debug("ERRORS: " + errors + "\n");
 			logger.debug("COMPILED: " + compiled + "\n");

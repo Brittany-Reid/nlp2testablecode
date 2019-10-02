@@ -27,6 +27,9 @@ import org.eclipse.jdt.core.dom.PackageDeclaration;
  * quick string access for compiling, and construct lines on demand.
  */
 public class Snippet implements Comparable<Snippet>{
+	//the comment attached to deleted lines for all snippets
+	private static String deletionMessage = " //removed by NLP3Code";
+	
 	private Boolean showDeletions = true;
 	private List<Pair<String, Boolean>> code;
 	private List<String> importStatements = new ArrayList<>();
@@ -36,8 +39,11 @@ public class Snippet implements Comparable<Snippet>{
 	private List<Diagnostic<? extends JavaFileObject>> diagnostics;
 	private boolean compiled = false;
 	private int errors = -1;
+	private int passed = -1;
 	private int LOC = -1;
-	private static String deletionMessage = " //removed by NLP3Code";
+	//testing information for data gathering
+	private List<String> argumentTypes = null;
+	private String returnType = null;
 	
 	
 	/**
@@ -72,6 +78,9 @@ public class Snippet implements Comparable<Snippet>{
 		errors = that.errors;
 		LOC = that.LOC;
 		importStatements = that.importStatements;
+		argumentTypes = that.argumentTypes;
+		returnType = that.returnType;
+		passed = that.passed;
 	}
 	
 	@Override
@@ -84,6 +93,16 @@ public class Snippet implements Comparable<Snippet>{
 		if(b.getErrors() == -1 && errors != -1) return -1;
 		if(b.getErrors() != -1 && errors == -1) return 1;
 		
+		//if error value is 0, look at passed tests
+		if(b.getErrors() == 0 && errors == 0) {
+			//handle any negatives
+			if(b.getPassed() == -1 && passed != -1) return -1;
+			if(b.getPassed() != -1 && passed == -1) return 1;
+			
+			//otherwise, compare passed
+			return Integer.compare(passed, b.getPassed());
+		}
+		
 		//compare error value
 		return Integer.compare(errors, b.getErrors());
 	}
@@ -95,6 +114,10 @@ public class Snippet implements Comparable<Snippet>{
 	public void setCode(String code) {
 		changed();
 		codeString = code;
+	}
+	
+	public void setPassed(int passed) {
+		this.passed = passed;
 	}
 	
 	/**
@@ -114,6 +137,14 @@ public class Snippet implements Comparable<Snippet>{
 	 */
 	public void addImportStatement(String importStatement) {
 		if(!importStatements.contains(importStatement)) importStatements.add(importStatement);
+	}
+	
+	public void setArguments(List<String> arguments) {
+		argumentTypes = new ArrayList<>(arguments);
+	}
+	
+	public void setReturn(String returnType) {
+		this.returnType = returnType;
 	}
 	
 	/**
@@ -171,6 +202,18 @@ public class Snippet implements Comparable<Snippet>{
 	 */
 	public int getErrors() {
 		return errors;
+	}
+	
+	public int getPassed() {
+		return passed;
+	}
+	
+	public String getReturnType() {
+		return returnType;
+	}
+	
+	public List<String> getArgumentTypes(){
+		return argumentTypes;
 	}
 	
 	/**
@@ -274,6 +317,7 @@ public class Snippet implements Comparable<Snippet>{
 		diagnostics = null;
 		errors = -1;
 		LOC = -1;
+		passed = -1;
 	}
 	
 	/**

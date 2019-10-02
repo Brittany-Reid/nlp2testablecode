@@ -369,8 +369,9 @@ public class UnresolvedElementFixes {
 			if(segments.length > 0) {
 				type = segments[segments.length-1];
 			}
-			else
+			else {
 				type = qualifiedName;
+			}
 		}
 		
 		return type;

@@ -83,8 +83,9 @@ public class Evaluator{
 		}
 	}
 	
-	/* Returns an ordered vector of snippets
-	 * Based on evaluation metrics. */
+	/** 
+	 * Returns an ordered list of snippets, after compiling, fixing and testing.
+	 */
 	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
 		retrieved = snippets.size();
 		
@@ -97,7 +98,8 @@ public class Evaluator{
 		//attempt fixes on snippets
 		if(fix == true) snippets = fixSnippets(snippets, before, after);
 		
-		//if(test == true) snippets = testSnippets(snippets, before, after);
+		//test snippets
+		if(test == true) snippets = testSnippets(snippets, before, after);
 		
 		//sort snippet set (this uses comparator defined in Snippet class)
 		Collections.sort(snippets);
@@ -202,10 +204,12 @@ public class Evaluator{
 			
 			//test compilable snippets
 			if(snippet.getErrors() == 0) {
-				passedTests = Tester.test(snippet, before, after);
-				if(passedTests > 0) {
+				snippet = Tester.test(snippet, before, after);
+				if(snippet == null) continue;
+				if(snippet.getPassed() > 0) {
 					passed++;
 				}
+				snippets.set(i, snippet);
 			}
 		}
 		
