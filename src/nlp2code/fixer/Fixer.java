@@ -130,8 +130,8 @@ public class Fixer {
 					current.deleteLine(line);
 					
 					//if code is empty we know it has 0 errors
-					if(current.getCode() == "") {
-						errors = 0;
+					if(current.getCode().trim().equals("")) {
+						errors = -1;
 					}
 					else {
 						//compile
@@ -158,8 +158,8 @@ public class Fixer {
 						current.updateErrors(errors, compiler.getDiagnostics().getDiagnostics());
 						best = new Snippet(current);	
 						
-						//if we reduced errors to 0, break from loop
-						if(best.getErrors() == 0) break;
+						//if we reduced errors to 0 (or empty snippet), break from loop
+						if(best.getErrors() <= 0) break;
 						
 						//try another loop only on improvement
 						if(loop == true) done = false;

@@ -184,7 +184,7 @@ public class Evaluator{
 				}
 				
 				//if we fixed the snippet
-				if(errors == 0) {
+				if(errors == 0 && !snippet.getCode().trim().equals("")) {
 					compiled++;
 				}
 			}

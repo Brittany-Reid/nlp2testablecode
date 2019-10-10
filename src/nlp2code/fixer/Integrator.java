@@ -29,6 +29,7 @@ public class Integrator {
 	public static final int METHOD = 1;
 	public static final int CLASS = 2;
 	public static final int MULTIMETHOD = 3;
+	public static final int MULTICLASS = 4;
 	//insert points
 	public static final int MAINMETHOD = 0;
 	public static JavaParser parser = new JavaParser();

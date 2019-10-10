@@ -20,6 +20,8 @@ To install the plugin on your regular Eclipse environment (e.g. for personal use
 Content Assist:
 To get the most out of the plugin, it is strongly recommended to add a content assist binding to trigger the NLP2Code task content assist window. You can do this by navigating to: Preferences->Java->Editor->Content Assist (Path may be different depending on Eclipse version) and adding a '?' symbol to the set of symbols that trigger content assist.
 
+NLP3Code addition: Turn off auto-insertion in Preferences->Java->Editor->Content Assist so test suggestion can function correctly.
+
 Google Custom Search Engine (CSE):
 Currently, the plugin uses Google's Custom Search Engine API to collect StackOverflow forum threads. The free version of this API is limited to 100 requests a day (shared between all users of the plugin). It is recommended that you either sign up for and create your own Google Custom Search Engine to relax this hard limit. To add your Google CSE to the plugin, edit the appropriate "key" and "cx" variables in Searcher.java with your Google API key and your Google CSE ID.
 Full instructions on how to get your own Google CSE is in the "GoogleCSEInstructions.txt" file.

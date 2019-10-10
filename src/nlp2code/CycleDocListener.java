@@ -38,6 +38,17 @@ public class CycleDocListener implements IDocumentListener {
 			}
 		}
 		
+		//if changes are typing test in/out
+		if(TestSuggester.testState) {
+			//if a suggestion was picked
+			if(text.contains("\n") || text.contains("?")) {
+				//TestSuggester.testState = false;
+			}
+			else {
+				match = true;
+			}
+		}
+		
 		if(match == false) {
 			IDocument doc = event.getDocument();
 			doc.removeDocumentListener(InputHandler.doclistener);

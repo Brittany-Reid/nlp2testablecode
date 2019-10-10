@@ -28,7 +28,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  *    to document changes for a user to type a query in the format: ?{query}?
  */
 public class QueryDocListener implements IDocumentListener {	
-	public static IEditorPart editorPart;
+	public static IEditorPart editorPart = null;
 	private static String whitespaceBefore;
 	static Logger logger = Activator.getLogger();
 	static List<String> testInput;
@@ -41,7 +41,7 @@ public class QueryDocListener implements IDocumentListener {
 	 */
 	@Override
     public void documentChanged(DocumentEvent event) 
-    {
+    {			
 		//get the event text
 		String insertion = event.getText();
 		if(insertion == "") return;
@@ -83,7 +83,7 @@ public class QueryDocListener implements IDocumentListener {
 			//Activator.checkArgs();
 			Activator.first = false;
 			if(logger.isDebugEnabled()) {
-				Activator.queryTests();
+				//Activator.queryTests();
 			}
 		}
 		
@@ -202,7 +202,7 @@ public class QueryDocListener implements IDocumentListener {
 	/**
 	 * Returns the IDocument. Returns Null if error occurs.
 	 */
-	private static IDocument getDocument() {
+	public static IDocument getDocument() {
 		// Need to retreive the offset of the query, so we know where to insert retreived code snippets into.
 		// We need the current ITextEditor and document to do this.
 		editorPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
@@ -359,7 +359,7 @@ public class QueryDocListener implements IDocumentListener {
 		 *   
 		 *   Returns: String - The line of text for the line the cursor is on.
 		 */
-		private static String getLine() {
+		public static String getLine() {
 			IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 			IDocument doc;
 			int offset;

@@ -29,7 +29,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  *  Provides all functionality required to load and recommend relevant tasks for an incomplete query.
  */
 public class TaskRecommender implements IJavaCompletionProposalComputer{
-	
+	public static boolean taskState = false;
 	// Stores tasks from the task database file.
 	static HashMap<String,String> queries_map = new HashMap<String,String>();
 	// Stores the list of recommendation tasks/queries for each invocation of the content assist tool.
@@ -49,7 +49,9 @@ public class TaskRecommender implements IJavaCompletionProposalComputer{
 	 */
 	// Override the computeCompletionProposals to return a list of proposals for the content assist window to display from this plugin.
 	@Override
-	public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext arg0, IProgressMonitor arg1) {		
+	public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext arg0, IProgressMonitor arg1) {	
+		taskState = true;
+		
 		// If we haven't used the plugin yet, load tasks into memory for faster searches.
 		if (!(queries_map instanceof HashMap<?,?> && queries instanceof ArrayList<?>)) {
 			queries_map = new HashMap<String,String>();
@@ -98,11 +100,13 @@ public class TaskRecommender implements IJavaCompletionProposalComputer{
 				} catch (BadLocationException e) {
 					System.out.println("Error with getting input query.");
 					e.printStackTrace();
+					taskState = false;
 					return null;
 				}
 		    }
 		} else {
 			// If we are not dealing with a text editor.
+			taskState = false;
 			return null;
 		}
 		
@@ -152,6 +156,7 @@ public class TaskRecommender implements IJavaCompletionProposalComputer{
 			line_length - extra_offset, // replace the full text
 			searchResult.length())); // length of string to replace
 		}
+		taskState = false;
 		return proposals;
 	}
 	
@@ -240,14 +245,20 @@ public class TaskRecommender implements IJavaCompletionProposalComputer{
 		    e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * When we exit, always set the taskState to false.
+	 */
+	@Override
+	public void sessionEnded() {
+		taskState = false;
+	}
 		
 	// Function implementations required for the interface that are not used.
 	@Override
 	public List<IContextInformation> computeContextInformation(ContentAssistInvocationContext arg0, IProgressMonitor arg1) { return null; }
 	@Override
 	public String getErrorMessage() { return null; }
-	@Override
-	public void sessionEnded() { }
 	@Override
 	public void sessionStarted() { }
 }

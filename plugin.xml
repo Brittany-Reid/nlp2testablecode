@@ -29,6 +29,10 @@
             class="nlp2code.CycleAnswersHandler"
             commandId="nlp2code.cyclehandler">
       </handler>
+      <handler
+      		class="nlp2code.TestHandler"
+      		commandId="nlp2code.testhandler">
+      </handler>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -49,6 +53,15 @@
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+`">
+      </key>
+      <key
+      		contextId="org.eclipse.ui.contexts.dialogAndWindow"
+      		schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M3+T"
+            commandId="org.eclipse.jdt.ui.specific_content_assist.command">
+            <parameter
+            id="org.eclipse.jdt.ui.specific_content_assist.category_id"
+            value="nlp2code.contentassist.test"/>
       </key>
    </extension>
    <extension
@@ -79,11 +92,17 @@
          point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
          <proposalCategory>
 		 </proposalCategory>
-		 
 		 <proposalComputer
 		    activate="true"
 		    categoryId="nlp2code.contentassist.category"
 		    class="nlp2code.TaskRecommender"
+		    id="nlp2code.proposalcomputer">      
+		 	<contentType id="org.eclipse.core.runtime.text"/>      
+		 </proposalComputer> 
+		 <proposalComputer
+		    activate="true"
+		    categoryId="nlp2code.contentassist.test"
+		    class="nlp2code.TestSuggester"
 		    id="nlp2code.proposalcomputer">      
 		 	<contentType id="org.eclipse.core.runtime.text"/>      
 		 </proposalComputer> 

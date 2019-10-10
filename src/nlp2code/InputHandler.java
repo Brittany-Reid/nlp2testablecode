@@ -35,6 +35,8 @@ public class InputHandler extends AbstractHandler {
 	static CycleDocListener doclistener = new CycleDocListener();
 	// Create a listener to handle searches via the editor in ?{querey}? format.
 	static QueryDocListener qdl = new QueryDocListener();
+	// Create a listener to handle testing
+	static TestListener tl = new TestListener();
 	// A vector containing all documents that have an active query document listener.
 	static Vector<IDocument> documents = new Vector<IDocument>();
 	// Holds the previously added import block

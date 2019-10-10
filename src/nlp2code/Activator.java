@@ -64,6 +64,7 @@ public class Activator extends AbstractUIPlugin {
 		ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		doc.addDocumentListener(InputHandler.qdl);
+		doc.addDocumentListener(InputHandler.tl);
 		JavaCore.addElementChangedListener(new PackagesListener(), ElementChangedEvent.POST_CHANGE );
 		InputHandler.documents.add(doc);
 		InputHandler.previous_search = new ArrayList();
