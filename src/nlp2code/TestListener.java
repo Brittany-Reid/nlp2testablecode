@@ -14,6 +14,8 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import nlp2code.tester.Tester;
+
 /**
  * Document listener for test type input/output.
  */
@@ -106,7 +108,8 @@ public class TestListener implements IDocumentListener {
 		DocumentHandler.removeAt(lineOffset, lineLength);
 		
 		//construct function 
-		String function = TestHandler.functionStart+defaultTestCase+TestHandler.functionEnd;
+		String testCase = Tester.generateTestCase(line);
+		String function = TestHandler.functionStart+testCase+TestHandler.functionEnd;
 		
 		//add to document
 		int err = DocumentHandler.addFunction(function);
@@ -128,6 +131,7 @@ public class TestListener implements IDocumentListener {
 		//state change to editing function
 		functionState = true;
 	}
+	
 	
 	public void exitTestState() {
 		TestSuggester.testState = false;
