@@ -335,4 +335,11 @@ public class QueryDocListener implements IDocumentListener {
 		public static int getImportOffset() {
 			return -1;
 		}
+		
+		public static String generateNewInfo(String query) {
+			String queryComment = whitespaceBefore + "//Query: " + query + "\n";
+	  		String infoComment = whitespaceBefore + "//Retrieved: " + Evaluator.retrieved + ", Compiled: " + Evaluator.compiled + ", Passed: " + Evaluator.passed + "\n";
+	  		return queryComment + infoComment;
+		}
+		
 }

@@ -1,5 +1,9 @@
 package nlp2code;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -15,7 +19,10 @@ public class TestHandler extends AbstractHandler{
 		//must be in the state of writing a function
 		if(TestListener.functionState == false) return null;
 		
+		//get the test and remove the function
 		String test = extractInput();
+		
+		doTests();
 		
 		//reset the state
 		TestListener.functionState = false;
@@ -48,4 +55,27 @@ public class TestHandler extends AbstractHandler{
 		return content;
 	}
 
+	public void doTests() {
+		
+		List<Snippet> snippets = InputHandler.previous_search;
+		List<Snippet> testedSnippets = new ArrayList<>();
+		
+		Evaluator.passed = 0;
+		for(Snippet s : snippets) {
+			s.setPassed(1);
+			if(s.getPassed() > 0) {
+				Evaluator.passed++;
+			}
+			testedSnippets.add(s);
+		}
+		
+		Collections.sort(testedSnippets);
+		
+		//replace previous search
+		InputHandler.previous_search = testedSnippets;
+		
+		InputHandler.previousInfo = QueryDocListener.generateNewInfo(InputHandler.previous_query);
+		
+		DocumentHandler.replaceSnippet(testedSnippets.get(0));
+	}
 }

@@ -123,6 +123,8 @@ public class TestListener implements IDocumentListener {
 		}
 		DocumentHandler.addImportStatements(imports);
 		
+		InputHandler.previous_offset = InputHandler.previous_offset + InputHandler.previousImports.length();
+		
 		//state change to editing function
 		functionState = true;
 	}

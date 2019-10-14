@@ -248,4 +248,15 @@ public class DocumentHandler {
   		editor.selectAndReveal(offset, length);
 	}
 	
+	public static void replaceSnippet(Snippet snippet) {
+		int offset = InputHandler.previous_offset;
+        int length = InputHandler.previous_length;
+        String replacement = InputHandler.previousInfo + snippet.getFormattedCode();
+        
+        replaceAt(offset, length, replacement);
+        InputHandler.previous_length = replacement.length();
+        CycleAnswersHandler.previous_index = 0;
+        QueryDocListener.addImports(snippet, replacement);
+	}
+	
 }
