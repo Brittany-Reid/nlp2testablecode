@@ -31,14 +31,19 @@ public class TestSuggester implements IJavaCompletionProposalComputer {
 	private int line_offset = 0;
 	private int line_length = 0;
 	private int extra_offset = 0;
-
+	public static String format = "Return, Input, ...., Input";
 	
 	@Override
 	public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context, IProgressMonitor monitor) {
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		
+		//if in the state of writing a test function, ignore this command
+		if(TestListener.functionState == true) return proposals; 
+		
+		IWorkbenchPart part = QueryDocListener.editorPart;
+		
 		//if we never ran a query before
-		if(QueryDocListener.editorPart == null) return proposals;
+		if(part == null) return proposals;
 		
 		//if no snippets in last run compiled
 		if(Evaluator.compiled < 1) return proposals;
@@ -48,7 +53,6 @@ public class TestSuggester implements IJavaCompletionProposalComputer {
 		
 		try {
 			String line = "";
-			IWorkbenchPart part = QueryDocListener.editorPart;
 			//active editor must be a text editor
 			if ( part instanceof ITextEditor ) {
 				// Use text editor context to locate the document of the editor and get the input stream to that editor.

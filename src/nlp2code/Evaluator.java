@@ -25,13 +25,17 @@ import org.eclipse.jdt.internal.compiler.tool.EclipseCompiler;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
 import nlp2code.compiler.IMCompiler;
 import nlp2code.compiler.PatchClassLoader;
 import nlp2code.tester.Tester;
+import nlp2code.tester.TypeRecommendations;
 import nlp2code.fixer.Fixer;
 
 /**
@@ -41,7 +45,8 @@ import nlp2code.fixer.Fixer;
 public class Evaluator{
 	static Logger logger = Activator.getLogger();
 	static public JavaCompiler javaCompiler = null;
-	static public IMCompiler compiler;
+	static public IMCompiler compiler = null;
+	static public JavaParser parser = null;
 	static public List<String> options;
 	static boolean fix = true;
 	static boolean test = true;
@@ -67,8 +72,10 @@ public class Evaluator{
 			usePatch();
 		}
 		
+		//if we want to compile without any options
 		if(useOptions == false) compiler  = new IMCompiler(javaCompiler, null);
 		else {
+			//get the junit classpath from the plugin
 			junit = getJUnitClassPath();
 			
 			if(classPath == null) {
@@ -89,8 +96,8 @@ public class Evaluator{
 	public static List<Snippet> evaluate(List<Snippet> snippets, String before, String after){
 		retrieved = snippets.size();
 		
-		//set up options if first run
-		if(options == null) setupOptions(null, false);
+		//set up options if first run, using project classPath
+		if(compiler == null) setupOptions(DocumentHandler.getClassPath(), true);
 		
 		//compile snippet set
 		snippets = compileSnippets(snippets, before, after);
@@ -204,7 +211,7 @@ public class Evaluator{
 			
 			//test compilable snippets
 			if(snippet.getErrors() == 0) {
-				snippet = Tester.test(snippet, before, after);
+				snippet = TypeRecommendations.generate(snippet, before, after);
 				if(snippet == null) continue;
 				if(snippet.getPassed() > 0) {
 					passed++;
@@ -329,6 +336,14 @@ public class Evaluator{
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	/**
+	 * This function sets up a parser with internal classes for type resolution.
+	 */
+	static public void initializeParser() {
+		ReflectionTypeSolver solver = new ReflectionTypeSolver();
+		ParserConfiguration parserConfiguration = new ParserConfiguration().setSymbolResolver( new JavaSymbolSolver(solver)); 
+		parser = new JavaParser(parserConfiguration);
 	}
 	
 }

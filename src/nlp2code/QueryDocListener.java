@@ -27,8 +27,12 @@ import org.eclipse.ui.texteditor.ITextEditor;
  *   Implements the required functionality to conduct code snippet queries by listening
  *    to document changes for a user to type a query in the format: ?{query}?
  */
-public class QueryDocListener implements IDocumentListener {	
+public class QueryDocListener implements IDocumentListener {
+	//the editor being accessed
 	public static IEditorPart editorPart = null;
+	//the open document where changes will be made
+	public static IDocument document = null;
+	
 	private static String whitespaceBefore;
 	static Logger logger = Activator.getLogger();
 	static List<String> testInput;
@@ -106,7 +110,7 @@ public class QueryDocListener implements IDocumentListener {
 	    }
 	    
 		// Get the current document (for isolating substring of text in document using line number from selection).
-		IDocument document = getDocument();
+		document = DocumentHandler.getDocument();
 		if(document == null) return -1;
 		
 	    // Store some previous search and query data so we can have undo functionality.
@@ -198,92 +202,16 @@ public class QueryDocListener implements IDocumentListener {
 		
 		return query;
 	}
-		
-	/**
-	 * Returns the IDocument. Returns Null if error occurs.
-	 */
-	public static IDocument getDocument() {
-		// Need to retreive the offset of the query, so we know where to insert retreived code snippets into.
-		// We need the current ITextEditor and document to do this.
-		editorPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-		ISelectionProvider selectionProvider = ((ITextEditor)editorPart).getSelectionProvider();
-		if (selectionProvider.equals(null)) return null;
-		ISelection selection = selectionProvider.getSelection();
-		if (selection.equals(null)) return null;
-		ITextEditor ite = (ITextEditor)editorPart;
-		if (ite.equals(null)) return null;
-		// Get the current document (for isolating substring of text in document using line number from selection).
-		
-		return ite.getDocumentProvider().getDocument(ite.getEditorInput());
-	}
+
 	
 	/**
 	 * Adds imports to the document if there are any new. We leave these on cycle for the user to clean up.
 	 */
 	public static void addImports(Snippet snippet, String text) {
-		//by default, add to start
-		int offset = 0;
-		String importBlock = "";
 		
-		List<String> imports = new ArrayList<>(snippet.getImportList());
-		if(imports == null || imports.size() < 1) return;
-		
-		//parse the document
-		ASTParser parser = ASTParser.newParser(AST.JLS11);
-		parser.setSource(getDocument().get().toCharArray());
-		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-        AST ast = cu.getAST();
-        
-        //get import statements
-        ImportDeclarationVisitor idv = new ImportDeclarationVisitor();
-        cu.getRoot().accept(idv);
-        List<ImportDeclaration> importNodes = idv.imports;
-        if(importNodes != null && importNodes.size() > 0) {
-        	//insert will be before first import
-        	offset = importNodes.get(0).getStartPosition();
-        	//remove duplicates
-        	for(ImportDeclaration i : importNodes) {
-        		if(imports.contains(i.toString().trim())) {
-        			imports.remove(i.toString().trim());
-        		}
-        	}
-        }else {
-        	//find package node
-        	PackageDeclarationVisitor pdv = new PackageDeclarationVisitor();
-        	cu.getRoot().accept(pdv);
-        	PackageDeclaration pk = pdv.pk;
-        	if(pk !=  null) offset = pk.getStartPosition() + pk.getLength() + 1;
-        }
-        
-        //construct import block
-        for(String i : imports) {
-        	importBlock += i + "\n";
-        }
-        //if only duplicate imports, do nothing
-//        if(importBlock == "") return;
-        
-        final int fOffset = offset;
-        final String finalImportB = importBlock;
-        InputHandler.previousImports = finalImportB;
-        
-        
-        //based on offset, insert
-        // To ensure the Document doesnt COMPLETELY BREAK when inserting a code snippet, queue the insertion for when the document is inactive.
-  		Display.getDefault().asyncExec(new Runnable() 
-  	    {
-  	      public void run()
-  	      {
-  	    	try {
-  	    		ITextEditor editor = (ITextEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-  				IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-				doc.replace(fOffset, 0, finalImportB);
-			} catch (BadLocationException e) {
-				e.printStackTrace();
-			}
-  	      }
-  	    });
+		DocumentHandler.addImportStatements(snippet.getImportList());
   		
-  		// Get the offset for the inserted code snippet, so we can use it to identify the start and end positions of the inserted code snippet in the document.
+  		//update the offset
   		Display.getDefault().asyncExec(new Runnable()
   		{
   			public void run()

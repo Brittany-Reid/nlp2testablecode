@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -38,25 +39,25 @@ import nlp2code.compiler.IMCompiler;
 
 /**
  * The activator class controls the plug-in life cycle.
- *   The Activator class is the first class to be instsantiated whenever the plugin is invoked.
+ *   The Activator class is the first class to be instantiated whenever the plugin is invoked.
  */
 public class Activator extends AbstractUIPlugin {
+	// The plug-in ID
+	public static final String PLUGIN_ID = "nlp2code";
+	// The shared instance
+	private static Activator plugin;
+	// global langauge level for parsing
+	public static int level = AST.JLS11;
 	
 	//Logger
     private static final Logger parentLogger = LogManager.getLogger();
     private static Logger logger = parentLogger;
     public static Boolean first = true;
 
-	// The plug-in ID
-	public static final String PLUGIN_ID = "nlp2code";
-
-	// The shared instance
-	private static Activator plugin;
 
 	/**
 	 *  Constructor.
-	 *  Initializes defaults for document listeners, loads the list of tasks from the local database, and
-	 *  saves the Google Custom Search engine defaults to a preferences file.
+	 *  Initializes defaults for document listeners, loads data.
 	 */
 	public Activator() {
 		long start;
@@ -202,154 +203,8 @@ public class Activator extends AbstractUIPlugin {
 		logger.debug("TOTAL: " + totalSnippets.size() + " snippets from search.");
 		return totalSnippets;
 	}
-	
-	public static void checkArgs() {
-		ArrayList<Vector <String>> codeset = new ArrayList<Vector<String>>();
-		
-//		for(String task : TaskRecommender.queries) {
-//			System.out.println("Query: " + task);
-//			Vector<String> code;
-//			code = DataHandler.searchSnippets(task);
-//			if(code != null) {
-//				Evaluator.evaluate(code, "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
-//			}
-//		}
-	}
-	
-	public static void tests(Integer var) {
-//		long start;
-//		Integer errorFree;
-//		Integer lines;
-//		Boolean o, n, l;
-//		Integer s = 0;
-//			
-//		ArrayList<Vector <String>> codeset = new ArrayList<Vector<String>>();
-//		logger.debug("SEARCHING 47 TASKS\n");
-//		start = System.currentTimeMillis();
-//		for(String task : TaskRecommender.queries) {
-//			Vector<String> code;
-//			code = DataHandler.searchSnippets(task);
-//			if(code != null) {
-//				codeset.add(code);
-//				s += code.size();
-//			}
-//		}
-//		logger.debug("TOTAL " + (System.currentTimeMillis() - start) + "ms\n");
-//		System.out.println(s);
-//		
-//		//all modifcation approaches
-//		if(var == 0) {
-//			for(int j=0; j<4; j++) {
-//				errorFree = 0;
-//				lines = 1;
-//				l = true;
-//				if(j>1) {
-//					n = true;
-//				}
-//				else {
-//					n = false;
-//				}
-//				if(j % 2 == 0) {
-//					o = false;
-//				}
-//				else {
-//					o = true;
-//				}
-//				Integer errors = 0;
-//				logger.debug("COMPILING FOR 47 TASKS\n");
-//				HashMap<String, Integer> errorCount = new HashMap<String, Integer>();
-//				HashMap<String, Integer> affected = new HashMap<String, Integer>();
-//				ArrayList<Integer> lineArray = new ArrayList<Integer>();
-//				start = System.currentTimeMillis();
-//				//for each task
-//				for(int i=0; i<codeset.size(); i++) {
-//					logger.debug(TaskRecommender.queries.get(i) + "\n");
-//					if(codeset.get(i) != null) {
-////						IMCompiler compiler = new IMCompiler(o, n, l);
-////						compiler.errorKinds.clear();
-////						compiler.getLeastCompilerErrorSnippet(codeset.get(i), "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
-////						errors += compiler.totalErrors;
-////						errorFree += compiler.errorFree;
-////						lines += compiler.finalLines;
-////						if(!compiler.lineArray.isEmpty()) lineArray.addAll(compiler.lineArray);
-////						for(String key : compiler.errorKinds.keySet()) {
-////							//new entry
-////							if(!errorCount.containsKey(key)) {
-////								errorCount.put(key, compiler.errorKinds.get(key));
-////								affected.put(key, compiler.snippetsAffected.get(key));
-////							}
-////							//update old
-////							else {
-////								Integer count = errorCount.get(key);
-////								errorCount.replace(key, count+compiler.errorKinds.get(key));
-////								affected.replace(key, affected.get(key)+1);
-////							}
-////						}
-//					}
-//				}
-//		
-//				logger.debug("TOTAL: " + errors + ", " + (System.currentTimeMillis()-start) + "ms, COMPILING: " + errorFree + "\n");
-//				logger.debug("LINES: " + lines);
-//				for(Integer lc : lineArray) {
-//					logger.debug(", " + lc);
-//				}
-//				//count error num
-//	//			for(String key : errorCount.keySet()) {
-//	//				logger.debug("\"" + key + "\", " + errorCount.get(key) + ", " + affected.get(key) + "\n");
-//	//			}
-//				logger.debug("\n");
-//			
-//			}
-//		}
-//		else {
-//			//error debug
-//			errorFree = 0;
-//			lines = 0;
-//			Integer errors = 0;
-//			logger.debug("COMPILING FOR 47 TASKS\n");
-//			HashMap<String, Integer> errorCount = new HashMap<String, Integer>();
-//			HashMap<String, Integer> affected = new HashMap<String, Integer>();
-//			ArrayList<Integer> lineArray = new ArrayList<Integer>();
-//			start = System.currentTimeMillis();
-//			//for each task
-//			for(int i=0; i<codeset.size(); i++) {
-//				logger.debug(TaskRecommender.queries.get(i) + "\n");
-//				if(codeset.get(i) != null) {
-////					IMCompiler compiler = new IMCompiler(false, false, false);
-////					compiler.errorKinds.clear();
-////					compiler.getLeastCompilerErrorSnippet(codeset.get(i), "class Main {\npublic static void main(String[] args){", "\nreturn; }\n}");
-////					errors += compiler.totalErrors;
-////					errorFree += compiler.errorFree;
-////					lines += compiler.finalLines;
-////					if(!compiler.lineArray.isEmpty()) lineArray.addAll(compiler.lineArray);
-////					for(String key : compiler.errorKinds.keySet()) {
-////						//new entry
-////						if(!errorCount.containsKey(key)) {
-////							errorCount.put(key, compiler.errorKinds.get(key));
-////							affected.put(key, compiler.snippetsAffected.get(key));
-////						}
-////						//update old
-////						else {
-////							Integer count = errorCount.get(key);
-////							errorCount.replace(key, count+compiler.errorKinds.get(key));
-////							affected.replace(key, affected.get(key)+1);
-////						}
-////					}
-//				}
-//			}
-//			
-//			logger.debug("TOTAL: " + errors + ", " + (System.currentTimeMillis()-start) + "ms, COMPILING: " + errorFree + "\n");
-//			logger.debug("LINES: " + lines);
-//			for(Integer lc : lineArray) {
-//				logger.debug(", " + lc);
-//			}
-//			//count error num
-//			for(String key : errorCount.keySet()) {
-//				logger.debug("\"" + key + "\", " + errorCount.get(key) + ", " + affected.get(key) + "\n");
-//			}
-//			logger.debug("\n");
-//		}
-	}
+
+
 	/*
 	 * Function start
 	 *   Called when the plugin starts.

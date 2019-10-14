@@ -260,7 +260,7 @@ public class UnresolvedElementFixes {
 			packages = classCache.get(type);
 		}
 		if(classCache.isEmpty()) {
-			packages = new ArrayList();
+			packages = new ArrayList<>();
 			
 			//get the java project from open editor
 			IEditorInput input2 = QueryDocListener.editorPart.getEditorInput();

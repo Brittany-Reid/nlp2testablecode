@@ -1,5 +1,6 @@
 package nlp2code;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.AST;
@@ -14,12 +15,19 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * This class 
+ * Document listener for test type input/output.
  */
 public class TestListener implements IDocumentListener {
 	String line = null;
 	public static String c = "$";
+	//are we writing a function right now?
+	public static boolean functionState = false;
+	public static List<String> imports = null;
+	public static String defaultTestCase = "		Assert.equals(input, output());\n";
 	
+	/**
+	 * Listen for when the document changes.
+	 */
 	@Override
 	public void documentChanged(DocumentEvent event) {
 		
@@ -50,75 +58,73 @@ public class TestListener implements IDocumentListener {
 			return;
 		}
 		
+		//if we select the formatter, ignore
+		if(line.contains(TestSuggester.format)) return;
+		
 		//otherwise, lets check if we have a correctly formatted query
 		if (insertion.length() >= 1) {
+			//check format
 			String newline = line.trim();
 			if (!(newline.endsWith(c))) return;
-			//if formatted correctly, preform the query
-			doTest(event, line);
+		
+			promptTestCase(event, line);
+			
+			//exit from test state
 			exitTestState();
 		}
 		
-		
-		
-		//exit state on new line
+		//exit state on new line or query
 		if(insertion.contains("\n") || insertion.endsWith("?")) {
 			exitTestState();
 		}
 		
 	}
 	
-	public void doTest(DocumentEvent event, String line) {
+	/**
+	 * After inserting test input/output types, prompt user for a test case.
+	 */
+	private void promptTestCase(DocumentEvent event, String line) {
 		//get insert location information 
-  		try {
-			IDocument document = QueryDocListener.getDocument();
-			int lineNum = document.getLineOfOffset(event.getOffset());
-			int lineOffset = document.getLineOffset(lineNum);
-			int lineLength = document.getLineLength(lineNum);
-			if (lineOffset < 0 || lineOffset > document.getLength()) return;
-			if (lineLength > document.getLength() || lineOffset + lineLength > document.getLength()) return;
-			
-			document.replace(lineOffset, lineLength, "");
-			((ITextEditor)QueryDocListener.editorPart).selectAndReveal(lineOffset, 0);
-			constructTestFunction();
-			System.out.println(line.substring(0, line.length()-2));
+		IDocument document = DocumentHandler.getDocument();
+		int lineNum;
+		int lineOffset = -1;
+		int lineLength = -1;
+		try {
+			lineNum = document.getLineOfOffset(event.getOffset());
+			lineOffset = document.getLineOffset(lineNum);
+			lineLength = document.getLineLength(lineNum);
 		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-  		
-	}
-	
-	private void constructTestFunction() {
-		String function = "\n\n\t@Test\n"
-				+ "\tpublic void nlp3code_test(){\n"
-				+ "\t\t//--START EDITING\n"
-				+ "\t\t//--END EDITING\n"
-				+ "\t}";
-		
-		int pos = 0;
-		
-		IDocument document = QueryDocListener.getDocument();
-		ASTParser parser = ASTParser.newParser(AST.JLS11);
-		parser.setSource(document.get().toCharArray());
-		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-        AST ast = cu.getAST();
-        
-        //get list of methods
-        MethodVisitor mv = new MethodVisitor();
-        cu.getRoot().accept(mv);
-        List<MethodDeclaration> methodNodes = mv.methods;
-        if(methodNodes == null || methodNodes.size() == 0) return;
-        MethodDeclaration last = methodNodes.get(methodNodes.size()-1);
-        pos = last.getStartPosition() + last.getLength();
-        
-        try {
-			document.replace(pos, 0, function);
-		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+		if(lineOffset == -1|| lineLength == -1) {
+			System.err.println("Error: Could not get test input/output line from document.");
+			return;
+		}
+		
+		//remove insert
+		DocumentHandler.removeAt(lineOffset, lineLength);
+		
+		//construct function 
+		String function = TestHandler.functionStart+defaultTestCase+TestHandler.functionEnd;
+		
+		//add to document
+		int err = DocumentHandler.addFunction(function);
+		if(err == -1) {
+			System.err.println("Error: Test function could not be added.");
+			return;
+		}
+		
+		//add junit import
+		if(imports == null) {
+			imports = new ArrayList<String>();
+			imports.add("import org.junit.Assert;");
+			imports.add("import org.junit.Test;");
+		}
+		DocumentHandler.addImportStatements(imports);
+		
+		//state change to editing function
+		functionState = true;
 	}
 	
 	public void exitTestState() {

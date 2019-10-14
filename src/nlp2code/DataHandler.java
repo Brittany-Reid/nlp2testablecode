@@ -40,7 +40,7 @@ public class DataHandler{
 			URL url = new URL("platform:/plugin/nlp2code/data/questions.xml");
 			BufferedReader reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 			int num = 0;
-			while((line = reader.readLine()) != null) {
+			while((line = reader.readLine()) != null && num < 1000) {
 				num = num + 1;
 				if(line.contains(" PostTypeId=\"1\"")) {
 					//get id
@@ -98,7 +98,7 @@ public class DataHandler{
 			line = reader.readLine();
 			line = reader.readLine();
 			int num = 0;
-			while((line = reader.readLine()) != null) {
+			while((line = reader.readLine()) != null && num < 1000) {
 				num = num + 1;
 				//ensure this is an answer
 				if(line.contains(" ParentId=\"")) {

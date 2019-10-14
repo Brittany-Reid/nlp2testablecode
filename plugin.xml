@@ -18,6 +18,11 @@
             id="nlp2code.cyclehandler"
             name="Cycle Answers Handler">
       </command>
+      <command
+            categoryId="nlp2code.category"
+            id="nlp2code.testhandler"
+            name="Test Handler">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -53,6 +58,12 @@
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+`">
+      </key>
+      <key
+      		commandId="nlp2code.testhandler"
+      		contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+      		sequence="M1+M3+D">
       </key>
       <key
       		contextId="org.eclipse.ui.contexts.dialogAndWindow"
