@@ -259,4 +259,31 @@ public class DocumentHandler {
         QueryDocListener.addImports(snippet, replacement);
 	}
 	
+	public static String[] getSurrounding() {
+		String surrounding[] = new String[2];
+		IDocument document = getDocument();
+		
+		//if null, return null
+		if(document == null) {
+			System.err.println("Error: Could not get document!");
+			return null;
+		}
+		String docString = document.get();
+		int offset = InputHandler.previous_offset;
+        int length = InputHandler.previous_length;
+        
+		//if the range is beyond the document length, return null
+		if(offset+length > document.getLength()) {
+			System.err.println("Error: Range is beyond document length.");
+			return null;
+		}
+       
+        String before = docString.substring(0, offset);
+        String after = docString.substring(offset+length);
+        
+        surrounding[0] = before;
+        surrounding[1] = after;
+        
+        return surrounding;
+	}
 }

@@ -8,6 +8,8 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
+import nlp2code.tester.Tester;
+
 /**Pressing CTRL+ALT+D to accept a test function.*/
 public class TestHandler extends AbstractHandler{
 	public static String functionStart = "\r\n\r\n	@Test\r\n	public void nlp3code_test(){\r\n		//--START EDITING\r\n";
@@ -22,7 +24,7 @@ public class TestHandler extends AbstractHandler{
 		//get the test and remove the function
 		String test = extractInput();
 		
-		doTests();
+		doTests(test);
 		
 		//reset the state
 		TestListener.functionState = false;
@@ -55,27 +57,21 @@ public class TestHandler extends AbstractHandler{
 		return content;
 	}
 
-	public void doTests() {
+	public void doTests(String test) {
+		//get surrounding code
+		String[] surrounding = DocumentHandler.getSurrounding();
 		
+		//get previous query snippets
 		List<Snippet> snippets = InputHandler.previous_search;
-		List<Snippet> testedSnippets = new ArrayList<>();
 		
-		Evaluator.passed = 0;
-		for(Snippet s : snippets) {
-			s.setPassed(1);
-			if(s.getPassed() > 0) {
-				Evaluator.passed++;
-			}
-			testedSnippets.add(s);
-		}
-		
-		Collections.sort(testedSnippets);
+		//test snippets
+		snippets = Evaluator.testSnippets(snippets, surrounding[0], surrounding[1], test);
 		
 		//replace previous search
-		InputHandler.previous_search = testedSnippets;
+		InputHandler.previous_search = snippets;
 		
 		InputHandler.previousInfo = QueryDocListener.generateNewInfo(InputHandler.previous_query);
 		
-		DocumentHandler.replaceSnippet(testedSnippets.get(0));
+		DocumentHandler.replaceSnippet(snippets.get(0));
 	}
 }

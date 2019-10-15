@@ -85,7 +85,10 @@ public class Evaluator{
 				fullClassPath = classPath + ";" + System.getProperty("java.class.path") + ";" + junit;
 			}
 			
-			options = Arrays.asList("-classpath", fullClassPath);
+			options = new ArrayList<String>(Arrays.asList("-classpath", fullClassPath));
+			//add version
+			options.add("--release");
+			options.add(Activator.version);
 			compiler = new IMCompiler(javaCompiler, options);
 		}
 	}
@@ -106,7 +109,7 @@ public class Evaluator{
 		if(fix == true) snippets = fixSnippets(snippets, before, after);
 		
 		//test snippets
-		if(test == true) snippets = testSnippets(snippets, before, after);
+		if(test == true) snippets = generateTypes(snippets, before, after);
 		
 		//sort snippet set (this uses comparator defined in Snippet class)
 		Collections.sort(snippets);
@@ -201,7 +204,7 @@ public class Evaluator{
 		return snippets;
 	}
 
-	public static List<Snippet> testSnippets(List<Snippet> snippets, String before, String after){
+	public static List<Snippet> generateTypes(List<Snippet> snippets, String before, String after){
 		int passedTests = 0;
 		passed = 0;
 		
@@ -223,54 +226,26 @@ public class Evaluator{
 		return snippets;
 	}
 	
-	private static HashMap<String, Integer> getPassedTests(HashMap<String, Integer> snippets, String b, String a){
-		HashMap<String, Integer> passedMap = new HashMap<String, Integer>();
+	public static List<Snippet> testSnippets(List<Snippet> snippets, String before, String after, String test){
 		
-//		if(QueryDocListener.testInput == null || QueryDocListener.testInput.size() < 4) {
-//				System.out.println("Cannot generate test cases for this task.");
-//				return passedMap;
-//		}
-//		//!InputHandler.previous_query.equals("convert string to integer")
-//		
-//		List<String> argumentTypes = new ArrayList<String>();
-//		testInput = new ArrayList<String>();
-//		String returnType;
-//		
-//		//get arguments
-//		for(int i=0; i<QueryDocListener.testInput.size()-2; i++) {
-//			if(i % 2 == 0) {
-//				argumentTypes.add(QueryDocListener.testInput.get(i));
-//			}
-//			else {
-//				testInput.add(QueryDocListener.testInput.get(i));
-//			}
-//		}
-//		
-//		//get return type
-//		returnType = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-2);
-//		testOutput = QueryDocListener.testInput.get(QueryDocListener.testInput.size()-1);
+		passed = 0;
+		for(int i=0; i<snippets.size(); i++) {
+			//get snippet
+			Snippet snippet = snippets.get(i);
+			//when the sorted list reaches non-compiling snippets, finish
+			if(snippet.getErrors() != 0) break;
+			
+			//otherwise test and replace
+			snippet.setPassed(Tester.test(snippet, before, after, test));
+			if(snippet.getPassed() > 0) {
+				passed++;
+			}
+			snippets.set(i, snippet);
+		}
 		
-//		compiled = 0;
-//		passed = 0;
-//		
-//		for(String s : snippets.keySet()) {
-//			Integer passCount = 0;
-//			
-//			//if we had no compiler errors and the snippet isnt empty, try testing
-//			if(snippets.get(s) == 0 && s.split("\n").length > 1) {
-//				compiled++;
-//				passCount = Tester.test(s, b, a, null, null);
-//				//System.out.println("Passed: " + passCount);
-//				if(passCount > 0) {
-//					passed++;
-//				}
-//			}
-//			
-//			//add to pass hashmap
-//			passedMap.put(s, passCount);
-//		}
-//		
-		return passedMap;
+		Collections.sort(snippets);
+		
+		return snippets;
 	}
 	
 	/**

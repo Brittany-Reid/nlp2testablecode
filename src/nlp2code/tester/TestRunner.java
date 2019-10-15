@@ -57,7 +57,10 @@ public class TestRunner {
 		LinkedList<UnitTestResult> results = new LinkedList<>();
         for (UnitTest test: this.getTests()) {
         	UnitTestResult result = runSingleTest(test, classLoader);
-            if(result == null) return null;
+            if(result == null) {
+            	System.err.println("Error: Testing failed.");
+            	return null;
+            }
             results.add(result);
         }
         

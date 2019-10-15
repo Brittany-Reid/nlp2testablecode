@@ -25,7 +25,7 @@ public class TestListener implements IDocumentListener {
 	//are we writing a function right now?
 	public static boolean functionState = false;
 	public static List<String> imports = null;
-	public static String defaultTestCase = "		Assert.equals(input, output());\n";
+	public static String defaultTestCase = "		assertEquals(input, output());\n";
 	
 	/**
 	 * Listen for when the document changes.
@@ -121,7 +121,7 @@ public class TestListener implements IDocumentListener {
 		//add junit import
 		if(imports == null) {
 			imports = new ArrayList<String>();
-			imports.add("import org.junit.Assert;");
+			imports.add("import static org.junit.Assert.*;");
 			imports.add("import org.junit.Test;");
 		}
 		DocumentHandler.addImportStatements(imports);

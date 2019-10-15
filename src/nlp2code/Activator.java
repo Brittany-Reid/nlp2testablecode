@@ -48,6 +48,7 @@ public class Activator extends AbstractUIPlugin {
 	private static Activator plugin;
 	// global langauge level for parsing
 	public static int level = AST.JLS11;
+	public static String version = "11";
 	
 	//Logger
     private static final Logger parentLogger = LogManager.getLogger();
