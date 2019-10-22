@@ -15,6 +15,7 @@ import nlp3code.code.Snippet;
  *   Uses a combination of Goggle Custom Search Engine API and Jsoup to retrieve snippets.
  */
 public class Searcher {
+	public static int limit = -1;
 	
 	/**
 	 * Searches database for a snippet that matches the given query.
@@ -45,6 +46,11 @@ public class Searcher {
 		
 		//add the set to snippets
 		snippets = new ArrayList<>(retrievedSet);
+		
+		//if we want to restrict the number of snippets per query
+		if(limit != -1) {
+			snippets = snippets.subList(0, limit-1);
+		}
 		
 		return snippets;
 	}

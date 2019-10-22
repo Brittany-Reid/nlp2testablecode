@@ -21,7 +21,7 @@ public class TypeHandler {
 		//get whitespace
 		whitespaceBefore = line.substring(0, line.indexOf(line.trim()));
 		
-		String query = InputHandler.getQuery(line, TypeRecommender.testChar);
+		String query = getQuery(line, TypeRecommender.testChar);
 		if (query.length() == 0) return -1;
 		
 		int lineNum = DocHandler.getLineOfOffset(lineOffset);
@@ -32,6 +32,7 @@ public class TypeHandler {
 		
 		//do test
 		String test = Tester.generateTestCase(line);
+		if(test == null) return -1;
 		String function = functionStart+test+functionEnd;
 		//System.out.println(test);
 		
@@ -49,5 +50,30 @@ public class TypeHandler {
 		DocHandler.addImportStatements(imports);
 		
 		return 0;
+	}
+	
+	/**
+	 * Function that extracts query from line.
+	 * @param line The line to extract query from.
+	 * @return A string query.
+	 */
+	public static String getQuery(String line, String queryChar) {
+		String query;
+		
+		//trim whitespace
+		query = line.trim();
+		query = query.toLowerCase();
+		
+		//extract
+		if (query.endsWith(queryChar)) query = query.substring(0, query.length()-1);
+		if (query.startsWith(queryChar)) query = query.substring(1);
+		
+		//trim any whitespace between question mark
+		query = query.trim();
+		
+		//if there are any invalid characters, return empty
+		if (!query.matches("[abcdefghijklmnopqrstuvwxyz,<>\\]\\[ ]*")) return "";
+		
+		return query;
 	}
 }

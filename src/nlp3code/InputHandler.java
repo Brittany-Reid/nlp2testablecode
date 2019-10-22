@@ -335,7 +335,7 @@ public class InputHandler extends AbstractHandler{
 		query = query.trim();
 		
 		//if there are any invalid characters, return empty
-		if (!query.matches("[abcdefghijklmnopqrstuvwxyz, ]*")) return "";
+		if (!query.matches("[abcdefghijklmnopqrstuvwxyz ]*")) return "";
 		
 		return query;
 	}
