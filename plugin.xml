@@ -2,68 +2,63 @@
 <?eclipse version="3.4"?>
 
 <plugin>
-   <extension
-         point="org.eclipse.ui.commands">
-      <command
-            categoryId="nlp2code.category"
-            id="nlp2code.handler"
-            name="Input Handler">
-      </command>
-      <category
-            id="nlp2code.category"
+ <extension point="org.eclipse.ui.commands">
+       <category
+            id="nlp3code.category"
             name="Handler Category">
       </category>
       <command
-            categoryId="nlp2code.category"
-            id="nlp2code.cyclehandler"
+            categoryId="nlp3code.category"
+            id="nlp3code.handler"
+            name="Input Handler">
+      </command>
+      <command
+            categoryId="nlp3code.category"
+            id="nlp3code.cyclehandler"
             name="Cycle Answers Handler">
       </command>
       <command
-            categoryId="nlp2code.category"
-            id="nlp2code.testhandler"
+            categoryId="nlp3code.category"
+            id="nlp3code.testhandler"
             name="Test Handler">
       </command>
-   </extension>
-   <extension
-         point="org.eclipse.ui.handlers">
+ </extension>
+    <extension point="org.eclipse.ui.handlers">
       <handler
-            class="nlp2code.InputHandler"
-            commandId="nlp2code.handler">
+            class="nlp3code.cycler.CycleAnswersHandler"
+            commandId="nlp3code.cyclehandler">
       </handler>
       <handler
-            class="nlp2code.CycleAnswersHandler"
-            commandId="nlp2code.cyclehandler">
+            class="nlp3code.InputHandler"
+            commandId="nlp3code.handler">
       </handler>
       <handler
-      		class="nlp2code.TestHandler"
-      		commandId="nlp2code.testhandler">
+      		class="nlp3code.tester.TestHandler"
+      		commandId="nlp3code.testhandler">
       </handler>
-   </extension>
-   <extension
+ </extension>
+ <extension
          point="org.eclipse.ui.bindings">
       <key
-            commandId="nlp2code.handler"
-            contextId="org.eclipse.ui.contexts.window"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+6">
-      </key>
-      <key
-            commandId="nlp2code.cyclehandler"
+            commandId="nlp3code.cyclehandler"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M4+`">
       </key>
       <key
-            commandId="nlp2code.cyclehandler"
+            commandId="nlp3code.cyclehandler"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+`">
       </key>
       <key
-      		commandId="nlp2code.testhandler"
-      		contextId="org.eclipse.ui.contexts.window"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-      		sequence="M1+M3+D">
+      		contextId="org.eclipse.ui.contexts.dialogAndWindow"
+      		schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+B"
+            commandId="org.eclipse.jdt.ui.specific_content_assist.command">
+            <parameter
+            id="org.eclipse.jdt.ui.specific_content_assist.category_id"
+            value="nlp3code.contentassist.tasks"/>
       </key>
       <key
       		contextId="org.eclipse.ui.contexts.dialogAndWindow"
@@ -72,51 +67,55 @@
             commandId="org.eclipse.jdt.ui.specific_content_assist.command">
             <parameter
             id="org.eclipse.jdt.ui.specific_content_assist.category_id"
-            value="nlp2code.contentassist.test"/>
+            value="nlp3code.contentassist.test"/>
       </key>
-   </extension>
-   <extension
-         point="org.eclipse.ui.menus">
+      <key
+      		commandId="nlp3code.testhandler"
+      		contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+      		sequence="M1+M3+D">
+      </key>
+ </extension>
+ <extension point="org.eclipse.ui.menus">
       <menuContribution
             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
          <toolbar
-               id="nlp2code.toolbar">
+               id="nlp3code.toolbar">
             <command
-                  commandId="nlp2code.handler"
+                  commandId="nlp3code.handler"
                   icon="icons/stackoverflow.gif"
-                  id="nlp2code.toolbar.handler"
+                  id="nlp3code.toolbar.handler"
                   style="push"
                   tooltip="Query Stack Overflow">
             </command>
             <command
-                  commandId="nlp2code.cyclehandler"
+                  commandId="nlp3code.cyclehandler"
                   icon="icons/cycle.gif"
-                  id="nlp2code.toolbar.handler"
+                  id="nlp3code.toolbar.handler"
                   style="push"
                   tooltip="Cycle Code Snippet - Press to see diferent answers to your previously made query. (CTRL + `)">
             </command>
          </toolbar>
       </menuContribution>
+ </extension>
+ <extension
+ 	id="nlp2code.contentassist"
+    point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+    <proposalCategory>
+	</proposalCategory>
+	<proposalComputer
+		activate="true"
+		categoryId="nlp3code.contentassist.tasks"
+		class="nlp3code.recommenders.TaskRecommender"
+		id="nlp3code.proposalcomputer">      
+		<contentType id="org.eclipse.core.runtime.text"/>      
+	</proposalComputer>   
+	<proposalComputer
+	    activate="true"
+	    categoryId="nlp3code.contentassist.test"
+	    class="nlp3code.recommenders.TypeRecommender"
+	    id="nlp3code.proposalcomputer">      
+	 	<contentType id="org.eclipse.core.runtime.text"/>      
+	 </proposalComputer>   
    </extension>
-   <extension
-         id="nlp2code.contentassist"
-         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
-         <proposalCategory>
-		 </proposalCategory>
-		 <proposalComputer
-		    activate="true"
-		    categoryId="nlp2code.contentassist.category"
-		    class="nlp2code.TaskRecommender"
-		    id="nlp2code.proposalcomputer">      
-		 	<contentType id="org.eclipse.core.runtime.text"/>      
-		 </proposalComputer> 
-		 <proposalComputer
-		    activate="true"
-		    categoryId="nlp2code.contentassist.test"
-		    class="nlp2code.TestSuggester"
-		    id="nlp2code.proposalcomputer">      
-		 	<contentType id="org.eclipse.core.runtime.text"/>      
-		 </proposalComputer> 
-   </extension>
-
 </plugin>

@@ -1,14 +1,13 @@
 # Eclipse
-/task_extraction/.classpath
-/task_extraction/.project
-/task_extraction/.settings/
+# /task_extraction/.classpath
+# /task_extraction/.project
+# /task_extraction/.settings/
+# leave these for now
 
 # Mac
 *.DS_Store
 
 # Ignore xml files for now
 data/*.xml
-#ignore these external libraries for now too
+# ignore super big libraries too
 lib/stanford-corenlp-full-2018-10-05/*
-lib/log4j*.jar
-lib/ecj-4.11.jar
