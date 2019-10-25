@@ -173,11 +173,20 @@ public class Searcher {
 			wordSet.add(words[i]);
 		}
 		
-		//stem results
-		
 		words = new String[wordSet.size()];
 		words = wordSet.toArray(words);
-		words = DataHandler.stem(words);
+		//process words
+		
+		if(DataHandler.processing == DataHandler.STEM) {
+			words = DataHandler.stem(words);
+		}
+		if(DataHandler.processing == DataHandler.LEMMATIZE) {
+			String sentence = "";
+			for(String word : words) {
+				sentence += " " + word;
+			}
+			words = DataHandler.lemmatize(sentence);
+		}
 		
 		return words;
 	}
