@@ -41,7 +41,7 @@ import nlp3code.recommenders.TaskRecommender;
 public class Activator extends AbstractUIPlugin {
 	//the global logger
 	private static final Logger parentLogger = LogManager.getLogger();
-	private static Logger logger = parentLogger;
+	public static Logger logger = parentLogger;
 	//for testing, is this the first run?
     public static Boolean first = false;
 	// The plug-in ID

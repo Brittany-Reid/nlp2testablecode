@@ -3,6 +3,7 @@ package nlp3code.tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class DataHandlerTests {
 	public void loadAnswersTest() {
 		DataHandler.limit = 10000L;
 		DataHandler.loadAnswers(null);
+		assertTrue(DataHandler.getNumAnswers() > 0);
 	}
 	
 	@Test
@@ -57,5 +59,14 @@ public class DataHandlerTests {
 		DataHandler.loadQuestions(null);
 		List<Integer> threads = DataHandler.getThreadsWith("an");
 		assertNull(threads);
+	}
+	
+	@Test
+	public void testLemmatization() {
+		DataHandler.processing = DataHandler.LEMMATIZE;
+		DataHandler.limit = 10000L;
+		DataHandler.loadQuestions(null);
+		DataHandler.processing = DataHandler.STEM;
+		assertEquals(10000, DataHandler.getNumQuestions());
 	}
 }

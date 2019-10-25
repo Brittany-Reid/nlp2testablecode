@@ -263,7 +263,10 @@ public class Evaluator {
 		String fullClasspath = null;
 		
 		//get the open projects classptah
-		String projectClasspath = DocHandler.getClassPath();
+		String projectClasspath = null;
+		if(testing == true) {
+			projectClasspath = DocHandler.getClassPath();
+		}
 		
 		//get the system classpath
 		String systemClasspath = System.getProperty("java.class.path");

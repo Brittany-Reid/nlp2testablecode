@@ -10,18 +10,34 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.jsoup.*;
 
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.CoreDocument;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.simple.Sentence;
+import edu.stanford.nlp.util.PropertiesUtils;
 import nlp3code.code.Snippet;
 /**
  * Handles offline stack overflow database. Should read in an XML file, and store contents in memory.
  */
 public class DataHandler {
+	//option to limit number of questions and answers loaded
 	public static Long limit = 9999999999L;
+	
+	//constants
+	public static final int STEM = 0;
+	public static final int LEMMATIZE = 1;
+	public static final int NONE = 3;
+	
+	//option to use stemming, lemmatization or none
+	public static int processing = STEM;
+	
 	//map of snippets to their IDs for snippet look up
 	private static HashMap<Integer, List<Snippet>> snippets = new HashMap<Integer, List<Snippet>>();
 	//stores our index of words to IDs
@@ -33,6 +49,7 @@ public class DataHandler {
 	// Stores the list of recommendation tasks/queries for each invocation of the content assist tool.
 	public static ArrayList<String> queries = new ArrayList<String>();
 	private static int questions;
+	private static StanfordCoreNLP pipeline = null;
 	
 	public static void loadStopWords() {
 		URL url = getURL("data/stopwords.txt");
@@ -42,7 +59,7 @@ public class DataHandler {
 			
 			String line;
 			while((line = reader.readLine()) != null) {
-				stopWords.add(line.trim());
+				stopWords.add(line.trim().toLowerCase());
 			}
 			
 			reader.close();
@@ -50,6 +67,7 @@ public class DataHandler {
 			//remove redundant language info
 			stopWords.add("java");
 		} catch (IOException e) {
+			System.err.println("Error reading data/stopwords.txt.");
 			e.printStackTrace();
 		}
 	}
@@ -89,7 +107,8 @@ public class DataHandler {
 				//get title words
 				String[] words = title.split(" ");
 				
-				words = stem(words);
+				if(processing == STEM) words = stem(words);
+				if(processing == LEMMATIZE) words = lemmatize(title);
 				
 				//for each word in title
 				for(int i=0; i<words.length; i++) {
@@ -113,6 +132,7 @@ public class DataHandler {
 			questions = num;
 			reader.close();
 		} catch (IOException e) {
+			System.err.println("Error reading data/questions.xml.");
 			e.printStackTrace();
 		}
 		
@@ -199,6 +219,7 @@ public class DataHandler {
 			
 			reader.close();
 		} catch (IOException e) {
+			System.err.println("Error reading data/answers.xml.");
 			e.printStackTrace();
 		}
 		
@@ -227,6 +248,7 @@ public class DataHandler {
 			
 			reader.close();
 		} catch (IOException e) {
+			System.err.println("Error reading data/task,id50.txt.");
 			e.printStackTrace();
 		}
 	}
@@ -255,13 +277,32 @@ public class DataHandler {
 	 * @return An array of String lemmas.
 	 */
 	public static String[] lemmatize(String string) {
-		String[] words;
-		Sentence sentence = new Sentence(string);
-		
-		words = new String[sentence.lemmas().size()];
-		for(int i=0; i<sentence.lemmas().size(); i++) {
-			words[i] = sentence.lemma(i);
+		if(pipeline == null) {
+			Properties props = new Properties();
+		    props.put("annotators", "tokenize, ssplit, pos, lemma");
+		    pipeline = new StanfordCoreNLP(props);
 		}
+		
+		
+		String[] words;
+//		Sentence sentence = new Sentence(string);
+		
+		CoreDocument document = new CoreDocument(string);
+		
+		pipeline.annotate(document);
+		
+		List<String> lemmas = document.tokens().stream().map(cl -> cl.lemma()).collect(Collectors.toList());
+		
+		words = new String[lemmas.size()];
+		for(int i=0; i<lemmas.size(); i++) {
+			words[i] = lemmas.get(i);
+		}
+		
+//		
+//		words = new String[sentence.lemmas().size()];
+//		for(int i=0; i<sentence.lemmas().size(); i++) {
+//			words[i] = sentence.lemma(i);
+//		}
 
 		return words;
 	}
@@ -340,6 +381,8 @@ public class DataHandler {
 		stopWords.clear();
 		titleWords.clear();
 		snippets.clear();
+		queries.clear();
+		queriesMap.clear();
 	}
 	
 	/**
