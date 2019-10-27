@@ -36,7 +36,7 @@ public class Integrator {
 	 */
 	public static Snippet integrate(Snippet snippet, String before, String after) {
 		//we currently can only integrate for functions
-		if(InputHandler.insertionContext != InputHandler.FUNCTION || InputHandler.insertionContext != InputHandler.MAIN) return snippet;
+		if(!(InputHandler.insertionContext == InputHandler.MAIN || InputHandler.insertionContext == InputHandler.FUNCTION)) return snippet;
 		
 		//initialize parser
 		if(parser == null) initializeParser();
@@ -70,7 +70,7 @@ public class Integrator {
 			int errors = snippet.getErrors();
 			//compile
 			compiler.clearSaved();
-			compiler.addSource(DocHandler.getFileName(), Snippet.insert(snippet, before+after, before.length()));
+			compiler.addSource(DocHandler.getFileName(), Snippet.insert(copy, before+after, before.length()));
 			
 			compiler.compileAll();
 			int testErrors = compiler.getErrors();

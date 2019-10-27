@@ -33,6 +33,21 @@ public class FixerTests {
 	}
 	
 	@Test
+	public void multipleNonesTest(){
+		String code = "int a= ;int i=0\nint b =;\n";
+		Snippet snippet = new Snippet(code, 0);
+		Evaluator.compiler = Evaluator.initializeCompiler(false);
+		IMCompiler compiler = Evaluator.compiler;
+		compiler.clearSaved();
+		DocHandler.setFileName("Test.java");
+		compiler.addSource(DocHandler.getFileName(), Snippet.insert(snippet, before+after, before.length()));
+		compiler.compileAll();
+		snippet.updateErrors(compiler.getErrors(), compiler.getDiagnostics().getDiagnostics());
+		snippet = Fixer.errorFixes(snippet, before, after);
+		//assertEquals(snippet.getCode(), "int i=0;\nint b = 0;\n");
+	}
+	
+	@Test
 	public void benchmark() {
 		Evaluator.compiler = Evaluator.initializeCompiler(false);
 		String code = "int i=0;\nint b = 0\n";

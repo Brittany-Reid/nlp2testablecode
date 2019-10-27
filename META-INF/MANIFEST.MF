@@ -16,7 +16,8 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.108.0",
  org.apache.commons.lang3;bundle-version="3.1.0",
  org.eclipse.core.filesystem;bundle-version="1.7.400",
  org.eclipse.jdt.core;bundle-version="3.18.0",
- org.junit;bundle-version="4.12.0"
+ org.junit;bundle-version="4.12.0",
+ com.google.guava;bundle-version="27.1.0"
 Bundle-ClassPath: .,
  lib/log4j/,
  lib/javaparser-core-3.14.8.jar,
@@ -51,7 +52,8 @@ Bundle-ClassPath: .,
  lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-sources.jar,
  lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2.jar,
  lib/stanford-corenlp-full-2018-10-05/xom-1.2.10-src.jar,
- lib/stanford-corenlp-full-2018-10-05/xom.jar
+ lib/stanford-corenlp-full-2018-10-05/xom.jar,
+ lib/javassist-3.26.0-GA.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: nlp3code.Activator

@@ -36,7 +36,7 @@ public class DataHandler {
 	public static final int NONE = 3;
 	
 	//option to use stemming, lemmatization or none
-	public static int processing = STEM;
+	public static int processing = LEMMATIZE;
 	
 	//map of snippets to their IDs for snippet look up
 	private static HashMap<Integer, List<Snippet>> snippets = new HashMap<Integer, List<Snippet>>();

@@ -43,7 +43,7 @@ public class Activator extends AbstractUIPlugin {
 	private static final Logger parentLogger = LogManager.getLogger();
 	public static Logger logger = parentLogger;
 	//for testing, is this the first run?
-    public static Boolean first = false;
+    public static Boolean first = true;
 	// The plug-in ID
 	public static final String PLUGIN_ID = "nlp3code"; //$NON-NLS-1$
 	// The shared instance

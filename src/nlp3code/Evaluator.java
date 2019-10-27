@@ -51,6 +51,9 @@ public class Evaluator {
 	public static int passed = 0;
 	//options
 	public static boolean fix = true;
+	public static boolean integrate = true;
+	public static boolean deletion = false;
+	public static boolean targetted = true;
 	
 	/** 
 	 * Returns an ordered list of snippets by quality, after compiling and fixing.
@@ -59,12 +62,19 @@ public class Evaluator {
 //		snippets = new ArrayList<Snippet>();
 //		Snippet snippet = new Snippet("String str = \"\";\nint i = Integer.parseInt(str);\n", 0);
 //		snippets.add(snippet);
-		retrieved = snippets.size();
+		
 		SubMonitor sub = null;
 		if(monitor != null) sub = SubMonitor.convert(monitor, 100);
 		
 		//set up options if first run, using project classPath
 		if(compiler == null) compiler = initializeCompiler(false);
+		
+		//record retrieved
+		retrieved = snippets.size();
+		
+		//reset real-time compiling set
+		compilingSnippets = new ArrayList<Snippet>();
+		
 		
 		//compile snippet set
 		SubMonitor child1 = null;
@@ -170,21 +180,27 @@ public class Evaluator {
 			if(errors > 0) {
 				
 				//run integration
-				snippet = Integrator.integrate(snippet, before, after);
-				errors = snippet.getErrors();
+				if(integrate == true) {
+					snippet = Integrator.integrate(snippet, before, after);
+					errors = snippet.getErrors();
+				}
 				
 				//Targeted fixes
 				if(errors > 0) {
 				
-					snippet = Fixer.errorFixes(snippet, before, after);
-					errors = snippet.getErrors();
+					if(targetted == true) {
+						snippet = Fixer.errorFixes(snippet, before, after);
+						errors = snippet.getErrors();
+					}
 					
 					//if we didn't
 					if(errors > 0) {
 						
-						//run deletion
-						snippet = Deleter.deletion(snippet, before, after);
-						errors = snippet.getErrors();
+						if(deletion == true) {
+							//run deletion
+							snippet = Deleter.deletion(snippet, before, after);
+							errors = snippet.getErrors();
+						}
 					}
 				}
 				

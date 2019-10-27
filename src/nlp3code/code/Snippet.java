@@ -221,6 +221,18 @@ public class Snippet implements Comparable<Snippet>{
 		return "";
 	}
 	
+	//get the import block
+	public String getImportBlock(String surrounding) {
+		int offset = DocHandler.getImportOffset(surrounding);
+		if(DocHandler.imports != null && DocHandler.imports.size() > 0) {
+			for(String i : DocHandler.imports) {
+				code.get(0).deleteLineContaining(i.trim());
+			}
+		}
+		String importBlock = code.get(0).getCode();
+		return importBlock;
+	}
+	
 	/**
 	 * Returns the number of errors.
 	 */

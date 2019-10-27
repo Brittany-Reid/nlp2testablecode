@@ -31,30 +31,24 @@ public class Fixer {
 	 * @return The fixed Snippet.
 	 */
 	public static Snippet errorFixes(Snippet snippet, String before, String after) {
-		//configure compiler
-		if(compiler == null) compiler = Evaluator.compiler;
-		IMCompiler.logging = false;
-		
-		int errors = snippet.getErrors();
-		offset = before.length();
+		//initialize the compiler
+		if(compiler == null) initializeCompiler();
+		offset = before.length() + snippet.getImportBlock(before+after).length();
 		length = snippet.getCode().length();
 		
-		//get the initial list of errors
-		List<Diagnostic<? extends JavaFileObject>> diagnostics = snippet.getDiagnostics();
-		//get the first error
-		int num = 0;
-		Diagnostic<? extends JavaFileObject> diagnostic = diagnostics.get(num);
-		Snippet modified = null;		
-		
-		//cache the import statements so we only reconstruct before if this has changed
-		List<String> importCache = new ArrayList<>(snippet.getImportList());
-		//previous error cache
+		//list of errors
+		List<Diagnostic<? extends JavaFileObject>> errors = snippet.getDiagnostics();
+		//keep track of errors that have already been processed but may remain in the diagnostics list
 		List<Diagnostic<? extends JavaFileObject> > processedErrors = new ArrayList<>();
-		Diagnostic<? extends JavaFileObject> previousError = null;
-		int steps = errors;
-		
-		//we attempt to fix each error once
-		for(int i=0; i<steps; i++) {
+		//which error to process
+		int i = 0;
+		//the error being processed
+		Diagnostic<? extends JavaFileObject> diagnostic = null;
+		//snippet with changes
+		Snippet modified = null;
+		while(i < errors.size()) {
+			diagnostic = errors.get(i);
+			
 //			System.out.println("STEP " + i + ", ERROR: ");
 //			System.out.println(diagnostic.getMessage(null));
 //			System.out.println(diagnostic.getCode());
@@ -62,76 +56,166 @@ public class Fixer {
 			//create a copy of the snippet
 			Snippet current = new Snippet(snippet);
 			
-			//handle the error
+			//attempt to fix
 			modified = handleError(current, diagnostic, before, after);
-			//if we couldn't make a change
+			
+			//if we generated no fix
 			if(modified == null) {
 				//add to processed
 				processedErrors.add(diagnostic);
-				
-				//get next error
-				num++;
-				if(num >= diagnostics.size()) break;
-				diagnostic = diagnostics.get(num);
+				//increment error by 1
+				i++;
 			}
 			//if we did make a change
 			else {
-				String proposedBefore = before;
-				//if there are imports and they changed
-				if(modified.getImportList().size() > 0 && !importCache.equals(modified.getImportList())) {
-					importCache = new ArrayList<>(modified.getImportList());
-				}
-				
 				//compile
 				compiler.clearSaved();
-				compiler.addSource(DocHandler.getFileName(), snippet.insert(modified, before+after, before.length()));
+				compiler.addSource(DocHandler.getFileName(), Snippet.insert(modified, before+after, before.length()));
 				compiler.compileAll();
 				modified.updateErrors(compiler.getErrors(), compiler.getDiagnostics().getDiagnostics());
 				int testErrors = compiler.getErrors();
+				int oldErrors = snippet.getErrors();
 				
 				//if fix improved our snippet, confirm changes
-				if(testErrors < errors) {
-					
-					before = proposedBefore;
-					offset = before.length();
-					length = snippet.getCode().length();
-					
+				if(testErrors < snippet.getErrors()) {
 					//copy modified back to snippet
 					snippet = new Snippet(modified);
-					diagnostics = snippet.getDiagnostics();
+					//update diagnostics list
+					errors = snippet.getDiagnostics();
+					length = snippet.getCode().length();
+					offset = before.length() + snippet.getImportBlock(before+after).length();
 					
 					//if we reached 0, we're done
 					if(testErrors == 0) {
 						break;
 					}
 					
-					//we can resolve multiple errors, so just incrementing or retaining num means we can skip errors
-					if(errors - testErrors > 1 && processedErrors.size() > 0) {
-						num = 0;
+					//if we have errors that previously couldn't be fixed, some could have been fixed
+					if(oldErrors - testErrors > 1 && processedErrors.size() > 0) {
+						i = 0;
 						int s = 0;
 						//for each diagnostic
-						for(int j=0; j<diagnostics.size(); j++) {
+						for(int j=0; j<errors.size(); j++) {
 							//does it match a processed?
 							for(int k=s; k<processedErrors.size(); k++) {
-								if(diagnostics.get(j).equals(processedErrors.get(k))){
+								if(errors.get(j).equals(processedErrors.get(k))){
 									s=k; //dont look at matching processed errors again
-									num = j + 1;
+									i = j + 1;
 								}
 							}
 						}
 					}
-					
-					errors = testErrors;
 				}
-				
-				//get next error
-				if(num >= diagnostics.size()) break;
-				diagnostic = diagnostics.get(num);
+				else {
+					//increment and add to processed
+					processedErrors.add(diagnostic);
+					i++;
+				}
 			}
 		}
-		
-		IMCompiler.logging = true;
 		return snippet;
+		
+//		//configure compiler
+//		if(compiler == null) compiler = Evaluator.compiler;
+//		IMCompiler.logging = false;
+//		
+//		int errors = snippet.getErrors();
+//		offset = before.length();
+//		length = snippet.getCode().length();
+//		
+//		//get the initial list of errors
+//		List<Diagnostic<? extends JavaFileObject>> diagnostics = snippet.getDiagnostics();
+//		//get the first error
+//		int num = 0;
+//		Diagnostic<? extends JavaFileObject> diagnostic = diagnostics.get(num);
+//		Snippet modified = null;		
+//		
+//		//cache the import statements so we only reconstruct before if this has changed
+//		List<String> importCache = new ArrayList<>(snippet.getImportList());
+//		//previous error cache
+//		List<Diagnostic<? extends JavaFileObject> > processedErrors = new ArrayList<>();
+//		Diagnostic<? extends JavaFileObject> previousError = null;
+//		int steps = errors;
+//		
+//		//we attempt to fix each error once
+//		for(int i=0; i<steps; i++) {
+//			System.out.println("STEP " + i + ", ERROR: ");
+//			System.out.println(diagnostic.getMessage(null));
+//			System.out.println(diagnostic.getCode());
+//			
+//			//create a copy of the snippet
+//			Snippet current = new Snippet(snippet);
+//			
+//			//handle the error
+//			modified = handleError(current, diagnostic, before, after);
+//			//if we couldn't make a change
+//			if(modified == null) {
+//				//add to processed
+//				processedErrors.add(diagnostic);
+//				
+//				//get next error
+//				num++;
+//				if(num >= diagnostics.size()) break;
+//				diagnostic = diagnostics.get(num);
+//			}
+//			//if we did make a change
+//			else {
+//				String proposedBefore = before;
+//				//if there are imports and they changed
+//				if(modified.getImportList().size() > 0 && !importCache.equals(modified.getImportList())) {
+//					importCache = new ArrayList<>(modified.getImportList());
+//				}
+//				
+//				//compile
+//				compiler.clearSaved();
+//				compiler.addSource(DocHandler.getFileName(), snippet.insert(modified, before+after, before.length()));
+//				compiler.compileAll();
+//				modified.updateErrors(compiler.getErrors(), compiler.getDiagnostics().getDiagnostics());
+//				int testErrors = compiler.getErrors();
+//				
+//				//if fix improved our snippet, confirm changes
+//				if(testErrors < errors) {
+//					
+//					before = proposedBefore;
+//					offset = before.length();
+//					length = snippet.getCode().length();
+//					
+//					//copy modified back to snippet
+//					snippet = new Snippet(modified);
+//					diagnostics = snippet.getDiagnostics();
+//					
+//					//if we reached 0, we're done
+//					if(testErrors == 0) {
+//						break;
+//					}
+//					
+//					//we can resolve multiple errors, so just incrementing or retaining num means we can skip errors
+//					if(errors - testErrors > 1 && processedErrors.size() > 0) {
+//						num = 0;
+//						int s = 0;
+//						//for each diagnostic
+//						for(int j=0; j<diagnostics.size(); j++) {
+//							//does it match a processed?
+//							for(int k=s; k<processedErrors.size(); k++) {
+//								if(diagnostics.get(j).equals(processedErrors.get(k))){
+//									s=k; //dont look at matching processed errors again
+//									num = j + 1;
+//								}
+//							}
+//						}
+//					}
+//					
+//					errors = testErrors;
+//				}
+//				
+//				//get next error
+//				if(num >= diagnostics.size()) break;
+//				diagnostic = diagnostics.get(num);
+//			}
+//		}
+//		
+//		IMCompiler.logging = true;
+//		return snippet;
 	}
 	
 	/**
@@ -165,7 +249,7 @@ public class Fixer {
 				snippet = ParsingFixes.missingSemiColon(snippet, diagnostic, offset);
 				break;
 			case IProblem.ParsingErrorInsertToComplete:
-				ParsingFixes.insertToComplete(snippet, diagnostic, offset);
+				snippet = ParsingFixes.insertToComplete(snippet, diagnostic, offset);
 				//String message = diagnostic.getMessage(null);
 //				if(message.startsWith("Syntax error, insert \";\" to complete ")) {
 //					snippet = ParsingFixes.missingSemiColon(snippet, diagnostic, offset);
@@ -296,5 +380,10 @@ public class Fixer {
 		}
 		
 		return modified;
+	}
+	
+	private static void initializeCompiler() {
+		if(Evaluator.compiler == null) Evaluator.initializeCompiler(false);
+		compiler = Evaluator.compiler;
 	}
 }

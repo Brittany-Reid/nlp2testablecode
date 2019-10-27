@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.tools.Diagnostic;
@@ -99,6 +100,10 @@ public class UnresolvedElementFixes {
 	 */
 	public static Snippet fixUnresolvedType(Snippet snippet, Diagnostic<? extends JavaFileObject> diagnostic, int offset, String before, String after) {
 		String type = Fixer.getCovered(snippet.getCode(), diagnostic.getStartPosition(), diagnostic.getEndPosition(), offset);
+		if(type == null) {
+			System.out.println(":(");
+			return null;
+		}
 		
 		snippet = addImportFor(snippet, type);
 		
@@ -161,7 +166,11 @@ public class UnresolvedElementFixes {
 		parser = new JavaParser(parserConfiguration);
 		
 		//parse our code
-		CompilationUnit cu = parser.parse(before + snippet.getCode() + after).getResult().get();
+		Optional<CompilationUnit> result =  parser.parse(Snippet.insert(snippet, before+after, before.length())).getResult();
+		if(!result.isPresent()) {
+			return null;
+		}
+		CompilationUnit cu = result.get();
 		
 		//find node in ast
 		Statement nodeStatement = getStatementFromLine(cu, (int)diagnostic.getLineNumber());
