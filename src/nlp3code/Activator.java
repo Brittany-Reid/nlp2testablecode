@@ -31,6 +31,7 @@ import org.osgi.framework.BundleContext;
 
 import nlp3code.code.Snippet;
 import nlp3code.compiler.IMCompiler;
+import nlp3code.fixer.Deleter;
 import nlp3code.listeners.PackagesListener;
 import nlp3code.recommenders.TaskRecommender;
 
@@ -73,6 +74,123 @@ public class Activator extends AbstractUIPlugin {
 		InputHandler.documents.add(document);
 		document.addDocumentListener(InputHandler.queryDocListener);
 		JavaCore.addElementChangedListener(new PackagesListener(), ElementChangedEvent.POST_CHANGE );
+	}
+	
+	
+	//tests that need to be run with the ui :(
+	
+	public static void deletionTests() {
+		Map<String, Integer> errorIDs = new HashMap<>();
+		Map<String, String> errorMessages = new HashMap<>();
+		String before = "class Main {\npublic static void main(String[] args){\n";
+		String after = "\nreturn; }\n}\n";
+		long start;
+		
+		for(int i=6; i<8; i++) {
+			//set deletion options
+			if(i==0){
+				logger.debug("SETTING: DESC, STRICT, SINGLE\n");
+				Deleter.setOptions(false, false, false);
+			}
+			if(i==1){
+				logger.debug("SETTING: ASC, STRICT, SINGLE\n");
+				Deleter.setOptions(true, false, false);
+			}
+			if(i==2){
+				logger.debug("SETTING: DESC, NONSTRICT, SINGLE\n");
+				Deleter.setOptions(false, true, false);
+			}
+			if(i==3){
+				logger.debug("SETTING: ASC, NONSTRICT, SINGLE\n");
+				Deleter.setOptions(true, true, false);
+			}
+			if(i==4){
+				logger.debug("SETTING: DESC, STRICT, LOOP\n");
+				Deleter.setOptions(false, false, true);
+			}
+			if(i==5){
+				logger.debug("SETTING: ASC, NONSTRICT, LOOP\n");
+				Deleter.setOptions(true, true, true);
+			}
+			if(i==6){
+				logger.debug("SETTING: ASC, STRICT, LOOP\n");
+				Deleter.setOptions(true, false, true);
+			}
+			if(i==7){
+				logger.debug("SETTING: DESC, NONSTRICT, LOOP\n");
+				Deleter.setOptions(false, true, true);
+			}
+			
+			//get results for each task
+			start = System.currentTimeMillis();
+			int errors;
+			int totalErrors = 0;
+			int test;
+			int compiled;
+			int totalCompiled = 0;
+			for(String task : DataHandler.queries) {
+				errors = 0;
+				compiled = 0;
+				
+				//find the snippets
+				List<Snippet> snippets;
+				snippets = Searcher.getSnippets(task);
+				if(snippets == null) continue;
+				
+				//call evaluator
+				snippets = Evaluator.evaluate(null, snippets, before, after);
+			 
+				//with the results of evaluator, we compile to count errors
+				IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, null);
+				for(Snippet snippet : snippets) {
+					compiler.clearSaved();
+					String code = Snippet.insert(snippet, before+after, before.length());
+					compiler.addSource("Main", code);
+					compiler.compileAll();
+					test = compiler.getErrors();
+					errors += test;
+					
+					//add to error map
+					for(Diagnostic<? extends JavaFileObject> d : compiler.getDiagnostics().getDiagnostics()) {
+						String id = d.getCode();
+						String message = d.getMessage(null);
+						
+						
+						if(!errorIDs.containsKey(id)) {
+							errorIDs.put(id, 1);
+							errorMessages.put(id, message);
+						}
+						else {
+							int num = errorIDs.get(id);
+							num++;
+							errorIDs.put(id, num);
+						}
+					}
+					
+					if(test == 0) {
+						compiled++;
+					}
+					
+					
+					//test in/out
+					if(snippet.getPassedTests() > 0) {
+						System.out.println(snippet.getCode());
+						logger.debug("Return: " + snippet.getReturn() + ", Argument Types: ");
+						for(String arg : snippet.getArgumentTypes()) {
+							logger.debug(arg + " ");
+						}
+						logger.debug("\n");
+					}
+					
+				}
+				logger.debug("TASK: " + task + ", " + compiled + "\n");
+				totalCompiled += compiled;
+				
+			}
+			
+			logger.debug("TIME: " + (System.currentTimeMillis() - start) + "ms\n");
+			logger.debug("TOTAL: " + totalCompiled + "\n");
+		}
 	}
 	
 	public static void queryTests() {

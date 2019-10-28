@@ -52,7 +52,7 @@ public class Evaluator {
 	//options
 	public static boolean fix = true;
 	public static boolean integrate = true;
-	public static boolean deletion = false;
+	public static boolean deletion = true;
 	public static boolean targetted = true;
 	
 	/** 

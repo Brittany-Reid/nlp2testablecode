@@ -131,10 +131,10 @@ public class InputHandler extends AbstractHandler{
 	public static int doQuery(int lineOffset, String line) {
 		editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		
-		if(Activator.first == true) {
-			Activator.queryTests();
-			Activator.first = false;
-		}
+//		if(Activator.first == true) {
+//			Activator.deletionTests();
+//			Activator.first = false;
+//		}
 		
 		TypeRecommender.generated = null;
 		
