@@ -60,7 +60,10 @@ public class Evaluator {
 	 */
 	public static List<Snippet> evaluate(IProgressMonitor monitor, List<Snippet> snippets, String before, String after){
 //		snippets = new ArrayList<Snippet>();
-//		Snippet snippet = new Snippet("String str = \"\";\nint i = Integer.parseInt(str);\n", 0);
+//		Snippet snippet = new Snippet("import java.util.List;\nimport java.util.ArrayList;\nList<String> list = new ArrayList<String>();\r\n" + 
+//				"list.add(\"a\");\r\n" + 
+//				"String str = list.get(0);", 0);
+//		
 //		snippets.add(snippet);
 		
 		SubMonitor sub = null;
@@ -71,6 +74,8 @@ public class Evaluator {
 		
 		//record retrieved
 		retrieved = snippets.size();
+		passed = 0;
+		compiled = 0;
 		
 		//reset real-time compiling set
 		compilingSnippets = new ArrayList<Snippet>();
@@ -294,10 +299,9 @@ public class Evaluator {
 			}
 		}
 		
-		if(testing == true) {
+		if(testing == false) {
 			fullClasspath = systemClasspath;
 		}
-		
 		
 		//construct options
 		List<String> options = null;
@@ -325,7 +329,7 @@ public class Evaluator {
 		parser = new JavaParser(parserConfiguration);
 	}
 
-	public static List<Snippet> testSnippets(IProgressMonitor monitor, List<Snippet> snippets, String before, String after, String test) {
+	public static List<Snippet> testSnippets(IProgressMonitor monitor, List<Snippet> snippets, String before, String after, String test, List<String> imports) {
 		SubMonitor sub = null;
 		if(monitor != null) sub = SubMonitor.convert(monitor, snippets.size());
 		
@@ -337,7 +341,7 @@ public class Evaluator {
 			if(snippet.getErrors() != 0) break;
 			
 			//otherwise test and replace
-			snippet.setPassedTests(Tester.test(snippet, before, after, test));
+			snippet.setPassedTests(Tester.test(snippet, before, after, test, imports));
 			if(snippet.getPassedTests() > 0) {
 				passed++;
 			}

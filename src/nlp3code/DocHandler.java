@@ -63,9 +63,8 @@ public class DocHandler {
 		imports = null;
 		importStart = -1;
 		documentAST = null;
-		currentProject = null;
+		//currentProject = null;
 		fileName = null;
-		currentProject = null;
 		currentEditor = null;
 	}
 	
@@ -277,7 +276,7 @@ public class DocHandler {
 	
 	public static int getImportOffset(String surrounding) {
 		if(importStart != -1) return importStart;
-		
+		if(surrounding == null) surrounding = getDocument().get();
 		CompilationUnit ast = null;
 		importStart = 0;
 		
@@ -501,7 +500,10 @@ public class DocHandler {
 	public static String getClassPath() {
 		
 		IJavaProject project = getJavaProject();
-		if(project == null) return null;
+		if(project == null) {
+			System.out.println("Could not get Java Project.");
+			return null;
+		}
 		IClasspathEntry[] classPathEntries = null;
 		try {
 			classPathEntries = project.getRawClasspath();
@@ -511,7 +513,10 @@ public class DocHandler {
 		}
 		
 		//if we have no classpath entries return null
-		if(classPathEntries == null || classPathEntries.length == 0) return "";
+		if(classPathEntries == null || classPathEntries.length == 0) {
+			System.out.println("No classPath entries.");
+			return "";
+		}
 		
 		String classPath = "";
 		
@@ -521,7 +526,10 @@ public class DocHandler {
 			if(c.getEntryKind() == IClasspathEntry.CPE_LIBRARY)
 				classPath += c.getPath().toString() + ";";
 		}
-		
+		if(classPath.length()>1) {
+			//cut off semi-colon
+			classPath = classPath.substring(0, classPath.length()-1);
+		}
 		return classPath;
 	}
 	

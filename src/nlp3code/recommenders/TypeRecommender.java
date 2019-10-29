@@ -1,6 +1,7 @@
 package nlp3code.recommenders;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +74,7 @@ public class TypeRecommender implements  IJavaCompletionProposalComputer{
 	 * Returns a list of Input/Output type suggestions sorted by occurrence.
 	 * @return A List of Strings.
 	 */
-	private List<String> sortIOTypes(List<Snippet> snippets){
+	public static List<String> sortIOTypes(List<Snippet> snippets){
 		List<String> ioTypes = new ArrayList<String>();
 		Map<String, Integer> occurences = new HashMap<>();
 		
@@ -84,7 +85,9 @@ public class TypeRecommender implements  IJavaCompletionProposalComputer{
 			
 			//construct entry
 			content = snippet.getReturn();
-			for(String s : snippet.getArgumentTypes()) {
+			List<String> args = snippet.getArgumentTypes();
+			Collections.sort(args);
+			for(String s : args) {
 				content += ", " + s;
 			}
 			
@@ -117,7 +120,8 @@ public class TypeRecommender implements  IJavaCompletionProposalComputer{
 		
 		//top, format
 		String content = "Return, Input, ...., Input";
-		ICompletionProposal proposal = new CompletionProposal(content + testChar, offset-line.length(), line.length(), content.length()+1);
+		ICompletionProposal proposal = new CompletionProposal("", offset-line.length(), 0, 0, null, content, null, null);
+		//ICompletionProposal proposal = new CompletionProposal(content + testChar, offset-line.length(), line.length(), content.length()+1);
 		proposals.add(proposal);
 		
 		List<Snippet> snippets = generated;

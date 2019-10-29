@@ -71,21 +71,16 @@ public class TypeSuggestions {
 		
 		block = getSnippetAST(snippet);
 		if(block == null) return null;
-		
 		snippet.setAST(block);
 		
 		findTestIO();
 		if(returnNode == null) return null;
-		
 		//return 1 if we found arguments
 		if(argTypes.size() > 0) {
-			snippet.setPassedTests(1);
 			snippet.setArguments(argTypes);
 			snippet.setReturn(returnType);
 			return snippet;
 		}
-		
-		snippet.setPassedTests(0);
 		return snippet;
 	}
 	
@@ -103,9 +98,10 @@ public class TypeSuggestions {
 		String after = "}" + InputHandler.after;
 		
 		String code = Snippet.insert(snippet, before+after, before.length());
-
 		ParseResult result = parser.parse(code);
-		if(!result.getResult().isPresent()) return null;
+		if(!result.getResult().isPresent()) {
+			return null;
+		}
 		CompilationUnit cu = (CompilationUnit) result.getResult().get();
 		
 		//get list of comments

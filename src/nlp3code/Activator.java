@@ -34,6 +34,8 @@ import nlp3code.compiler.IMCompiler;
 import nlp3code.fixer.Deleter;
 import nlp3code.listeners.PackagesListener;
 import nlp3code.recommenders.TaskRecommender;
+import nlp3code.recommenders.TypeRecommender;
+import nlp3code.tester.TypeSuggestions;
 
 /**
  * The Activator class controls the plug-in life cycle
@@ -61,7 +63,7 @@ public class Activator extends AbstractUIPlugin {
 	 * The constructor
 	 */
 	public Activator() {
-		//DataHandler.limit = 100000L;
+		//DataHandler.limit = 10000L;
 		setupListeners();
 		random = new Random();
 	}
@@ -286,6 +288,45 @@ public class Activator extends AbstractUIPlugin {
             //result.put(entry.getKey(), entry.getValue());
         }
 		
+	}
+	
+	/**
+	 * Test the type suggestions for 47 tasks.
+	 */
+	public static void suggestionTests() {
+		long start;
+		
+		logger.debug("COMPILING FOR 47 TASKS\n");
+		start = System.currentTimeMillis();
+		String before = "class Main {\npublic static void main(String[] args){\n";
+		String after = "\nreturn;\n }\n}\n";
+		InputHandler.before = before;
+		InputHandler.after = after;
+		
+		//for each task
+		for(String task : DataHandler.queries) {
+			logger.debug("TASK: " + task + "\n");
+
+			
+			//find the snippets
+			List<Snippet> snippets;
+			snippets = Searcher.getSnippets(task);
+			if(snippets == null) continue;
+			
+			//evaluate
+			snippets = Evaluator.evaluate(null, snippets, before, after);
+			
+			//get type suggestions
+			snippets = TypeSuggestions.getTypeSuggestions(snippets, before, after, null);
+			
+			
+			List<String> types = TypeRecommender.sortIOTypes(snippets);
+			for(String type : types) {
+				logger.debug("TYPE: " + type + "\n");
+			}
+			
+		}		
+		logger.debug("TIME: " + (System.currentTimeMillis() - start) + "ms\n");
 	}
 	
 	/**

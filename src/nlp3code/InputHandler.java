@@ -130,12 +130,13 @@ public class InputHandler extends AbstractHandler{
 	 */
 	public static int doQuery(int lineOffset, String line) {
 		editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+		DocHandler.getJavaProject();
 		
 //		if(Activator.first == true) {
-//			Activator.deletionTests();
+//			Activator.suggestionTests();
 //			Activator.first = false;
 //		}
-		
+//		
 		TypeRecommender.generated = null;
 		
 		TypeRecommender.canTest = false;
@@ -357,7 +358,7 @@ public class InputHandler extends AbstractHandler{
 		System.out.println("reset");
 		previousQueries.clear();
 		//previousOffset = 0;
-		previousInfo = null;
+		//previousInfo = null;
 		previousIndex = 0;
 		//previousQuery = null;
 		//previousSnippet = null;

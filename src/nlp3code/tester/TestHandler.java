@@ -14,9 +14,14 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.FindReplaceDocumentAdapter;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 
+import nlp3code.Activator;
 import nlp3code.DocHandler;
 import nlp3code.Evaluator;
 import nlp3code.InputHandler;
@@ -35,8 +40,12 @@ public class TestHandler extends AbstractHandler{
 		if(TypeRecommender.testing == false) return false;
 		
 		//get test case
-		String test = extractTestCase();
-		List<Snippet> tested = doTests(test);
+		List<String> test = extractTestCase();
+		if(test == null || test.isEmpty()) return null;
+		String testCase = test.get(0);
+		List<String> imports = test.subList(1, test.size());
+		
+		List<Snippet> tested = doTests(testCase, imports);
 		if(tested != null) {
 			insertSnippets(tested);
 		}
@@ -48,7 +57,7 @@ public class TestHandler extends AbstractHandler{
 	
 	public static void insertSnippets(List<Snippet> snippets) {
 		
-		CycleAnswersHandler.replaceSnippet(snippets.get(0));
+		replaceSnippet(snippets.get(0));
 		InputHandler.previousIndex = 0;
 		InputHandler.previousSnippets = snippets;
 		
@@ -59,7 +68,42 @@ public class TestHandler extends AbstractHandler{
 		CycleAnswersHandler.changedDoc = false;
 	}
 	
-	public static List<Snippet> doTests(String test) {
+	/**
+	 * Replace the current snippet with another. Adapted from CycleAnswersHandler but is less strict.
+	 * The user can add imports, so: we can count the new space and adapt but I think that's easy to break
+	 * Instead: look for the last string in the document and replace it.
+	 * If it doesn't exist, we fail. 
+	 * If a duplicate exists, we replace the first found which isn't perfect but.
+	 */
+	public static void replaceSnippet(Snippet snippet) {
+		//find the previous snippet
+		//this should be a search for the snippet fragment but atm we know fragment 1 is always a snippet
+		String toFind = InputHandler.previousInfo + InputHandler.previousSnippet.getFragment(1).getFormattedCode();
+		IDocument document = DocHandler.getDocument();
+		
+		FindReplaceDocumentAdapter searcher = new FindReplaceDocumentAdapter(document);
+		IRegion reigion = null;
+		try {
+			reigion = searcher.find(0, toFind, true, true, false, false);
+		} catch (BadLocationException e) {
+			System.out.println("Could not find previous snippet to replace, exception.");
+			return;
+		}
+		if(reigion == null) {
+			System.out.println("Could not find previous snippet to replace, null.");
+			return;
+		}
+		int offset = reigion.getOffset();
+		int length = reigion.getLength();
+		
+		//replace this range
+		DocHandler.addSnippet(InputHandler.generateQueryComment(InputHandler.previousQuery), snippet, offset, length);
+		
+		InputHandler.previousIndex = 0;
+		InputHandler.previousSnippet = snippet;
+	}
+	
+	public static List<Snippet> doTests(String test, List<String> imports) {
 		//get surrounding code
 		String[] surrounding = DocHandler.getSurrounding(InputHandler.previousOffset, InputHandler.previousLength);
 		
@@ -75,7 +119,7 @@ public class TestHandler extends AbstractHandler{
 				monitor.beginTask("Testing Snippets", 100);
 				
 				//test snippets
-				runnableSnippets.set(Evaluator.testSnippets(monitor, snippets, surrounding[0], surrounding[1], test));
+				runnableSnippets.set(Evaluator.testSnippets(monitor, snippets, surrounding[0], surrounding[1], test, imports));
 			}
 		};
 		
@@ -98,7 +142,7 @@ public class TestHandler extends AbstractHandler{
 	 * Extract test case from file.
 	 * @return
 	 */
-	public static String extractTestCase() {
+	public static List<String> extractTestCase() {
 		String document = DocHandler.getDocument().get();
 		int start = document.indexOf(TypeHandler.functionStart);
 		int end = document.indexOf(TypeHandler.functionEnd);
@@ -114,10 +158,18 @@ public class TestHandler extends AbstractHandler{
 		if(end > document.length()) return null;
 		String content = document.substring(start, end);
 		
+		//get imports
+		DocHandler.getImportOffset(null);
+		List<String> imports = DocHandler.imports;
+		
 		//remove function from document
 		start -= TypeHandler.functionStart.length();
 		DocHandler.replace("", start, TypeHandler.functionStart.length()+content.length()+TypeHandler.functionEnd.length());
 		
-		return content;
+		List<String> result = new ArrayList<>();
+		result.add(content);
+		if(imports != null) result.addAll(imports);
+		
+		return result;
 	}
 }

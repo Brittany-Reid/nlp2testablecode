@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.tools.Diagnostic;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
@@ -11,7 +13,9 @@ import org.eclipse.ui.IFileEditorInput;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
@@ -50,10 +54,12 @@ public class Tester {
 	public static String returnType = null;
 	public static List<String> argTypes = null;
 	private static BlockStmt block = null;
+	private static NodeList<ImportDeclaration> docImports;
 	
 	//compile and parser references
 	private static IMCompiler compiler = null;
 	public static JavaParser parser = null;
+	public static int testable = 0;
 	
 	/**
 	 * Generates default test input/output based on types.
@@ -90,7 +96,7 @@ public class Tester {
 		return junitTest;
 	}
 
-	public static int test(Snippet snippet, String before, String after, String test) {
+	public static int test(Snippet snippet, String before, String after, String test, List<String> imports) {
 		//initialize parser
 		if(parser == null) {
 			initializeParser();
@@ -101,10 +107,17 @@ public class Tester {
 		block = getSnippetAST(snippet, before, after);
 		if(block == null) return 0;
 		
+		//collate imports
+		List<String> allImports = imports;
+		if(allImports == null) allImports = new ArrayList<>();
+		if(snippet.getImportList() != null || snippet.getImportList().isEmpty()) {
+			allImports.addAll(snippet.getImportList());
+		}
+		
 		//construct file to test
 		String code = null;
 		try {
-			code = constructFile(snippet.getImportList(), test);
+			code = constructFile(allImports, test);
 		} catch (Exception e) {
 			//catch any parsing errors to continue on
 			e.printStackTrace();
@@ -124,9 +137,14 @@ public class Tester {
 		errors = compiler.getErrors();
 		
 		if(errors == 0) {
-			//int pass = run();
-			int pass = 0;
+			testable++;
+			int pass = run();
+			//int pass = 0;
 			return pass;
+		}else {
+//			for(Diagnostic d : compiler.getDiagnostics().getDiagnostics()) {
+//				System.out.println(d.getMessage(null));
+//			}
 		}
 		
 		return 0;
@@ -178,12 +196,18 @@ public class Tester {
 		//add the snippet
 		newC.getMembers().add(snippet);
 		
-		//add import statements
-		newCu.addImport("org.junit.Assert.*", true, false);
-		newCu.addImport("org.junit.Test");
+//		//add import statements
+//		newCu.addImport("org.junit.Assert.*", true, false);
+//		newCu.addImport("org.junit.Test");
 		
-		for(String i : imports) {
-			newCu.addImport(i.split(" ")[1].replace(";", ""));
+		//add import statements
+		for(String importStr : imports) {
+			ParseResult result = parser.parseImport(importStr);
+			if(!result.getResult().isPresent()) {
+				continue;
+			}
+			ImportDeclaration imNode = (ImportDeclaration) result.getResult().get();
+			newCu.addImport(imNode);
 		}
 		
 		//add junit function
