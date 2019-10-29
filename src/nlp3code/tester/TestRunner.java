@@ -134,7 +134,7 @@ public class TestRunner {
             Thread thread = new Thread(runnable);
             thread.start();
             boolean stop = false;
-            int timepool = 5000;
+            int timepool = 10000;
             while(stop == false || thread.isAlive()) {
             	try {
             		//sleep for half a second then check
