@@ -60,9 +60,22 @@ public class Evaluator {
 	 */
 	public static List<Snippet> evaluate(IProgressMonitor monitor, List<Snippet> snippets, String before, String after){
 //		snippets = new ArrayList<Snippet>();
+		//test complex types
 //		Snippet snippet = new Snippet("import java.util.List;\nimport java.util.ArrayList;\nList<String> list = new ArrayList<String>();\r\n" + 
 //				"list.add(\"a\");\r\n" + 
 //				"String str = list.get(0);", 0);
+		//test timeouts
+		/*
+		 * I tried a simple thread based time out and the loop continued to run. Will have to copy gintools implementation.
+		 * Kinda bad but thread stop worked... Reminder to look into this later.
+		 */
+//		Snippet snippet = new Snippet("int a = 0;\r\n" + 
+//				"		boolean test = true;\r\n" + 
+//				"		while(test == true) {\r\n" + 
+//				"			System.out.println(\"evil loop of death\");\r\n" + 
+//				"		}\r\n" + 
+//				"		int b = 0;\r\n" + 
+//				"		", 0);
 //		
 //		snippets.add(snippet);
 		
@@ -349,6 +362,8 @@ public class Evaluator {
 			
 			if(sub != null) sub.split(1);
 		}
+		System.out.println("Compilable test functions: " + Tester.testable);
+		Tester.testable = 0;
 		
 		Collections.sort(snippets);
 		

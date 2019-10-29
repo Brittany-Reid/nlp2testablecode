@@ -163,6 +163,10 @@ public class Tester {
 		int passed = 0;
 		
 		UnitTestResultSet unitTestResultSet = testRunner.runTests(classLoader.getCompiled(className));
+		
+		//null happens if our invoke thread gets canceled
+		if(unitTestResultSet == null) return 0;
+		
 		passed = unitTestResultSet.getSuccessful();
 		
 		return passed;
