@@ -135,7 +135,7 @@ public class TestRunner {
             thread.start();
             boolean stop = false;
             int timepool = 10000;
-            while(stop == false || thread.isAlive()) {
+            while(stop == false && thread.isAlive()) {
             	try {
             		//sleep for half a second then check
 					Thread.sleep(500);
@@ -149,7 +149,7 @@ public class TestRunner {
             	//through regular means, there remain hanging threads
             	//this may actually be better for now....
             	//i have no idea if the issues with stop even apply here
-            	if(timepool == 0) {
+            	if(timepool <= 0) {
             		System.out.println("Timed out");
 	            	thread.stop();
 	            	stop =true;

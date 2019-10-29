@@ -296,24 +296,28 @@ public class Evaluator {
 		//construct classpath
 		String fullClasspath = null;
 		
-		//get the open projects classptah
-		String projectClasspath = null;
-		if(testing == true) {
-			projectClasspath = DocHandler.getClassPath();
-		}
-		
 		//get the system classpath
 		String systemClasspath = System.getProperty("java.class.path");
 		
-		if(projectClasspath != null) {
-			fullClasspath = projectClasspath;
-			if(testing == true) {
-				fullClasspath += ";" + systemClasspath;
+		//get the open projects classptah
+		String projectClasspath = null;
+		projectClasspath = DocHandler.getClassPath();
+		
+		if(testing == true) {
+			if(projectClasspath == null) {
+				fullClasspath = systemClasspath;
+			}
+			else {
+				fullClasspath = projectClasspath + ";" + systemClasspath;
 			}
 		}
-		
-		if(testing == false) {
-			fullClasspath = systemClasspath;
+		else {
+			if(projectClasspath == null) {
+				fullClasspath = "";
+			}
+			else {
+				fullClasspath = projectClasspath;
+			}
 		}
 		
 		//construct options
