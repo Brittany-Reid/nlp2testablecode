@@ -9,6 +9,7 @@ import nlp3code.fixer.Fixer;
 import nlp3code.fixer.Integrator;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.List;
 
 import javax.tools.JavaCompiler;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -59,25 +61,21 @@ public class Evaluator {
 	 * Returns an ordered list of snippets by quality, after compiling and fixing.
 	 */
 	public static List<Snippet> evaluate(IProgressMonitor monitor, List<Snippet> snippets, String before, String after){
-//		snippets = new ArrayList<Snippet>();
+		snippets = new ArrayList<Snippet>();
 		//test complex types
 //		Snippet snippet = new Snippet("import java.util.List;\nimport java.util.ArrayList;\nList<String> list = new ArrayList<String>();\r\n" + 
 //				"list.add(\"a\");\r\n" + 
 //				"String str = list.get(0);", 0);
 		//test timeouts
-		/*
-		 * I tried a simple thread based time out and the loop continued to run. Will have to copy gintools implementation.
-		 * Kinda bad but thread stop worked... Reminder to look into this later.
-		 */
-//		Snippet snippet = new Snippet("int a = 0;\r\n" + 
-//				"		boolean test = true;\r\n" + 
-//				"		while(test == true) {\r\n" + 
-//				"			System.out.println(\"evil loop of death\");\r\n" + 
-//				"		}\r\n" + 
-//				"		int b = 0;\r\n" + 
-//				"		", 0);
-//		
-//		snippets.add(snippet);
+		Snippet snippet = new Snippet("int a = 0;\r\n" + 
+				"		boolean test = true;\r\n" + 
+				"		while(test == true) {\r\n" + 
+				"			System.out.println(\"evil loop of death\");\r\n" + 
+				"		}\r\n" + 
+				"		int b = 0;\r\n" + 
+				"		", 0);
+		
+		snippets.add(snippet);
 		
 		SubMonitor sub = null;
 		if(monitor != null) sub = SubMonitor.convert(monitor, 100);
@@ -327,7 +325,7 @@ public class Evaluator {
 		}
 		
 		//get in memory compiler object
-		return new IMCompiler(javaCompiler, options);
+		return new IMCompiler(javaCompiler, options, new OutputStreamWriter(new NullOutputStream()));
 	}
 	
 	/**

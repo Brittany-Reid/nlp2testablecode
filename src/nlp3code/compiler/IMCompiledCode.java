@@ -10,8 +10,10 @@ import javax.tools.SimpleJavaFileObject;
 /**
  *   In memory compiled code file.
  */
-public class IMCompiledCode extends SimpleJavaFileObject {
-    protected final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+public class IMCompiledCode extends SimpleJavaFileObject implements java.io.Serializable {
+	
+	private static final long serialVersionUID = 1805236520776498033L;
+	protected final ByteArrayOutputStream bos = new ByteArrayOutputStream();
     private String className;
 
     public IMCompiledCode(String className, Kind kind) {

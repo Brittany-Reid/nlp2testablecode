@@ -90,6 +90,8 @@ public class TypeSuggestions {
 	public static BlockStmt getSnippetAST(Snippet snippet) {
 		BlockStmt blockStmt = null;
 		
+		if(parser == null) initializeParser();
+		
 		//construct our flag with a random key so we aren't reserving any words
 		int key = Activator.random.nextInt(1000000);
 		String flag = "NLP3Code_comment " + key;
