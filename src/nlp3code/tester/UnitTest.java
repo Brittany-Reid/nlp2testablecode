@@ -1,7 +1,5 @@
 package nlp3code.tester;
 
-import org.apache.commons.lang3.StringUtils;
-
 /** Class UnitTest
  * 	A test to be run.
  */
@@ -27,11 +25,11 @@ public class UnitTest{
         return className + "." + methodName;
     }
 
-    public String getTopClassName() {
-        return StringUtils.substringBefore(className, "$");
-    }
-
-    public String getInnerClassName() {
-        return StringUtils.substringAfter(className, "$");
-    }
+//    public String getTopClassName() {
+//        return StringUtils.substringBefore(className, "$");
+//    }
+//
+//    public String getInnerClassName() {
+//        return StringUtils.substringAfter(className, "$");
+//    }
 }

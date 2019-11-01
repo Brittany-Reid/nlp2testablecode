@@ -49,7 +49,7 @@ public class Searcher {
 		
 		//if we want to restrict the number of snippets per query
 		if(limit != -1) {
-			snippets = snippets.subList(0, limit-1);
+			if(snippets.size() > limit) snippets = snippets.subList(0, limit);
 		}
 		
 		return snippets;

@@ -1,7 +1,5 @@
 package nlp3code.compiler;
 
-import org.apache.commons.io.output.NullOutputStream;
-
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -33,10 +31,10 @@ public class IMCompiler{
 	 * Constructor
 	 * 	Creates a new IMCompiler with the specified compiler type.
 	 */
-	public IMCompiler(JavaCompiler compiler, List<String> options) {
+	public IMCompiler(JavaCompiler compiler, List<String> options, Writer out) {
 		this.compiler = compiler;
 		this.options = options;
-		this.out = new OutputStreamWriter(new NullOutputStream());
+		this.out = out;
 		this.fileManager = new IMFileManager(compiler.getStandardFileManager(null, null, null));
 		errorCount = -1;
 	}

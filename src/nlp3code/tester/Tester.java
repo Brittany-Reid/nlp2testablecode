@@ -138,7 +138,7 @@ public class Tester {
 		
 		if(errors == 0) {
 			testable++;
-			int pass = run();
+			int pass = run(code);
 			//int pass = 0;
 			return pass;
 		}else {
@@ -153,21 +153,33 @@ public class Tester {
 	/** 
 	 *   Runs our test case.
 	 */
-	private static int run() {
-		TestRunner testRunner = new TestRunner(className, getClassPath(), null);
-		
-		//get the compiled code from the compiler
-		IMClassLoader classLoader = null;
-		classLoader = (IMClassLoader) compiler.fileManager.getClassLoader(null);
-		
+	private static int run(String code) {
 		int passed = 0;
 		
-		UnitTestResultSet unitTestResultSet = testRunner.runTests(classLoader.getCompiled(className));
+		//leave the old implementation here for now
 		
-		//null happens if our invoke thread gets canceled
-		if(unitTestResultSet == null) return 0;
+//		//get the compiled code from the compiler
+//		IMClassLoader classLoader = null;
+//		classLoader = (IMClassLoader) compiler.fileManager.getClassLoader(null);
 		
-		passed = unitTestResultSet.getSuccessful();
+//		TestRunner testRunner = new TestRunner(className, getClassPath(), null);
+		
+//		UnitTestResultSet unitTestResultSet = testRunner.runTests(classLoader.getCompiled(className));
+//		
+//		//null happens if our invoke thread gets canceled
+//		if(unitTestResultSet == null) return 0;
+//		
+//		passed = unitTestResultSet.getSuccessful();
+		
+		//use the process passed implementation instead
+		
+		try {
+			passed = TestProcessRunner.exec(10000, "junittest", className, code);
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			//again... handle errors properly.
+			return 0;
+		}
 		
 		return passed;
 	}
@@ -452,7 +464,7 @@ public class Tester {
 	}
 	
 	/**Returns String classpath for testing: this is the classpath we use for our cache*/
-	private static String getClassPath() {
+	static String getClassPath() {
 		//get classpath from iproject: exceptionininitializererror for javacore.create
 		//side effect of loading an external jar for jdt.core?
 		//update: yes it was, its fixed now

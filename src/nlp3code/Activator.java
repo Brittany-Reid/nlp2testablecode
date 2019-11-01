@@ -1,5 +1,6 @@
 package nlp3code;
 
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -11,6 +12,7 @@ import java.util.Random;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -63,7 +65,7 @@ public class Activator extends AbstractUIPlugin {
 	 * The constructor
 	 */
 	public Activator() {
-		//DataHandler.limit = 100000L;
+		//DataHandler.limit = 10000L;
 		setupListeners();
 		random = new Random();
 	}
@@ -143,7 +145,7 @@ public class Activator extends AbstractUIPlugin {
 				snippets = Evaluator.evaluate(null, snippets, before, after);
 			 
 				//with the results of evaluator, we compile to count errors
-				IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, null);
+				IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, null, new OutputStreamWriter(new NullOutputStream()));
 				for(Snippet snippet : snippets) {
 					compiler.clearSaved();
 					String code = Snippet.insert(snippet, before+after, before.length());
@@ -225,7 +227,7 @@ public class Activator extends AbstractUIPlugin {
 			snippets = Evaluator.evaluate(null, snippets, before, after);
 		 
 			//with the results of evaluator, we compile to count errors
-			IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, null);
+			IMCompiler compiler = new IMCompiler(Evaluator.javaCompiler, null, new OutputStreamWriter(new NullOutputStream()));
 			for(Snippet snippet : snippets) {
 				compiler.clearSaved();
 				String code = Snippet.insert(snippet, before+after, before.length());
