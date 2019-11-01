@@ -61,21 +61,21 @@ public class Evaluator {
 	 * Returns an ordered list of snippets by quality, after compiling and fixing.
 	 */
 	public static List<Snippet> evaluate(IProgressMonitor monitor, List<Snippet> snippets, String before, String after){
-		snippets = new ArrayList<Snippet>();
+		//snippets = new ArrayList<Snippet>();
 		//test complex types
 //		Snippet snippet = new Snippet("import java.util.List;\nimport java.util.ArrayList;\nList<String> list = new ArrayList<String>();\r\n" + 
 //				"list.add(\"a\");\r\n" + 
 //				"String str = list.get(0);", 0);
 		//test timeouts
-		Snippet snippet = new Snippet("int a = 0;\r\n" + 
-				"		boolean test = true;\r\n" + 
-				"		while(test == true) {\r\n" + 
-				"			System.out.println(\"evil loop of death\");\r\n" + 
-				"		}\r\n" + 
-				"		int b = 0;\r\n" + 
-				"		", 0);
-		
-		snippets.add(snippet);
+//		Snippet snippet = new Snippet("int a = 0;\r\n" + 
+//				"		boolean test = true;\r\n" + 
+//				"		while(test == true) {\r\n" + 
+//				"			System.out.println(\"evil loop of death\");\r\n" + 
+//				"		}\r\n" + 
+//				"		int b = 0;\r\n" + 
+//				"		", 0);
+//		
+//		snippets.add(snippet);
 		
 		SubMonitor sub = null;
 		if(monitor != null) sub = SubMonitor.convert(monitor, 100);

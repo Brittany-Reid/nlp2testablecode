@@ -65,7 +65,7 @@ public class Activator extends AbstractUIPlugin {
 	 * The constructor
 	 */
 	public Activator() {
-		DataHandler.limit = 10000L;
+		//DataHandler.limit = 10000L;
 		setupListeners();
 		random = new Random();
 	}

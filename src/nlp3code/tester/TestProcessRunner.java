@@ -34,7 +34,7 @@ public class TestProcessRunner {
 		ProcessBuilder builder = new ProcessBuilder();
 		builder.directory(Paths.get(FileLocator.resolve(FileLocator.find(Platform.getBundle("nlp3code"), new Path("bin/"), null)).toURI()).toFile());
 		builder.command(javaCommand, "-cp", "\".;" + classpath + "\"", "nlp3code.tester.TestProcess");
-		System.out.println(classpath);
+		//System.out.println(classpath);
 		Process child = builder.start();
 		
 		try {
@@ -62,7 +62,7 @@ public class TestProcessRunner {
 			//return result
 			if(input.available() != 0) {
 				int result = ois.readInt();
-				System.out.println(result);
+				//System.out.println(result);
 				
 				//handle error, get string report
 				if(result == -1) {

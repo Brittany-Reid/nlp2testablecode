@@ -154,13 +154,15 @@ public class Tester {
 	 *   Runs our test case.
 	 */
 	private static int run(String code) {
-		TestRunner testRunner = new TestRunner(className, getClassPath(), null);
+		int passed = 0;
+		
+		//leave the old implementation here for now
 		
 //		//get the compiled code from the compiler
 //		IMClassLoader classLoader = null;
 //		classLoader = (IMClassLoader) compiler.fileManager.getClassLoader(null);
 		
-		int passed = 0;
+//		TestRunner testRunner = new TestRunner(className, getClassPath(), null);
 		
 //		UnitTestResultSet unitTestResultSet = testRunner.runTests(classLoader.getCompiled(className));
 //		
@@ -169,7 +171,7 @@ public class Tester {
 //		
 //		passed = unitTestResultSet.getSuccessful();
 		
-		//working on a safer process based test runner:
+		//use the process passed implementation instead
 		
 		try {
 			passed = TestProcessRunner.exec(10000, "junittest", className, code);
