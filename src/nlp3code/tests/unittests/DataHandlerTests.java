@@ -1,4 +1,4 @@
-package nlp3code.tests;
+package nlp3code.tests.unittests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -17,6 +17,8 @@ public class DataHandlerTests {
 	@Test
 	public void loadStopWordsTest() {
 		DataHandler.loadStopWords();
+		//reset database
+		DataHandler.clear();
 	}
 	
 	@Test
@@ -24,6 +26,8 @@ public class DataHandlerTests {
 		DataHandler.limit = 10000L;
 		DataHandler.loadQuestions(null);
 		assertEquals(10000, DataHandler.getNumQuestions());
+		//reset database
+		DataHandler.clear();
 	}
 	
 	@Test
@@ -31,11 +35,15 @@ public class DataHandlerTests {
 		DataHandler.limit = 10000L;
 		DataHandler.loadAnswers(null);
 		assertTrue(DataHandler.getNumAnswers() > 0);
+		//reset database
+		DataHandler.clear();
 	}
 	
 	@Test
 	public void loadTasksTest() {
 		DataHandler.loadTasks(null);
+		//reset database
+		DataHandler.clear();
 	}
 	
 	@Test
@@ -44,11 +52,14 @@ public class DataHandlerTests {
 		DataHandler.loadQuestions(null);
 		assertEquals(1000, DataHandler.getNumQuestions());
 		//without filtering stop words
-		List<Integer> threads = DataHandler.getThreadsWith("an");
+		List<Integer> threads = DataHandler.getThreadsWith("string");
 		assertNotNull(threads);
 		//retrieve snippets
 		List<Snippet> snippets = DataHandler.getSnippet(threads.get(0));
 		assertNotNull(snippets);
+		DataHandler.clear();
+		//reset database
+		DataHandler.clear();
 	}
 	
 	@Test
@@ -59,6 +70,8 @@ public class DataHandlerTests {
 		DataHandler.loadQuestions(null);
 		List<Integer> threads = DataHandler.getThreadsWith("an");
 		assertNull(threads);
+		//reset database
+		DataHandler.clear();
 	}
 	
 	@Test
@@ -68,5 +81,7 @@ public class DataHandlerTests {
 		DataHandler.loadQuestions(null);
 		DataHandler.processing = DataHandler.STEM;
 		assertEquals(10000, DataHandler.getNumQuestions());
+		//reset database
+		DataHandler.clear();
 	}
 }

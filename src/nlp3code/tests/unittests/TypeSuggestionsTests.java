@@ -1,4 +1,4 @@
-package nlp3code.tests;
+package nlp3code.tests.unittests;
 
 import static org.junit.Assert.assertTrue;
 
@@ -10,7 +10,6 @@ import nlp3code.Activator;
 import nlp3code.DocHandler;
 import nlp3code.InputHandler;
 import nlp3code.code.Snippet;
-import nlp3code.fixer.Deleter;
 import nlp3code.tester.TypeSuggestions;
 
 public class TypeSuggestionsTests {
@@ -26,6 +25,9 @@ public class TypeSuggestionsTests {
 		Activator.random = new Random();
 		InputHandler.before = before;
 		InputHandler.after = after;
-		TypeSuggestions.generate(snippet);
+		Snippet done = TypeSuggestions.generate(snippet);
+		//System.out.println(done.getArgumentTypes().get(0) + done.getReturn());
+		assertTrue(done.getArgumentTypes().get(0).equals("int"));
+		assertTrue(done.getReturn().equals("int"));
 	}
 }

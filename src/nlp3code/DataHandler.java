@@ -15,16 +15,14 @@ import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
-import org.jsoup.*;
+import org.jsoup.Jsoup;
 
-import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.CoreDocument;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.simple.Sentence;
-import edu.stanford.nlp.util.PropertiesUtils;
 import nlp3code.code.Snippet;
+
 /**
- * Handles offline stack overflow database. Should read in an XML file, and store contents in memory.
+ * Handles loading of data sources, including stack overflow answers, questions, stop words and task recommendations.
  */
 public class DataHandler {
 	//option to limit number of questions and answers loaded

@@ -1,4 +1,4 @@
-package nlp3code.tests;
+package nlp3code.tests.unittests;
 
 import org.eclipse.jface.text.Document;
 import org.junit.Test;

@@ -13,6 +13,7 @@ public class TypeHandler {
 	public static String functionStart = "\r\n\r\n	@Test\r\n	public void nlp3code_test(){\r\n		//--START EDITING\r\n";
 	public static String functionEnd = "		//--END EDITING\r\n	}";
 	private static ArrayList<String> imports = null;
+	
 	/**
 	 * Constructs a test from the given type input on String line.
 	 */

@@ -1,16 +1,7 @@
 package nlp3code;
 
-import org.eclipse.core.runtime.Platform;
-import nlp3code.code.Snippet;
-import nlp3code.compiler.IMCompiler;
-import nlp3code.compiler.PatchClassLoader;
-import nlp3code.fixer.Deleter;
-import nlp3code.fixer.Fixer;
-import nlp3code.fixer.Integrator;
-
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,18 +14,24 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.internal.compiler.tool.EclipseCompiler;
 import org.eclipse.jface.text.IDocument;
 
-import com.github.javaparser.*;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
-import nlp3code.listeners.QueryDocListener;
-import nlp3code.recommenders.TaskRecommender;
+import nlp3code.code.Snippet;
+import nlp3code.compiler.IMCompiler;
+import nlp3code.compiler.PatchClassLoader;
+import nlp3code.fixer.Deleter;
+import nlp3code.fixer.Fixer;
+import nlp3code.fixer.Integrator;
 import nlp3code.recommenders.TypeRecommender;
 import nlp3code.tester.Tester;
 
@@ -264,6 +261,8 @@ public class Evaluator {
 		URL url = DataHandler.getURL("lib/ecj-3.18.0_fix.jar");
 		
 		//use our patch classloader that ensures we load from this file
+		//we don't care about closing this, we need to still use the class
+		@SuppressWarnings("resource")
 		ClassLoader classLoader = new PatchClassLoader(new URL[] {url});
 		
 		//try to load the compiler class
@@ -314,7 +313,7 @@ public class Evaluator {
 				fullClasspath = "";
 			}
 			else {
-				fullClasspath = projectClasspath;
+				fullClasspath = "";
 			}
 		}
 		
@@ -334,9 +333,9 @@ public class Evaluator {
 	public static void initializeParser(){
 		if(parser != null) return;
 		ReflectionTypeSolver reflection = new ReflectionTypeSolver();
-		if(DocHandler.currentProject != null) {
-			JarTypeSolver jar;
-		}
+//		if(DocHandler.currentProject != null) {
+//			JarTypeSolver jar;
+//		}
 		CombinedTypeSolver solver = new CombinedTypeSolver(reflection);
 		
 		//ReflectionTypeSolver solver = new ReflectionTypeSolver();
@@ -364,7 +363,7 @@ public class Evaluator {
 			
 			if(sub != null) sub.split(1);
 		}
-		System.out.println("Compilable test functions: " + Tester.testable);
+		//System.out.println("Compilable test functions: " + Tester.testable);
 		Tester.testable = 0;
 		
 		Collections.sort(snippets);

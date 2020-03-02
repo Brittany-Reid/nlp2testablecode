@@ -1,4 +1,4 @@
-package nlp3code.tests;
+package nlp3code.tests.unittests;
 
 import static org.junit.Assert.assertEquals;
 
@@ -19,6 +19,10 @@ public class FixerTests {
 	
 	@Test
 	public void fixSnippetTest(){
+		//avoid a NoClassDefFound error on ui objects
+		//this check ensures we don't try to access an eclipse project looking for a user's classpath
+		DocHandler.noUI = true;
+		
 		String code = "int i=0;\nint b = 0\n";
 		Snippet snippet = new Snippet(code, 0);
 		Evaluator.compiler = Evaluator.initializeCompiler(false);
@@ -34,6 +38,8 @@ public class FixerTests {
 	
 	@Test
 	public void multipleNonesTest(){
+		DocHandler.noUI = true;
+		
 		String code = "int a= ;int i=0\nint b =;\n";
 		Snippet snippet = new Snippet(code, 0);
 		Evaluator.compiler = Evaluator.initializeCompiler(false);
@@ -49,6 +55,8 @@ public class FixerTests {
 	
 	@Test
 	public void benchmark() {
+		DocHandler.noUI = true;
+		
 		Evaluator.compiler = Evaluator.initializeCompiler(false);
 		String code = "int i=0;\nint b = 0\n";
 		DocHandler.setFileName("Test.java");

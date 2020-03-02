@@ -48,16 +48,14 @@ public class Deleter {
 		
 		//configure compiler
 		if(compiler == null) initializeCompiler();
-		//disable logging
-		IMCompiler.logging = false;
 		
 		Snippet best = new Snippet(snippet);
 		Snippet current;
-		int line = startLine;
 		while(done == false) {
 			//default end condition
 			done = true;
 			
+			int line = startLine;
 			//iterate list of lines
 			for(int j=0; j<snippet.size(); j++) {
 				
@@ -110,9 +108,6 @@ public class Deleter {
 				}
 			}
 		}
-		
-		//reenable logging
-		IMCompiler.logging = true;
 		
 		return best;
 	}

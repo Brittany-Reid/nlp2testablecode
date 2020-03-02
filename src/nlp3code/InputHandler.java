@@ -41,6 +41,9 @@ import nlp3code.listeners.TypeDocListener;
 import nlp3code.recommenders.TaskRecommender;
 import nlp3code.recommenders.TypeRecommender;
 
+/**
+ * Controls button press
+ */
 public class InputHandler extends AbstractHandler{
 	private static JavaParser javaParser = null;
 	//listeners
@@ -88,6 +91,16 @@ public class InputHandler extends AbstractHandler{
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
+		if(Activator.initialized == false) {
+			//immediately set to true
+			Activator.initialized = true;
+			
+			Activator.setup();
+			
+			//then ignore this call
+			return null;
+		}
+		
 		if(Activator.loaded == false) return null;
 		
 		//get the document
@@ -132,11 +145,11 @@ public class InputHandler extends AbstractHandler{
 		editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		DocHandler.getJavaProject();
 		
-//		if(Activator.first == true) {
-//			Activator.suggestionTests();
-//			Activator.first = false;
-//		}
-//		
+		if(Activator.first == true) {
+			//Activator.deletionTests();
+			Activator.first = false;
+		}
+		
 		TypeRecommender.generated = null;
 		
 		TypeRecommender.canTest = false;

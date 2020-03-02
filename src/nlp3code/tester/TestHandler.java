@@ -31,7 +31,9 @@ import nlp3code.listeners.QueryDocListener;
 import nlp3code.recommenders.TypeRecommender;
 import nlp3code.tester.Tester;
 
-/**Pressing CTRL+ALT+D to accept a test function.*/
+/**
+ * This class handles functionality to press CTRL+ALT+D to accept a test function.
+ */
 public class TestHandler extends AbstractHandler{
 
 	@Override

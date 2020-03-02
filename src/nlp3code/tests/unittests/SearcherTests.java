@@ -1,4 +1,4 @@
-package nlp3code.tests;
+package nlp3code.tests.unittests;
 
 import static org.junit.Assert.*;
 
@@ -13,15 +13,110 @@ import nlp3code.DataHandler;
 
 public class SearcherTests {
 	//was going to use the logger set up for junit tests but it wont recognize the file :/
-	Logger logger = Activator.logger;
+	//Logger logger = Activator.logger;
 	
-	//data tests
+	/*
+	 * Feature tests.
+	 */
+
+	@Test
+	public void testProcessQuery() {
+		DataHandler.clear();
+		DataHandler.loadStopWords();
+		
+		String query;
+		String[] words;
+		
+		//case 1, a stop word
+		query = "this is a test";
+		words = Searcher.processQuery(query);
+		assertEquals(1, words.length);
+		
+		//case 2, only a stop word, empty outout
+		query = "a";
+		words = Searcher.processQuery(query);
+		assertEquals(words.length, 0);
+		
+		//case 3, empty query
+		query = "";
+		words = Searcher.processQuery(query);
+		assertEquals(words.length, 0);
+		
+		//reset database
+		DataHandler.clear();
+	}
 	
 	@Test
-	public void lemmaInt() {
-		System.out.println(DataHandler.lemmatize("integer")[0]);
-		System.out.println(DataHandler.lemmatize("int")[0]);
+	public void searchStopWord() {
+		DataHandler.limit = 10000L;
+		DataHandler.clear();
+		DataHandler.loadStopWords();
+		DataHandler.loadAnswers(null);
+		DataHandler.loadQuestions(null);
+		
+		List<Snippet> snippets = Searcher.getSnippets("a");
+		assertNull(snippets);
+		
+		//reset database
+		DataHandler.clear();
 	}
+	
+	@Test
+	public void searchTest() {
+		DataHandler.limit = 10000L;
+		DataHandler.clear();
+		DataHandler.loadStopWords();
+		DataHandler.loadAnswers(null);
+		DataHandler.loadQuestions(null);
+		
+		List<Snippet> snippets = Searcher.getSnippets("integer");
+		assertNotNull(snippets);
+		
+		//reset database
+		DataHandler.clear();
+	}
+	
+	@Test
+	public void multiwordSearchTest() {
+		DataHandler.limit = 10000L;
+		DataHandler.clear();
+		DataHandler.loadStopWords();
+		DataHandler.loadAnswers(null);
+		DataHandler.loadQuestions(null);
+		
+		List<Snippet> snippets = Searcher.getSnippets("integer string");
+		assertNotNull(snippets);
+		
+		//reset database
+		DataHandler.clear();
+	}
+	
+	@Test
+	public void taskSearch() {
+		DataHandler.limit = 10000L;
+		DataHandler.clear();
+		DataHandler.loadTasks(null);
+		DataHandler.loadStopWords();
+		DataHandler.loadAnswers(null);
+		DataHandler.loadQuestions(null);
+		
+		List<Snippet> snippets = Searcher.getSnippets("switch statement");
+		assertNotNull(snippets);
+		
+		//reset database
+		DataHandler.clear();
+	}
+	
+	/*
+	 * Data Gathering tests. Commented out because these take a long time to run.
+	 */
+	
+//	//integer and int are not correctly lemmatized by corenlp
+//	@Test
+//	public void lemmaInt() {
+//		System.out.println(DataHandler.lemmatize("integer")[0]);
+//		System.out.println(DataHandler.lemmatize("int")[0]);
+//	}
 	
 //	@Test
 //	public void searchResultsNoProcessingNoStops() {
@@ -161,81 +256,5 @@ public class SearcherTests {
 //		DataHandler.processing = DataHandler.STEM;
 //		System.out.print("TOTAL: " + total+"\n");
 //	}
-	
-	
-	//feature tests
-
-	@Test
-	public void testProcessQuery() {
-		DataHandler.clear();
-		DataHandler.loadStopWords();
-		
-		String query;
-		String[] words;
-		
-		//case 1, a stop word
-		query = "this is a test";
-		words = Searcher.processQuery(query);
-		assertEquals(1, words.length);
-		
-		//case 2, only a stop word, empty outout
-		query = "a";
-		words = Searcher.processQuery(query);
-		assertEquals(words.length, 0);
-		
-		//case 3, empty query
-		query = "";
-		words = Searcher.processQuery(query);
-		assertEquals(words.length, 0);
-	}
-	
-	@Test
-	public void searchStopWord() {
-		DataHandler.limit = 10000L;
-		DataHandler.clear();
-		DataHandler.loadStopWords();
-		DataHandler.loadAnswers(null);
-		DataHandler.loadQuestions(null);
-		
-		List<Snippet> snippets = Searcher.getSnippets("a");
-		assertNull(snippets);
-	}
-	
-	@Test
-	public void searchTest() {
-		DataHandler.limit = 10000L;
-		DataHandler.clear();
-		DataHandler.loadStopWords();
-		DataHandler.loadAnswers(null);
-		DataHandler.loadQuestions(null);
-		
-		List<Snippet> snippets = Searcher.getSnippets("integer");
-		assertNotNull(snippets);
-	}
-	
-	@Test
-	public void multiwordSearchTest() {
-		DataHandler.limit = 10000L;
-		DataHandler.clear();
-		DataHandler.loadStopWords();
-		DataHandler.loadAnswers(null);
-		DataHandler.loadQuestions(null);
-		
-		List<Snippet> snippets = Searcher.getSnippets("integer string");
-		assertNotNull(snippets);
-	}
-	
-	@Test
-	public void taskSearch() {
-		DataHandler.limit = 10000L;
-		DataHandler.clear();
-		DataHandler.loadTasks(null);
-		DataHandler.loadStopWords();
-		DataHandler.loadAnswers(null);
-		DataHandler.loadQuestions(null);
-		
-		List<Snippet> snippets = Searcher.getSnippets("switch statement");
-		assertNotNull(snippets);
-	}
 
 }

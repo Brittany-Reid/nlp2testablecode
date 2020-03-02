@@ -32,7 +32,7 @@ import nlp3code.Evaluator;
 import nlp3code.InputHandler;
 import nlp3code.code.Snippet;
 import nlp3code.fixer.UnresolvedElementFixes;
-import nlp3code.tests.SnippetTests;
+import nlp3code.tests.unittests.SnippetTests;
 
 /**
  * This class generates type recommendations for the content assist menu.
@@ -96,6 +96,12 @@ public class TypeSuggestions {
 		int key = Activator.random.nextInt(1000000);
 		String flag = "NLP3Code_comment " + key;
 		
+		//null saved inputHandler values
+		if(InputHandler.before == null || InputHandler.after == null) {
+			System.err.println("Error: Missing surrounding code for type suggestions. (You may have forgotten to manually set them if testing!)");
+			return null;
+		}
+		
 		String before = InputHandler.before +"\n" + "//" + flag + "\n{\n";
 		String after = "}" + InputHandler.after;
 		
@@ -105,6 +111,7 @@ public class TypeSuggestions {
 			return null;
 		}
 		CompilationUnit cu = (CompilationUnit) result.getResult().get();
+		
 		
 		//get list of comments
 		for(Comment c : cu.getComments()) {

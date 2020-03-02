@@ -34,14 +34,18 @@ public class Searcher {
 			if(retrieved == null) return null;
 			//add to map
 			for(Snippet s : retrieved) {
-				retrievedSet.add(s);
+				//work with copy of snippets
+				Snippet copy = new Snippet(s);
+				retrievedSet.add(copy);
 			}
 		}
 		
 		retrieved = searchSnippets(query);
 		if(retrieved == null) return null;
 		for(Snippet s : retrieved) {
-			retrievedSet.add(s);
+			//work with copy of snippets
+			Snippet copy = new Snippet(s);
+			retrievedSet.add(copy);
 		}
 		
 		//add the set to snippets

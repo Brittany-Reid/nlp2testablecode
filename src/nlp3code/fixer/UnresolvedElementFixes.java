@@ -1,5 +1,9 @@
 package nlp3code.fixer;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -780,5 +784,49 @@ public class UnresolvedElementFixes {
 		}
 		
 		return contains;
+	}
+	
+	/**
+	 * For testing purposes, load in a default class cache from JRE.
+	 */
+	public static void defaultClassCache() {
+		 String javaHome = System.getProperty("java.home");
+	     File file = new File(javaHome + File.separator + "lib");
+	     if (file.exists()) {
+	         if (file.isDirectory()) {
+	             for (File child : file.listFiles()) {
+	            	 if(child.getName().equals("classlist")) {
+	            		 try {
+	            			
+            				BufferedReader reader = new BufferedReader(new FileReader(child));
+            				
+            				String line;
+            				while((line = reader.readLine()) != null) {
+            					
+            					int start = line.trim().lastIndexOf('/');
+            					String name = line.trim().substring(start+1, line.trim().length());
+            					String pkg = line.trim().replace('/', '.');
+            					
+            					//if the cache doesnt already contain this type
+								if(!classCache.containsKey(name)) {
+									List<String> typePackages = new ArrayList<>();
+									typePackages.add(pkg);
+									classCache.put(name, typePackages);
+								}
+								else {
+									List<String> typePackages = classCache.get(name);
+									typePackages.add(pkg);
+									classCache.put(name, typePackages);
+								}
+            				}
+            				
+            				reader.close();
+            			} catch (IOException e) {
+            				e.printStackTrace();
+            			}
+	            	 }
+	             }
+	         }
+	     }
 	}
 }

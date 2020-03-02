@@ -34,15 +34,16 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import nlp3code.code.Fragment;
 import nlp3code.code.Snippet;
 import nlp3code.cycler.CycleAnswersHandler;
-import nlp3code.listeners.QueryDocListener;
 import nlp3code.visitors.ImportDeclarationVisitor;
 import nlp3code.visitors.MethodVisitor;
 import nlp3code.visitors.PackageDeclarationVisitor;
 
 /**
- * The DocHandler class includes functionality for modifying IDocuments.
+ * The DocHandler class includes functionality for modifying IDocuments and handling other workspace interactions.
  */
 public class DocHandler {
+	//when using junit we have no ui
+	public static boolean noUI = false;
 	//the current documents abstract syntax tree
 	public static CompilationUnit documentAST = null;
 	//the current project
@@ -89,7 +90,6 @@ public class DocHandler {
 					try {
 						importStart = getImportOffset(document.get(0, offset) + document.get(offset + length, document.getLength()-(offset+length)));
 					} catch (BadLocationException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					
@@ -219,7 +219,7 @@ public class DocHandler {
 			//if selection is text
 			if (selection instanceof ITextSelection) {
 		        ITextSelection textSelection = (ITextSelection)selection;
-		        int num = textSelection.getStartLine();
+		        //int num = textSelection.getStartLine();
 		        offset = textSelection.getOffset();
 			}
 			else {
@@ -254,7 +254,7 @@ public class DocHandler {
 			//if selection is text
 			if (selection instanceof ITextSelection) {
 		        ITextSelection textSelection = (ITextSelection)selection;
-		        int num = textSelection.getStartLine();
+		        //int num = textSelection.getStartLine();
 		        int offset = textSelection.getOffset();
 		        IDocument document = getDocument();
 		        if(document == null) return line;
@@ -472,7 +472,7 @@ public class DocHandler {
 		if(activeEditor instanceof ITextEditor) {
 			//convert
 			ITextEditor textEditor = (ITextEditor)activeEditor;
-			fileName = textEditor.getTitle();
+			fileName = textEditor.getTitle().replace(".java", "");
 		}
 		return fileName;
 	}
@@ -482,6 +482,9 @@ public class DocHandler {
 	}
 	
 	public static IJavaProject getJavaProject() {
+		//if using juint, there is no project
+		if(noUI == true) return null;
+		
 		if(currentProject != null) return currentProject;
 		IEditorPart editor = getEditor();
 		if(editor == null) return null;
@@ -499,6 +502,9 @@ public class DocHandler {
 	 */
 	public static String getClassPath() {
 		
+		//if using juint, there is no project classpath
+		if(noUI == true) return null;
+		
 		IJavaProject project = getJavaProject();
 		if(project == null) {
 			System.out.println("Could not get Java Project.");
@@ -508,7 +514,6 @@ public class DocHandler {
 		try {
 			classPathEntries = project.getRawClasspath();
 		} catch (JavaModelException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -540,7 +545,6 @@ public class DocHandler {
 		try {
 			result = document.get(offset, length);
 		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return result;
@@ -564,7 +568,7 @@ public class DocHandler {
 		ASTParser parser = ASTParser.newParser(Activator.level);
 		parser.setSource(document.get().toCharArray());
 		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-        AST ast = cu.getAST();
+        //AST ast = cu.getAST();
         
         //get list of methods
         MethodVisitor mv = new MethodVisitor();
