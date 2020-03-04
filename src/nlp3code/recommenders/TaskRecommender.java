@@ -47,7 +47,7 @@ public class TaskRecommender implements  IJavaCompletionProposalComputer {
 		}
 		
 		//if we haven't finished loading yet
-		if(Activator.loaded == false) return proposals;
+		if(DataHandler.loaded == false) return proposals;
 		
 		String line = extractQuery(queryChar);
 		if(line ==  null) return proposals;

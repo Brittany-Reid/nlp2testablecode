@@ -284,6 +284,7 @@ public class Evaluator {
 	
 	/**
 	 * Initialize the compiler.
+	 * @param testing If we want to add JUnit to the compile path.
 	 */
 	public static IMCompiler initializeCompiler(boolean testing) {
 		

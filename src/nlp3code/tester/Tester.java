@@ -464,7 +464,7 @@ public class Tester {
 	}
 	
 	/**Returns String classpath for testing: this is the classpath we use for our cache*/
-	static String getClassPath() {
+	public static String getClassPath() {
 		//get classpath from iproject: exceptionininitializererror for javacore.create
 		//side effect of loading an external jar for jdt.core?
 		//update: yes it was, its fixed now
@@ -477,10 +477,15 @@ public class Tester {
 		
 		//get out original editor
 		IEditorPart epart = InputHandler.editor;
-			//use to get classpath from file
-			IFile file = ((IFileEditorInput)epart.getEditorInput()).getFile();
-			File actualFile = file.getLocation().toFile();
-			classPath = actualFile.getParentFile().getAbsoluteFile().getAbsolutePath();
+		if(epart == null) {
+			System.err.println("Error: No editor was saved in memory.");
+			throw new NullPointerException();
+		}
+		
+		//use to get classpath from file
+		IFile file = ((IFileEditorInput)epart.getEditorInput()).getFile();
+		File actualFile = file.getLocation().toFile();
+		classPath = actualFile.getParentFile().getAbsoluteFile().getAbsolutePath();
 		
 		//add junit
 		String junitPath = Evaluator.getJUnitClassPath();

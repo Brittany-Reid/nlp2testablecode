@@ -273,6 +273,10 @@ public class Snippet implements Comparable<Snippet>{
 		return LOC;
 	}
 	
+	public int getID() {
+		return ID;
+	}
+	
 	public int getNumFragments() {
 		return code.size();
 	}

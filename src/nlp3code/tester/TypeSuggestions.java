@@ -32,7 +32,6 @@ import nlp3code.Evaluator;
 import nlp3code.InputHandler;
 import nlp3code.code.Snippet;
 import nlp3code.fixer.UnresolvedElementFixes;
-import nlp3code.tests.unittests.SnippetTests;
 
 /**
  * This class generates type recommendations for the content assist menu.

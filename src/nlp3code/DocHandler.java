@@ -42,8 +42,6 @@ import nlp3code.visitors.PackageDeclarationVisitor;
  * The DocHandler class includes functionality for modifying IDocuments and handling other workspace interactions.
  */
 public class DocHandler {
-	//when using junit we have no ui
-	public static boolean noUI = false;
 	//the current documents abstract syntax tree
 	public static CompilationUnit documentAST = null;
 	//the current project
@@ -482,9 +480,6 @@ public class DocHandler {
 	}
 	
 	public static IJavaProject getJavaProject() {
-		//if using juint, there is no project
-		if(noUI == true) return null;
-		
 		if(currentProject != null) return currentProject;
 		IEditorPart editor = getEditor();
 		if(editor == null) return null;
@@ -501,9 +496,6 @@ public class DocHandler {
 	 * @return
 	 */
 	public static String getClassPath() {
-		
-		//if using juint, there is no project classpath
-		if(noUI == true) return null;
 		
 		IJavaProject project = getJavaProject();
 		if(project == null) {

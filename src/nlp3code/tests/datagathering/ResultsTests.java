@@ -1,6 +1,7 @@
 package nlp3code.tests.datagathering;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,11 +47,11 @@ public class ResultsTests {
 	
 	//setup for all tests
 	@BeforeClass
-	public static void setup() {
+	public static void setup() throws Exception{
 		//reset db
 		DataHandler.clear();
 		
-		DataHandler.limit = 10000L; //reduce db size
+		//DataHandler.limit = 10000L; //reduce db size
 		Evaluator.compiler = Evaluator.initializeCompiler(false);
 		DocHandler.setFileName("Main.java");
 		InputHandler.insertionContext = InputHandler.MAIN;
@@ -60,9 +61,13 @@ public class ResultsTests {
 		
 		//load database
 		DataHandler.loadStopWords();
+		System.out.println("a");
 		DataHandler.loadTasks(null);
+		System.out.println("b");
 		DataHandler.loadQuestions(null);
+		System.out.println("c");
 		DataHandler.loadAnswers(null);
+		System.out.println("d");
 	}
 	
 	//after each test reset evaluator settings
@@ -255,7 +260,7 @@ public class ResultsTests {
 	 * How many snippets compile after the best performing line deletion algorithm is applied. 
 	 * This is the final number of compilable snippets.
 	 */
-	//@Test
+	@Test
 	public void testFinalDeletion(){
 		int compiling = 0;
 		int errors = 0;

@@ -101,7 +101,7 @@ public class InputHandler extends AbstractHandler{
 			return null;
 		}
 		
-		if(Activator.loaded == false) return null;
+		if(DataHandler.loaded == false) return null;
 		
 		//get the document
 		IDocument document = DocHandler.getDocument();

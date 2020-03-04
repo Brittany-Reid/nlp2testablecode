@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<launchConfiguration type="org.eclipse.jdt.junit.launchconfig">
+<launchConfiguration type="org.eclipse.pde.ui.JunitLaunchConfig">
+    <booleanAttribute key="append.args" value="true"/>
+    <booleanAttribute key="askclear" value="false"/>
+    <booleanAttribute key="automaticAdd" value="true"/>
+    <booleanAttribute key="automaticValidate" value="true"/>
+    <stringAttribute key="bootstrap" value=""/>
+    <stringAttribute key="checked" value="[NONE]"/>
+    <booleanAttribute key="clearConfig" value="true"/>
+    <booleanAttribute key="clearws" value="false"/>
+    <booleanAttribute key="clearwslog" value="false"/>
+    <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/pde-junit"/>
+    <booleanAttribute key="default" value="true"/>
+    <booleanAttribute key="includeOptional" value="true"/>
+    <stringAttribute key="location" value="${workspace_loc}/../junit-plugin-workspace"/>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-        <listEntry value="/nlp3code/src/nlp3code/tests/unittests/EvaluatorTests.java"/>
+        <listEntry value="/nlp3code/src/nlp3code/tests/unittests2/EvaluatorTests.java"/>
     </listAttribute>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="1"/>
@@ -10,48 +23,21 @@
     <booleanAttribute key="org.eclipse.jdt.junit.KEEPRUNNING_ATTR" value="false"/>
     <stringAttribute key="org.eclipse.jdt.junit.TESTNAME" value=""/>
     <stringAttribute key="org.eclipse.jdt.junit.TEST_KIND" value="org.eclipse.jdt.junit.loader.junit4"/>
-    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
-    <listAttribute key="org.eclipse.jdt.launching.CLASSPATH">
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/ecj-3.18.0_fix.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/org.eclipse.jdt.core-3.18.0.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/ejml-0.23.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/javax.activation-api-1.2.0-sources.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/javax.activation-api-1.2.0.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/javax.json-api-1.0-sources.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/javax.json.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/jaxb-api-2.4.0-b180830.0359-sources.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/jaxb-api-2.4.0-b180830.0359.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/jaxb-core-2.3.0.1-sources.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/jaxb-core-2.3.0.1.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/jaxb-impl-2.4.0-b180830.0438-sources.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/jaxb-impl-2.4.0-b180830.0438.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/joda-time-2.9-sources.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/joda-time.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/jollyday-0.4.9-sources.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/jollyday.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/protobuf.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/slf4j-api.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/slf4j-simple.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-javadoc.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-models.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-sources.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/xom-1.2.10-src.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/stanford-corenlp-full-2018-10-05/xom.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/log4j-api-2.11.2.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/log4j-core-2.11.2.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/javaparser-core-3.14.8.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/javaparser-symbol-solver-core-3.14.10.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/javaparser-symbol-solver-logic-3.14.10.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/javaparser-symbol-solver-model-3.14.10.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/nlp3code/lib/jsoup-1.12.1.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry containerPath=&quot;org.eclipse.pde.core.requiredPlugins&quot; javaProject=&quot;nlp3code&quot; path=&quot;5&quot; type=&quot;4&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry path=&quot;5&quot; projectName=&quot;nlp3code&quot; type=&quot;1&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry containerPath=&quot;org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11&quot; path=&quot;5&quot; type=&quot;4&quot;/&gt;&#13;&#10;"/>
-    </listAttribute>
-    <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
-    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="nlp3code.tests.unittests.EvaluatorTests"/>
-    <listAttribute key="org.eclipse.jdt.launching.MODULEPATH"/>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+    <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="nlp3code.tests.unittests2.EvaluatorTests"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl} -consoleLog"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="nlp3code"/>
+    <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
     <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-ea"/>
+    <stringAttribute key="pde.version" value="3.3"/>
+    <stringAttribute key="product" value="org.eclipse.platform.ide"/>
+    <booleanAttribute key="run_in_ui_thread" value="true"/>
+    <booleanAttribute key="show_selected_only" value="false"/>
+    <stringAttribute key="templateConfig" value="${target_home}\configuration\config.ini"/>
+    <booleanAttribute key="tracing" value="false"/>
+    <booleanAttribute key="useCustomFeatures" value="false"/>
+    <booleanAttribute key="useDefaultConfig" value="true"/>
+    <booleanAttribute key="useDefaultConfigArea" value="false"/>
+    <booleanAttribute key="useProduct" value="true"/>
 </launchConfiguration>

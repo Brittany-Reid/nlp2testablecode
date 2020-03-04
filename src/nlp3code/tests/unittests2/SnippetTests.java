@@ -1,28 +1,22 @@
-package nlp3code.tests.unittests;
+package nlp3code.tests.unittests2;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import nlp3code.DocHandler;
 import nlp3code.code.Snippet;
 
-/**
- * Test snippet creation and modification.
- * Use of the Eclipse parser fails without jdt.core jar
- * The error is likely a version difference due to the ecj patch but I don't know why
- * it persists even if the bundle version is the same.
- * Make sure the JUnit classpath has plug-in dependencies before jdt.core but after ecj
- */
 public class SnippetTests {
 	String before = "class Main{\npublic static void main(String args[]) {\n";
 	String after = "}\n}\n";
 	int offset = before.length();
 	String surrounding = before + after;
-	
+
 	@Test
 	public void statement() {
 		String code = "int i=0;\n";
@@ -161,4 +155,5 @@ public class SnippetTests {
 		snippet.setCode("int c = 0;\n");
 		assertNotEquals(code, snippet.getCode());
 	}
+
 }

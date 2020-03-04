@@ -37,8 +37,6 @@ public class Activator extends AbstractUIPlugin {
 	public static String version = "11";
 	//initialized database?
 	public static boolean initialized = false;
-	//setup complete?
-	public static boolean loaded = false;
 	//our random number generator
 	public static Random random;
 	public static int level = AST.JLS11;
@@ -58,14 +56,17 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public static void setup() {
 		//setup listeners 
-		setupListeners();
+		int e = setupListeners();
+		
+		//any non 0 return value, failed
+		if(e != 0) return;
 		
 		//load data job
 		Job loadData = new Job("Loading Data") {
 	        @Override
 	        protected IStatus run(IProgressMonitor monitor) {
 	        	monitor.beginTask("Loading Data", 100);
-	        	loadData(monitor);
+	        	DataHandler.loadData(monitor);
 	        	initialized = true;
 	            return Status.OK_STATUS;
 	        }
@@ -79,40 +80,22 @@ public class Activator extends AbstractUIPlugin {
 	
 	/**
 	 * Sets up document listeners for written queries and any changes to project classpath.
+	 * @return 0 on success, 1 if no document open to add listeners
 	 */
-	private static void setupListeners() {
+	private static int setupListeners() {
 		//get open document
 		IDocument document = DocHandler.getDocument();
+		
+		//no document open?
+		if(document == null) return 1;
+		
+		//add listeners
 		InputHandler.documents.add(document);
 		document.addDocumentListener(InputHandler.queryDocListener);
 		JavaCore.addElementChangedListener(new PackagesListener(), ElementChangedEvent.POST_CHANGE );
+		return 0;
 	}
 	
-	/**
-	 * Loads data base and task recommendations.
-	 */
-	private static void loadData(IProgressMonitor monitor) {
-		//get submonitor
-		SubMonitor sub = SubMonitor.convert(monitor, 100);
-		
-		//load stop words
-		sub.split(5);
-		DataHandler.loadStopWords();
-		
-		//load questions
-		DataHandler.loadQuestions(sub.split(40));
-		monitor.worked(1);
-		
-		//load answers
-		DataHandler.loadAnswers(sub.split(50));
-		
-		//load tasks
-		sub.split(5);
-		DataHandler.loadTasks(null);
-		
-		//set loaded state
-    	loaded = true;
-	}
 
 	@Override
 	public void start(BundleContext context) throws Exception {
