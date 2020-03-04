@@ -158,7 +158,7 @@ public class DocHandler {
 	 * Returns the active editor, otherwise null.
 	 */
 	public static IEditorPart getEditor() {
-		if(currentEditor != null) return currentEditor;
+		//if(currentEditor != null) return currentEditor; //shouldnt cache this so we can keep active up to date
 		//get editor from workbench
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		if(workbench == null) return null;
@@ -498,7 +498,7 @@ public class DocHandler {
 	public static String getClassPath() {
 		
 		IJavaProject project = getJavaProject();
-		if(project == null) {
+		if(project == null || !project.exists()) {
 			System.out.println("Could not get Java Project.");
 			return null;
 		}

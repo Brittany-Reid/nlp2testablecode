@@ -1,4 +1,4 @@
-package nlp3code.tests.unittests2;
+package nlp3code.tests.unittests;
 
 import static org.junit.Assert.assertTrue;
 

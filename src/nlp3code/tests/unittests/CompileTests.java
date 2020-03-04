@@ -1,8 +1,6 @@
-package nlp3code.tests.unittests2;
+package nlp3code.tests.unittests;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -16,24 +14,23 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
-import nlp3code.Activator;
-import nlp3code.DataHandler;
+import nlp3code.Evaluator;
+import nlp3code.compiler.IMCompiler;
 
-public class ActivatorTest {
+/**
+ * Due to ecj mess, ensure the JUnit classpath loads jdt.core and ecj before plug-in dependencies.
+ */
+public class CompileTests {
+	//define default surrounding code
 	String before = "class Main{\npublic static void main(String args[]) {\n";
 	String after = "}\n}\n";
+	IProject project = null;
 	
 	/**
 	 * Create a clean dummy project for testing before each test.
@@ -42,7 +39,7 @@ public class ActivatorTest {
 	public void setUp() throws Exception {
 	
 		//create project
-		IProject project = null;
+		project = null;
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		project = workspace.getRoot().getProject("Test");
 		
@@ -91,8 +88,6 @@ public class ActivatorTest {
 		
 		IDE.openEditor(page, file, true);
 		
-		Thread.sleep(1000);
-		
 	}
 	
 	/**
@@ -101,7 +96,7 @@ public class ActivatorTest {
 	 */
 	@After
 	public void tearDown() throws Exception {
-		IProject project = null;
+		project = null;
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		project = workspace.getRoot().getProject("Test");
 		
@@ -111,47 +106,67 @@ public class ActivatorTest {
 		}
 	}
 	
+	@Test
+	public void testCompilerPatch() {
+		Evaluator.compiler = Evaluator.initializeCompiler(false);
+		IMCompiler compiler = Evaluator.compiler;
+		compiler.clearSaved();
+		compiler.addSource("Main", "class Main{\nint i = 0;\n}\n");
+		compiler.compileAll();
+		int errors = compiler.getErrors();
+		assertEquals(0, errors);
+	}
+	
+	@Test
+	public void testCompilerErrors(){
+		Evaluator.compiler = Evaluator.initializeCompiler(false);
+		IMCompiler compiler = Evaluator.compiler;
+		compiler.clearSaved();
+		compiler.addSource("Main", "class Main{\nint i = 0\n}\n");
+		compiler.compileAll();
+		int errors = compiler.getErrors();
+		assertEquals(1, errors);
+	}
 	
 	/**
-	 * Test the setup function.
+	 * Test that we can add JUnit to the compiler correctly.
 	 */
 	@Test
-	public void testSetup() {
+	public void testJUnit() {
+		String classpath = Evaluator.getJUnitClassPath();
+		Evaluator.compiler = Evaluator.initializeCompiler(false);
+		IMCompiler compiler = Evaluator.compiler;
 		
-		//successful load
-		DataHandler.limit = 0L;
-		Activator.setup();
-		
-		//sleep for a second to wait
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		String original = compiler.getClasspath();
+		if(!original.trim().isEmpty()) {
+			classpath = original + ";" + classpath;
 		}
+		compiler.setClasspath(classpath);
 		
-		assertTrue(DataHandler.loaded);
 		
-		//no document open
-		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		IWorkbenchPage page = workbenchWindow.getActivePage();
-		IEditorReference[] editorRefs = page.getEditorReferences();
-		IEditorPart editor = editorRefs[0].getEditor(true);
-		page.closeEditor(editor, true);
+		compiler.clearSaved();
+		String code = "import static org.junit.Assert.*;\nimport org.junit.Test;\npublic class Tests{\n@Test\npublic void test() {\n}\n}\n";
+		compiler.addSource("Tests", code);
+		compiler.compileAll();
+		int errors = compiler.getErrors();
+		assertEquals(0, errors);
 		
-		DataHandler.clear();
-		
-		Activator.setup();
-		
-		assertFalse(DataHandler.loaded);
-		
+		compiler.setClasspath(original);
 	}
-	/**
-	 * Test that the get default function returns the plugin.
-	 */
-	@Test
-	public void getPlugin() {
-		AbstractUIPlugin plugin = Activator.getDefault();
-		assertNotNull(plugin);
-	}
-
+	
+//	/**
+//	 * Test that we can add plugin packages to the compiler correctly.
+//	 */
+//	@Test
+//	public void testSystemClasses() {
+//		Evaluator.compiler = Evaluator.initializeCompiler(false);
+//		IMCompiler compiler = Evaluator.compiler;
+//		compiler.clearSaved();
+//		String code = "package nlp3code;\nimport nlp3code.code.Snippet;\nclass Main{\n public void test() {\nSnippet snippet;\n}\n}\n";
+//		compiler.addSource("Main", code);
+//		compiler.compileAll();
+//		int errors = compiler.getErrors();
+//		assertEquals(0, errors);
+//	}
+	
 }

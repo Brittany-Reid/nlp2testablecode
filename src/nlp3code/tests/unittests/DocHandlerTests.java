@@ -1,4 +1,4 @@
-package nlp3code.tests.unittests2;
+package nlp3code.tests.unittests;
 
 import static org.junit.Assert.*;
 
@@ -14,23 +14,20 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-import nlp3code.Evaluator;
-import nlp3code.compiler.IMCompiler;
+import nlp3code.DocHandler;
 
-/**
- * Due to ecj mess, ensure the JUnit classpath loads jdt.core and ecj before plug-in dependencies.
- */
-public class CompileTests {
-	//define default surrounding code
+public class DocHandlerTests {
 	String before = "class Main{\npublic static void main(String args[]) {\n";
 	String after = "}\n}\n";
-	IProject project = null;
 	
 	/**
 	 * Create a clean dummy project for testing before each test.
@@ -39,7 +36,7 @@ public class CompileTests {
 	public void setUp() throws Exception {
 	
 		//create project
-		project = null;
+		IProject project = null;
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		project = workspace.getRoot().getProject("Test");
 		
@@ -96,7 +93,7 @@ public class CompileTests {
 	 */
 	@After
 	public void tearDown() throws Exception {
-		project = null;
+		IProject project = null;
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		project = workspace.getRoot().getProject("Test");
 		
@@ -106,67 +103,22 @@ public class CompileTests {
 		}
 	}
 	
-	@Test
-	public void testCompilerPatch() {
-		Evaluator.compiler = Evaluator.initializeCompiler(false);
-		IMCompiler compiler = Evaluator.compiler;
-		compiler.clearSaved();
-		compiler.addSource("Main", "class Main{\nint i = 0;\n}\n");
-		compiler.compileAll();
-		int errors = compiler.getErrors();
-		assertEquals(0, errors);
-	}
 	
+	/**
+	 * Can we get an open document?
+	 */
 	@Test
-	public void testCompilerErrors(){
-		Evaluator.compiler = Evaluator.initializeCompiler(false);
-		IMCompiler compiler = Evaluator.compiler;
-		compiler.clearSaved();
-		compiler.addSource("Main", "class Main{\nint i = 0\n}\n");
-		compiler.compileAll();
-		int errors = compiler.getErrors();
-		assertEquals(1, errors);
+	public void getOpenDocument() {
+		IDocument document = DocHandler.getDocument();
+		assertNotNull(document);
 	}
 	
 	/**
-	 * Test that we can add JUnit to the compiler correctly.
+	 * Initialize the parser.
 	 */
 	@Test
-	public void testJUnit() {
-		String classpath = Evaluator.getJUnitClassPath();
-		Evaluator.compiler = Evaluator.initializeCompiler(false);
-		IMCompiler compiler = Evaluator.compiler;
-		
-		String original = compiler.getClasspath();
-		if(!original.trim().isEmpty()) {
-			classpath = original + ";" + classpath;
-		}
-		compiler.setClasspath(classpath);
-		
-		
-		compiler.clearSaved();
-		String code = "import static org.junit.Assert.*;\nimport org.junit.Test;\npublic class Tests{\n@Test\npublic void test() {\n}\n}\n";
-		compiler.addSource("Tests", code);
-		compiler.compileAll();
-		int errors = compiler.getErrors();
-		assertEquals(0, errors);
-		
-		compiler.setClasspath(original);
+	public void initParser() {
+		DocHandler.initializeEclipseParser();
 	}
-	
-//	/**
-//	 * Test that we can add plugin packages to the compiler correctly.
-//	 */
-//	@Test
-//	public void testSystemClasses() {
-//		Evaluator.compiler = Evaluator.initializeCompiler(false);
-//		IMCompiler compiler = Evaluator.compiler;
-//		compiler.clearSaved();
-//		String code = "package nlp3code;\nimport nlp3code.code.Snippet;\nclass Main{\n public void test() {\nSnippet snippet;\n}\n}\n";
-//		compiler.addSource("Main", code);
-//		compiler.compileAll();
-//		int errors = compiler.getErrors();
-//		assertEquals(0, errors);
-//	}
-	
+
 }

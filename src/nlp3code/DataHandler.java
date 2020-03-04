@@ -421,15 +421,6 @@ public class DataHandler {
 			result = new URL("platform:/plugin/nlp3code/" + url);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
-			
-			//shouldn't need this:
-			
-			//this will fail in junit, so as a back up
-//			try {
-//				return new File(url).toURI().toURL();
-//			} catch (MalformedURLException e1) {
-//				e1.printStackTrace();
-//			}
 		}
 		
 		return result;
