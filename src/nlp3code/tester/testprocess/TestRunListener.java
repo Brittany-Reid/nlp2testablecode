@@ -1,4 +1,4 @@
-package nlp3code.tester;
+package nlp3code.tester.testprocess;
 
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;

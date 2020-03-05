@@ -15,7 +15,7 @@ import nlp3code.compiler.IMCompiledCode;
 
 public class ProcessClassLoader extends URLClassLoader {
     URL[] providedClassPath;
-    private static final String BRIDGE_CLASS_NAME = nlp3code.tester.JUnitBridge.class.getName();
+    private static final String BRIDGE_CLASS_NAME = nlp3code.tester.testprocess.JUnitBridge.class.getName();
 	protected Map<String, IMCompiledCode> classes = new HashMap<>();
 	/**
 	  * Constructor, taking an array of URL classPaths.

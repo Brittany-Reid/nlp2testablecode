@@ -12,7 +12,7 @@ import nlp3code.code.Snippet;
 import nlp3code.tester.TypeHandler;
 
 /**
- * Tests the source code tester.
+ * Tests the code snippet tester.
  * Run this as a plug-in test with an open workspace, project and file:
  * https://stackoverflow.com/questions/27088926/run-eclipse-plug-in-test-with-included-workspace-projects
  */
@@ -23,7 +23,7 @@ public class TesterTests {
 	/**
 	 * A basic case, convert string to int.
 	 */
-	//@Test
+	@Test
 	public void stringToIntTest() {
 		String code = "String s = \"1\";\nint i = Integer.parseInt(s);\n";
 		Snippet snippet = new Snippet(code, 0);
@@ -37,6 +37,6 @@ public class TesterTests {
 		List<Snippet> snippets = new ArrayList<Snippet>();
 		snippets.add(snippet);
 		
-		Evaluator.testSnippets(null, snippets, before, after, test, null);
+		//Evaluator.testSnippets(null, snippets, before, after, test, null);
 	}
 }

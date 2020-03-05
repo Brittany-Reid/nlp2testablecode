@@ -44,6 +44,7 @@ public class Activator extends AbstractUIPlugin {
 	 * Constructor.
 	 */
 	public Activator() {
+		//DataHandler.limit = 100000L;
 		//initialize random generator
 		random = new Random();
 	}

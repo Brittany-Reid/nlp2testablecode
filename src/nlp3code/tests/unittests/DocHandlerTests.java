@@ -15,6 +15,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -111,6 +112,14 @@ public class DocHandlerTests {
 	public void getOpenDocument() {
 		IDocument document = DocHandler.getDocument();
 		assertNotNull(document);
+	}
+	
+	/**
+	 * Test adding function.
+	 */
+	@Test
+	public void testAddFunction() throws Exception{
+		DocHandler.addFunction("public void a() {\n}\n");
 	}
 	
 	/**

@@ -2,6 +2,7 @@ package nlp3code;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -462,16 +463,24 @@ public class DocHandler {
 	 * @return
 	 */
 	public static String getFileName() {
+		//cached filename
 		if(fileName != null) return fileName;
 		
+		//otherwise get editor
 		IEditorPart activeEditor = getEditor();
-		if(activeEditor == null) return fileName;
+		
+		//if we can't get editor use cached
+		if(activeEditor == null) {
+			activeEditor = currentEditor;
+		}
+		
 		//must be a text editor
 		if(activeEditor instanceof ITextEditor) {
 			//convert
 			ITextEditor textEditor = (ITextEditor)activeEditor;
 			fileName = textEditor.getTitle().replace(".java", "");
 		}
+		
 		return fileName;
 	}
 	
@@ -549,6 +558,11 @@ public class DocHandler {
 		eclipseParser = ASTParser.newParser(AST.JLS11);
 	}
 
+	/**
+	 * Adds function to open document.
+	 * @param Function as String to add.
+	 * @return 0 on success, non-zero value on failure.
+	 */
 	public static int addFunction(String function) {
 		//get the document
 		IDocument document = getDocument();
@@ -574,8 +588,10 @@ public class DocHandler {
         MethodDeclaration last = methodNodes.get(methodNodes.size()-1);
         int pos = last.getStartPosition() + last.getLength();
         
+        function = indent(function, 1);
+        
         //use async replace
-		replace(function, pos, 0);
+		replace("\n\n" + function, pos, 0);
 				
 		return 0;
 		
@@ -625,5 +641,18 @@ public class DocHandler {
         surrounding[1] = after;
         
         return surrounding;
+	}
+	
+	public static String indent(String code, int offset) {
+		String indented = "";
+		String[] array = code.split("\n");
+		for(String line : array) {
+			for(int i=0; i<offset; i++) {
+				indented += "\t";
+			}
+			indented += line + "\n";
+		}
+		
+		return indented;
 	}
 }

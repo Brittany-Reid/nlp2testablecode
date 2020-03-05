@@ -1,4 +1,4 @@
-package nlp3code.tester;
+package nlp3code.tester.testprocess;
 
 /** Class UnitTest
  * 	A test to be run.

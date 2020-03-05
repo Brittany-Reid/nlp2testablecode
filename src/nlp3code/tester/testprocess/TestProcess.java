@@ -1,4 +1,4 @@
-package nlp3code.tester;
+package nlp3code.tester.testprocess;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -18,15 +18,16 @@ import java.util.List;
 import nlp3code.compiler.IMClassLoader;
 import nlp3code.compiler.IMCompiledCode;
 import nlp3code.compiler.IMCompiler;
+import nlp3code.tester.ProcessClassLoader;
 
 /**
- * We spawn a new process running main of this class when we want to test code.
+ * We spawn a new process running the main function of this class when we want to test code.
  * This is because we can't stop threads safely when they run untrusted code.
  * The code from SO will not be written to respect thread interrupts.
  * We want to run that code in a separate JVM.
  * http://whiley.org/2011/04/15/one-thing-i-really-hate-about-the-jvm/
  */
-public class TestProcess {
+public class TestProcess{
 	public static final String ISOLATED_TEST_RUNNER_METHOD_NAME = "runTests";
 	
 	/**

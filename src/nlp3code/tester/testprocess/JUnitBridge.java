@@ -1,4 +1,4 @@
-package nlp3code.tester;
+package nlp3code.tester.testprocess;
 
 import java.lang.IllegalAccessException;
 import java.lang.NoSuchFieldException;

@@ -28,6 +28,7 @@ import nlp3code.InputHandler;
 import nlp3code.code.Snippet;
 import nlp3code.cycler.CycleAnswersHandler;
 import nlp3code.listeners.QueryDocListener;
+import nlp3code.listeners.TypeDocListener;
 import nlp3code.recommenders.TypeRecommender;
 import nlp3code.tester.Tester;
 
@@ -36,6 +37,9 @@ import nlp3code.tester.Tester;
  */
 public class TestHandler extends AbstractHandler{
 
+	/**
+	 * Actions performed when CTRL+ALT+D is pressed.
+	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		if(TypeRecommender.canTest == false) return false;
@@ -121,7 +125,7 @@ public class TestHandler extends AbstractHandler{
 				monitor.beginTask("Testing Snippets", 100);
 				
 				//test snippets
-				runnableSnippets.set(Evaluator.testSnippets(monitor, snippets, surrounding[0], surrounding[1], test, imports));
+				runnableSnippets.set(Evaluator.testSnippets(monitor, snippets, surrounding[0], surrounding[1], test, imports, TypeDocListener.types));
 			}
 		};
 		

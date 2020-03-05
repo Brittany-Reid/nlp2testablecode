@@ -46,7 +46,7 @@ import nlp3code.fixer.UnresolvedElementFixes;
  */
 public class Tester {
 	//the name to use for the test function
-	private static String functionName = "test";
+	public final static String FUNCTIONNAME = "test";
 	private static String className = "nlp3codeMain";
 	private static String junitTest = null;
 	
@@ -60,48 +60,19 @@ public class Tester {
 	private static IMCompiler compiler = null;
 	public static JavaParser parser = null;
 	public static int testable = 0;
-	
-	/**
-	 * Generates default test input/output based on types.
-	 * @return A String containing the JUnit test.
-	 */
-	public static String generateTestCase(String typeInfo) {
-		String comment = "		//Format: assertEquals(";
-		String assertStatement = "		assertEquals(";
-		
-		typeInfo = typeInfo.replace("$", "").trim();
-		
-		//split the string by commas
-		String[] types = typeInfo.split(", ");
-		
-		returnType = types[0];
-		argTypes = new ArrayList<String>();
-		Expression value = UnresolvedElementFixes.getDefaultValue(returnType);
-		assertStatement += value.toString() + ", " + functionName + "(";
-		comment += returnType + ", " + functionName + "(";
-		for(int i=1; i<types.length; i++) {
-			argTypes.add(types[i]);
-			value = UnresolvedElementFixes.getDefaultValue(types[i]);
-			assertStatement += value.toString();
-			comment += types[i];
-			if(i != types.length-1) {
-				assertStatement += ", ";
-				comment += ", ";
-			}
-		}
-		assertStatement+="));\n";
-		comment+="));\n";
-		
-		junitTest = comment + assertStatement;
-		return junitTest;
-	}
 
-	public static int test(Snippet snippet, String before, String after, String test, List<String> imports) {
+	public static int test(Snippet snippet, String before, String after, String test, List<String> imports, List<String> types) {
+		//get types
+		returnType = types.get(0);
+		argTypes = new ArrayList<String>();
+		for(int i=1; i<types.size(); i++) {
+			argTypes.add(types.get(i));
+		}
+		
 		//initialize parser
 		if(parser == null) {
 			initializeParser();
 		}
-		
 		
 		//get an ast of the function
 		block = getSnippetAST(snippet, before, after);
@@ -151,33 +122,18 @@ public class Tester {
 	}
 	
 	/** 
-	 *   Runs our test case.
+	 * 	Run test.
+	 * 	TestProcessRunner will spawn a new process.
 	 */
 	private static int run(String code) {
 		int passed = 0;
-		
-		//leave the old implementation here for now
-		
-//		//get the compiled code from the compiler
-//		IMClassLoader classLoader = null;
-//		classLoader = (IMClassLoader) compiler.fileManager.getClassLoader(null);
-		
-//		TestRunner testRunner = new TestRunner(className, getClassPath(), null);
-		
-//		UnitTestResultSet unitTestResultSet = testRunner.runTests(classLoader.getCompiled(className));
-//		
-//		//null happens if our invoke thread gets canceled
-//		if(unitTestResultSet == null) return 0;
-//		
-//		passed = unitTestResultSet.getSuccessful();
-		
-		//use the process passed implementation instead
 		
 		try {
 			passed = TestProcessRunner.exec(10000, "junittest", className, code);
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block
 			//again... handle errors properly.
+			e.printStackTrace();
 			return 0;
 		}
 		
@@ -212,10 +168,8 @@ public class Tester {
 		//add the snippet
 		newC.getMembers().add(snippet);
 		
-//		//add import statements
-//		newCu.addImport("org.junit.Assert.*", true, false);
-//		newCu.addImport("org.junit.Test");
 		
+		boolean junit = false;
 		//add import statements
 		for(String importStr : imports) {
 			ParseResult result = parser.parseImport(importStr);
@@ -224,6 +178,12 @@ public class Tester {
 			}
 			ImportDeclaration imNode = (ImportDeclaration) result.getResult().get();
 			newCu.addImport(imNode);
+			if(importStr.contains("junit")) junit = true;
+		}
+		//if no junit imports add default
+		if(junit == false) {
+			newCu.addImport("org.junit.Assert.*", true, false);
+			newCu.addImport("org.junit.Test");
 		}
 		
 		//add junit function
@@ -242,7 +202,7 @@ public class Tester {
 		
 		//construct signature
 		MethodDeclaration methodDeclaration = new MethodDeclaration();
-		methodDeclaration.setName(functionName);
+		methodDeclaration.setName(FUNCTIONNAME);
 		methodDeclaration.setPublic(true);
 		methodDeclaration.setStatic(true);
 		methodDeclaration.setType(returnType);
@@ -479,7 +439,8 @@ public class Tester {
 		IEditorPart epart = InputHandler.editor;
 		if(epart == null) {
 			System.err.println("Error: No editor was saved in memory.");
-			throw new NullPointerException();
+			//throw new NullPointerException();
+			return Evaluator.getJUnitClassPath();
 		}
 		
 		//use to get classpath from file
@@ -493,4 +454,5 @@ public class Tester {
 		
 		return classPath;
 	}
+
 }

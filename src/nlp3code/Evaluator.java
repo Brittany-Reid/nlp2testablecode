@@ -301,10 +301,13 @@ public class Evaluator {
 		String projectClasspath = null;
 		projectClasspath = DocHandler.getClassPath();
 		
+		//initializing a compiler for testing
 		if(testing == true) {
+			//if there is no project cp, use system and junit from plugin
 			if(projectClasspath == null) {
-				fullClasspath = systemClasspath;
+				fullClasspath = systemClasspath + ";" + getJUnitClassPath();
 			}
+			//if there is a project, we expect it to have junit configured
 			else {
 				fullClasspath = projectClasspath + ";" + systemClasspath;
 			}
@@ -344,7 +347,17 @@ public class Evaluator {
 		parser = new JavaParser(parserConfiguration);
 	}
 
-	public static List<Snippet> testSnippets(IProgressMonitor monitor, List<Snippet> snippets, String before, String after, String test, List<String> imports) {
+	/**
+	 * Function to test a set of snippets.
+	 * @param monitor Progress monitor, can be null.
+	 * @param snippets List of snippets to test.
+	 * @param before Surrounding code before snippet.
+	 * @param after Surrounding code after snippet.
+	 * @param test
+	 * @param imports List of import statements.
+	 * @return
+	 */
+	public static List<Snippet> testSnippets(IProgressMonitor monitor, List<Snippet> snippets, String before, String after, String test, List<String> imports, List<String> types) {
 		SubMonitor sub = null;
 		if(monitor != null) sub = SubMonitor.convert(monitor, snippets.size());
 		
@@ -356,7 +369,7 @@ public class Evaluator {
 			if(snippet.getErrors() != 0) break;
 			
 			//otherwise test and replace
-			snippet.setPassedTests(Tester.test(snippet, before, after, test, imports));
+			snippet.setPassedTests(Tester.test(snippet, before, after, test, imports, types));
 			if(snippet.getPassedTests() > 0) {
 				passed++;
 			}

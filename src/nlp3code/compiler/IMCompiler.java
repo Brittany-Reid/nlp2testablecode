@@ -72,6 +72,10 @@ public class IMCompiler{
 	}
 	
 	public void setClasspath(String classpath) {
+		if(classpath == null) {
+			options = null;
+			return;
+		}
 		options = new ArrayList<String>(Arrays.asList("-classpath", classpath));
 	}
 	

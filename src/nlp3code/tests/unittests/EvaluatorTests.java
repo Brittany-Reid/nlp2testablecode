@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Test;
 
 import nlp3code.DataHandler;
@@ -14,11 +15,11 @@ import nlp3code.InputHandler;
 import nlp3code.Searcher;
 import nlp3code.code.Snippet;
 import nlp3code.compiler.IMCompiler;
+import nlp3code.tester.Tester;
 
 public class EvaluatorTests {
 	String before = "class Main{\npublic static void main(String args[]) {\n";
 	String after = "}\n}\n";
-	
 	
 	/**
 	 * If deletion gives empty snippets, these dont count as compilable.
@@ -46,4 +47,31 @@ public class EvaluatorTests {
 		
 		assertEquals(0, compiling);
 	}
+	
+	/**
+	 * A basic case, convert string to int.
+	 */
+	@Test
+	public void testBulkTesting() {
+		String code = "String s = \"1\";\nint i = Integer.parseInt(s);\n";
+		Snippet snippet = new Snippet(code, 0);
+		snippet.updateErrors(0, null);
+		DocHandler.setFileName("Test.java");
+		InputHandler.before = before;
+		InputHandler.after = after;
+		List<String> types = new ArrayList<String>();
+		types.add("int");
+		types.add("String");
+		
+		String test = "assertEquals(test(\"1\"), 1);\n";
+		//String function = TypeHandler.functionStart+test+TypeHandler.functionEnd;
+		List<Snippet> snippets = new ArrayList<Snippet>();
+		snippets.add(snippet);
+		
+		Evaluator.testSnippets(null, snippets, before, after, test, null, types);
+		
+		//must pass
+		assertEquals(1, Evaluator.passed);
+	}
+
 }
