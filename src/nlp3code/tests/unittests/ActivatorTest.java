@@ -36,10 +36,11 @@ import org.junit.Test;
 import nlp3code.Activator;
 import nlp3code.DataHandler;
 import nlp3code.DocHandler;
+import nlp3code.tests.TestEnvironment;
 
 public class ActivatorTest {
-	String before = "class Main{\npublic static void main(String args[]) {\n";
-	String after = "}\n}\n";
+	String before = TestEnvironment.before;
+	String after = TestEnvironment.after;
 	IProject project = null;
 	IFile file = null;
 	
@@ -48,58 +49,7 @@ public class ActivatorTest {
 	 */
 	public void setUp() throws Exception {
 		
-		//create project
-		project = null;
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		project = workspace.getRoot().getProject("Test");
-		
-		if (project.exists()) {
-			// Clean up any old project information.
-			project.delete(true, true, null);
-		}
-		
-		project.create(null);
-		project.open(null);
-		
-		IProjectDescription description = project.getDescription();
-		description.setNatureIds(new String[] { JavaCore.NATURE_ID });
-		project.setDescription(description, null);
-		
-		final IJavaProject javaProject = JavaCore.create(project);
-		
-		//set bin
-		IFolder binFolder = project.getFolder("bin");
-		binFolder.create(false, true, null);
-		javaProject.setOutputLocation(binFolder.getFullPath(), null);
-		
-		//set source
-		IFolder sourceFolder = project.getFolder("src");
-		sourceFolder.create(false, true, null);
-		
-
-		IPackageFragment pack = javaProject.getPackageFragmentRoot(sourceFolder).createPackageFragment("Test", false, null);
-		
-		//code
-		String source = before + after;
-		StringBuffer buffer = new StringBuffer();
-		buffer.append("package " + pack.getElementName() + ";\n");
-		buffer.append("\n");
-		buffer.append(source);
-		
-		//add
-		ICompilationUnit cu = pack.createCompilationUnit("Main.java", buffer.toString(), false, null);
-		
-		//open
-		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		IWorkbenchPage page = workbenchWindow.getActivePage();
-		if(page == null) {
-			page = workbenchWindow.openPage(null);
-		}
-		
-		IPath path = new Path("Test/src/Test/Main.java");
-		file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
-		
-		IDE.openEditor(page, file, true);
+		TestEnvironment.setupWorkspace();
 		
 		Thread.sleep(1000);
 		
@@ -110,6 +60,8 @@ public class ActivatorTest {
 	 * @throws Exception
 	 */
 	public void tearDown() throws Exception {
+		
+		TestEnvironment.cleanWorkspace();
 		IProject project = null;
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		project = workspace.getRoot().getProject("Test");
@@ -118,17 +70,12 @@ public class ActivatorTest {
 			// Clean up any old project information.
 			project.delete(true, true, null);
 		}
-		
-		//no document open
-		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		IWorkbenchPage page = workbenchWindow.getActivePage();
-	
-		page.closeAllEditors(false);
-		
-		DataHandler.clear();
-
 	}
 	
+	@After
+	public void after() {
+		DataHandler.clear();
+	}
 	
 	/**
 	 * Test the setup function.

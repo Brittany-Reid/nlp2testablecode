@@ -6,9 +6,9 @@ import nlp3code.code.Snippet;
 import nlp3code.compiler.IMCompiler;
 
 public class Deleter {
-	private static Boolean order = false;
-	private static Boolean neutrality = false;
-	private static Boolean loop = false;
+	private static Boolean order = true;
+	private static Boolean neutrality = true;
+	private static Boolean loop = true;
 	public static IMCompiler compiler = null;
 	
 	/**

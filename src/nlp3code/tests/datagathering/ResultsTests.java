@@ -17,6 +17,22 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,6 +50,7 @@ import nlp3code.fixer.Deleter;
 import nlp3code.fixer.UnresolvedElementFixes;
 import nlp3code.recommenders.TypeRecommender;
 import nlp3code.tester.TypeSuggestions;
+import nlp3code.tests.TestEnvironment;
 
 
 /**
@@ -42,8 +59,8 @@ import nlp3code.tester.TypeSuggestions;
  * https://stackoverflow.com/questions/27088926/run-eclipse-plug-in-test-with-included-workspace-projects
  */
 public class ResultsTests {
-	static String before = "class Main{\npublic static void main(String args[]) {\n";
-	static String after = "}\n}\n";
+	static String before = TestEnvironment.before;
+	static String after = TestEnvironment.after;
 	
 	//setup for all tests
 	@BeforeClass
@@ -61,21 +78,32 @@ public class ResultsTests {
 		
 		//load database
 		DataHandler.loadStopWords();
-		System.out.println("a");
 		DataHandler.loadTasks(null);
-		System.out.println("b");
 		DataHandler.loadQuestions(null);
-		System.out.println("c");
 		DataHandler.loadAnswers(null);
-		System.out.println("d");
 	}
 	
-	//after each test reset evaluator settings
+	/**
+	 * Before each test.
+	 */
+	@Before
+	public void setUp() throws Exception {
+		//setup workspace
+		TestEnvironment.setupWorkspace();
+	}
+	
+	/**
+	 * After each test.
+	 * @throws Exception
+	 */
 	@After
-	public void reset() {
+	public void tearDown() throws Exception{
 		Evaluator.targetted = true;
 		Evaluator.deletion = true;
 		Evaluator.integrate = true;
+		Deleter.setOptions(true, true, true);
+		
+		TestEnvironment.cleanWorkspace();
 	}
 	
 	/**

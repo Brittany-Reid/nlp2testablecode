@@ -47,6 +47,7 @@ import nlp3code.fixer.UnresolvedElementFixes;
 public class Tester {
 	//the name to use for the test function
 	public final static String FUNCTIONNAME = "test";
+	public final static String JUNITTESTNAME = "nlp3code_test";
 	private static String className = "nlp3codeMain";
 	private static String junitTest = null;
 	
@@ -61,6 +62,16 @@ public class Tester {
 	public static JavaParser parser = null;
 	public static int testable = 0;
 
+	/**
+	 * Tests a given snippet.
+	 * @param snippet The snippet to test.
+	 * @param before Code before the snippet.
+	 * @param after Code after the snippet.
+	 * @param test Test case, body of the test function.
+	 * @param imports List of import statements from file.
+	 * @param types	Selected return and argument types for constructing function.
+	 * @return Number of passed tests (currently only binary 1 or 0).
+	 */
 	public static int test(Snippet snippet, String before, String after, String test, List<String> imports, List<String> types) {
 		//get types
 		returnType = types.get(0);
@@ -113,6 +124,7 @@ public class Tester {
 			//int pass = 0;
 			return pass;
 		}else {
+//			System.err.println("Error: Problem compiling test! Is JUnit on the project classpath?");
 //			for(Diagnostic d : compiler.getDiagnostics().getDiagnostics()) {
 //				System.out.println(d.getMessage(null));
 //			}

@@ -39,14 +39,18 @@ public class Activator extends AbstractUIPlugin {
 	//our random number generator
 	public static Random random;
 	public static int level = AST.JLS11;
+	//system dependent line seperator
+	public static String lineSeperator;
+	
 	
 	/**
 	 * Constructor.
 	 */
 	public Activator() {
-		//DataHandler.limit = 100000L;
+		//DataHandler.limit = 1000L;
 		//initialize random generator
 		random = new Random();
+		lineSeperator = System.getProperty("line.separator");
 	}
 	
 	/**

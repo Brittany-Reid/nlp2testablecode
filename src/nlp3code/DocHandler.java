@@ -305,13 +305,19 @@ public class DocHandler {
         		if(im != null) imports.add(i.toString());
         	}	
         }
+        //no imports
         else {
-        	//does a package declaration exist
+        	//does a package declaration exist?
         	PackageDeclarationVisitor pdv = new PackageDeclarationVisitor();
         	ast.getRoot().accept(pdv);
         	PackageDeclaration pk = pdv.pk;
         	//if it exists, the offset is on the line after
-        	if(pk !=  null) importStart = pk.getStartPosition() + pk.getLength() + 1;
+        	if(pk !=  null) {
+        		//end of package dec
+        		importStart = pk.getStartPosition() + pk.getLength();
+        		//imports would start after two newlines
+        		importStart +=  (Activator.lineSeperator + Activator.lineSeperator).length();
+        	}
         }
 		
 		return importStart;
@@ -597,6 +603,48 @@ public class DocHandler {
 		
 	}
 
+	
+	/**
+	 * Function to find a method by name.
+	 * We just use name info for now.
+	 * @param name String name of function
+	 * @return MethodDeclaration node
+	 */
+	public static MethodDeclaration findFunction(String name) {
+		MethodDeclaration function = null;
+		
+		IDocument document =  DocHandler.getDocument();
+		if(document == null) return null;
+		
+		//parse document
+		ASTParser parser = ASTParser.newParser(Activator.level);
+		parser.setSource(document.get().toCharArray());
+		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+
+        //get list of methods
+        MethodVisitor mv = new MethodVisitor();
+        cu.getRoot().accept(mv);
+        List<MethodDeclaration> methodNodes = mv.methods;
+        //no methods
+        if(methodNodes == null || methodNodes.size() == 0) {
+        	return null;
+        }
+        
+        //go through methods
+        for(MethodDeclaration m : methodNodes) {
+        	//get matching name
+        	if(m.getName().toString().equals(name)) {
+        		function = m;
+        	}
+        }
+        
+        return function;
+	}
+	
+	/**
+	 * Add imports to file.
+	 * @param importList List of imports to add.
+	 */
 	public static void addImportStatements(ArrayList<String> importList) {
 		IDocument document = getDocument();
 		if(document == null) return;
@@ -613,6 +661,16 @@ public class DocHandler {
 		String importBlock = "";
 		for(String i : importList) {
 			importBlock += i +"\n";
+		}
+		
+		System.out.println(importStart);
+		
+		//if there are no existing imports handle formatting
+		if(imports == null || imports.size() == 0) {
+			//if the following character at importStart isnt a newline, add one
+			if(document.get().charAt(importStart) != '\n' && document.get().charAt(importStart) != '\r') {
+				importBlock += "\n";
+			}
 		}
 		
 		replace(importBlock, importStart, 0);

@@ -17,7 +17,8 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.108.0",
  org.eclipse.core.filesystem;bundle-version="1.7.400",
  org.eclipse.jdt.core;bundle-version="3.18.0",
  org.junit;bundle-version="4.12.0",
- com.google.guava;bundle-version="21.0.0"
+ com.google.guava;bundle-version="21.0.0",
+ org.eclipse.jdt.launching
 Bundle-ClassPath: .,
  lib/log4j/,
  lib/javaparser-core-3.14.8.jar,
