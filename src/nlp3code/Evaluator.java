@@ -358,6 +358,7 @@ public class Evaluator {
 		SubMonitor sub = null;
 		if(monitor != null) sub = SubMonitor.convert(monitor, snippets.size());
 		
+		Tester.testable = 0;
 		passed = 0;
 		for(int i=0; i<snippets.size(); i++) {
 			//get snippet
@@ -374,7 +375,7 @@ public class Evaluator {
 			
 			if(sub != null) sub.split(1);
 		}
-		//System.out.println("Compilable test functions: " + Tester.testable);
+		System.out.println("TESTABLE: " + Tester.testable);
 		Tester.testable = 0;
 		
 		Collections.sort(snippets);
