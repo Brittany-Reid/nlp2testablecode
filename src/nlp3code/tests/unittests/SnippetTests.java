@@ -2,10 +2,6 @@ package nlp3code.tests.unittests;
 
 import static org.junit.Assert.*;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import nlp3code.DocHandler;
@@ -16,6 +12,41 @@ public class SnippetTests {
 	String after = "}\n}\n";
 	int offset = before.length();
 	String surrounding = before + after;
+	
+	/**
+	 * When allowing failed compiles (err = -1), we get a comparison method 
+	 * violates its general contract error.
+	 */
+	@Test
+	public void testComparator() {
+		Snippet s1, s2, s3;
+		
+		s1 = new Snippet("int a;\n", 0);
+		s2 = new Snippet("", 0);
+		s3 = new Snippet("int a;\nint b;\n", 0);
+		
+		int r1 = s1.compareTo(s2);
+		int r2 = s2.compareTo(s1);
+		assertTrue(r1 == -1); //s1 before s2
+		assertTrue(r2 == 1); //s2 after s1
+		
+		r1 = s1.compareTo(s3);
+		r2 = s3.compareTo(s1);
+		assertTrue(r1 == 0); //s1 and s3 the same
+		assertTrue(r2 == 0); //s3 and s1 the same
+		
+		s1.updateErrors(0, null);
+		r1 = s1.compareTo(s3);
+		r2 = s3.compareTo(s1);
+		assertTrue(r1 == -1); //s1 before s3
+		assertTrue(r2 == 1); //s3 after s1
+		
+		s3.updateErrors(1, null);
+		r1 = s1.compareTo(s3);
+		r2 = s3.compareTo(s1);
+		assertTrue(r1 == -1); //s1 before s3
+		assertTrue(r2 == 1); //s3 after s1
+	}
 
 	@Test
 	public void statement() {

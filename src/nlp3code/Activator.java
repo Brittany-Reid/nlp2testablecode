@@ -41,6 +41,8 @@ public class Activator extends AbstractUIPlugin {
 	public static int level = AST.JLS11;
 	//system dependent line seperator
 	public static String lineSeperator;
+	//Use project packages, setting to false can be quicker
+	public static boolean useProjectPackages = false;
 	
 	
 	/**

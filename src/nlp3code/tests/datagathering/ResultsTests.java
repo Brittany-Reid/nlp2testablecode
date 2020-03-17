@@ -1,53 +1,20 @@
 package nlp3code.tests.datagathering;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import nlp3code.Activator;
 import nlp3code.DataHandler;
 import nlp3code.DocHandler;
 import nlp3code.Evaluator;
 import nlp3code.InputHandler;
 import nlp3code.Searcher;
 import nlp3code.code.Snippet;
-import nlp3code.compiler.IMCompiler;
 import nlp3code.fixer.Deleter;
-import nlp3code.fixer.UnresolvedElementFixes;
 import nlp3code.recommenders.TypeRecommender;
 import nlp3code.tester.TypeSuggestions;
 import nlp3code.tests.TestEnvironment;
@@ -70,7 +37,7 @@ public class ResultsTests {
 		
 		//DataHandler.limit = 10000L; //reduce db size
 		Evaluator.compiler = Evaluator.initializeCompiler(false);
-		DocHandler.setFileName("Main.java");
+		DocHandler.setFileName("Main");
 		InputHandler.insertionContext = InputHandler.MAIN;
 		DataHandler.processing = DataHandler.LEMMATIZE; //use lemma
 		InputHandler.before = before;
@@ -210,7 +177,7 @@ public class ResultsTests {
 	/**
 	 * Test different deletion algorithms.
 	 */
-	//@Test
+	@Test
 	public void deletionTests() {
 		Evaluator.integrate = true;
 		Evaluator.targetted = true;

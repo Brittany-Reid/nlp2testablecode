@@ -2,25 +2,10 @@ package nlp3code.tests.unittests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,6 +55,18 @@ public class DocHandlerTests {
 	public void getOpenDocument() {
 		IDocument document = DocHandler.getDocument();
 		assertNotNull(document);
+	}
+	
+	
+	/**
+	 * Test ability to get classpath
+	 * @throws Exception 
+	 */
+	@Test
+	public void classpathTest() throws Exception {
+		TestEnvironment.addLibrary("lib/guava-28.2-jre.jar");
+		String classpath = DocHandler.getClassPath();
+		assertTrue(classpath.contains("Test/guava-28.2-jre.jar"));
 	}
 	
 	/**

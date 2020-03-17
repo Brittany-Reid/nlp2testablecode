@@ -8,9 +8,7 @@ import java.util.List;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.stmt.BlockStmt;
 
 import nlp3code.DocHandler;
 
@@ -92,26 +90,47 @@ public class Snippet implements Comparable<Snippet>{
 	
 	@Override
 	public int compareTo(Snippet b) {
+		
+//		System.out.println(this.getLOC() + " " + this.getErrors() + " " + this.getPassedTests());
+//		System.out.println(b.getLOC() + " " + b.getErrors() + " " + b.getPassedTests());
+//		System.out.println();
+		
 		//empty snippets vs non-empty compiling
-		if(b.getLOC() == 0 && LOC != 0) return -1;
-		if(LOC == 0 && b.getLOC() != 0) return 1;
+		if(b.getLOC() == 0 && getLOC() != 0) {
+			//rank this higher
+			return -1;
+		}
+		if(getLOC() == 0 && b.getLOC() != 0) {
+			//rank this lower
+			return 1;
+		}
 		
 		//handle negative error value
-		if(b.getErrors() == -1 && errors != -1) return -1;
-		if(b.getErrors() != -1 && errors == -1) return 1;
+		if(b.getErrors() == -1 && getErrors() != -1) {
+			//rank this higher
+			return -1;
+		}
+		if(b.getErrors() != -1 && getErrors() == -1) {
+			//rank this lower
+			return 1;
+		}
 		
 		//if error value is 0, look at passed tests
-		if(b.getErrors() == 0 && errors == 0) {
+		if(b.getErrors() == 0 && getErrors() == 0) {
 			//handle any negatives
-			if(b.getPassedTests() == -1 && passedTests != -1) return -1;
-			if(b.getPassedTests() != -1 && passedTests == -1) return 1;
+			if(b.getPassedTests() == -1 && getPassedTests() != -1) {
+				return -1; //rank this higher
+			}
+			if(b.getPassedTests() != -1 && getPassedTests() == -1) {
+				return 1; //rank this lower
+			}
 			
 			//otherwise, compare passed, largets at top
-			return Integer.compare(b.getPassedTests(), passedTests);
+			return Integer.compare(b.getPassedTests(), getPassedTests());
 		}
 		
 		//compare error value
-		return Integer.compare(errors, b.getErrors());
+		return Integer.compare(getErrors(), b.getErrors());
 	}
 	
 	/**

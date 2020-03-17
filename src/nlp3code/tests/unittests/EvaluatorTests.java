@@ -5,17 +5,12 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Test;
 
-import nlp3code.DataHandler;
 import nlp3code.DocHandler;
 import nlp3code.Evaluator;
 import nlp3code.InputHandler;
-import nlp3code.Searcher;
 import nlp3code.code.Snippet;
-import nlp3code.compiler.IMCompiler;
-import nlp3code.tester.Tester;
 
 public class EvaluatorTests {
 	String before = "class Main{\npublic static void main(String args[]) {\n";

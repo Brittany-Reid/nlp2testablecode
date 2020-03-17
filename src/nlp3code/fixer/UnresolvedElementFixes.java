@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,8 +17,6 @@ import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IJavaElement;
@@ -28,16 +25,10 @@ import org.eclipse.jdt.core.IOrdinaryClassFile;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IFileEditorInput;
-
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseResult;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
@@ -47,7 +38,6 @@ import com.github.javaparser.ast.expr.DoubleLiteralExpr;
 import com.github.javaparser.ast.expr.EnclosedExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
-import com.github.javaparser.ast.expr.LiteralExpr;
 import com.github.javaparser.ast.expr.LongLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
@@ -56,7 +46,6 @@ import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.Type;
@@ -67,8 +56,6 @@ import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
 import nlp3code.DocHandler;
-import nlp3code.Evaluator;
-import nlp3code.listeners.QueryDocListener;
 import nlp3code.code.Snippet;
 import nlp3code.compiler.IMCompiler;
 
@@ -183,16 +170,26 @@ public class UnresolvedElementFixes {
 		//check that the statement contains the variable name, then get the expression containing it
 		String name = Fixer.getCovered(snippet.getCode(), diagnostic.getStartPosition(), diagnostic.getEndPosition(), offset);
 		Expression expression = findContainingInStatement(name, nodeStatement);
-		if(expression == null) return snippet;
+		if(expression == null) {
+			return snippet;
+		}
+		
+		//calculate lines before snippet
+		int beforeLines = before.split("\n").length;
+		if(snippet.getImportList() != null) {
+			beforeLines += snippet.getImportList().size();
+		}
+		
 		
 		//get the type
 		String type = extractTypeFromExpression(expression, name);
-		//if we were unable to do this, try a default object
 		
-		//if we failed to get a type, brute force 
+		//if we failed to get a type, brute force with defaults
 		if(type == null) {
-			Snippet test = tryDefaults(snippet, name, nodeStatement.getBegin().get().line-before.split("\n").length);
-			if(test != null) return test;
+			Snippet test = tryDefaults(snippet, name, nodeStatement.getBegin().get().line-beforeLines);
+			if(test != null) {
+				return test;
+			}
 		}
 		
 		//for complex types, try to gather information from variable name
@@ -207,10 +204,11 @@ public class UnresolvedElementFixes {
 		
 		
 		//otherwise, just use object
-		if(type == null) type = "Object";
+		if(type == null) {
+			type = "Object";
+		}
 		
 		String variableDeclaration = getVariableDeclaration(type, name);
-		int beforeLines = before.split("\n").length;
 		String code = Fixer.addLineAt(snippet.getCode(), variableDeclaration, nodeStatement.getBegin().get().line-beforeLines);
 		snippet.setCode(code);
 		

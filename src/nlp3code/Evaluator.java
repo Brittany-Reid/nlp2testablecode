@@ -23,7 +23,6 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
 import nlp3code.code.Snippet;
@@ -226,7 +225,9 @@ public class Evaluator {
 				}
 			}
 			
-			if(errors > 0) nonCompSnippets.add(snippet);
+			if(errors != 0) {
+				nonCompSnippets.add(snippet);
+			}
 			
 			snippets.set(i, snippet);
 			
@@ -289,38 +290,40 @@ public class Evaluator {
 		usePatch();
 		
 		//construct classpath
-		String fullClasspath = null;
+		List<String> fragments = new ArrayList<String>();
 		
-		//get the system classpath
-		String systemClasspath = System.getProperty("java.class.path");
-		
-		//get the open projects classptah
-		String projectClasspath = null;
-		projectClasspath = DocHandler.getClassPath();
-		
-		//initializing a compiler for testing
-		if(testing == true) {
-			//if there is no project cp, use system and junit from plugin
-			if(projectClasspath == null) {
-				fullClasspath = systemClasspath + ";" + getJUnitClassPath();
+	
+		//get the open projects classpath, we can turn this off to speed things up
+		if(Activator.useProjectPackages ==  true) {
+			//get the system classpath
+			String systemClasspath = System.getProperty("java.class.path");
+			//add to full
+			if(systemClasspath != null && systemClasspath != "") {
+				fragments.add(systemClasspath);
 			}
-			//if there is a project, we expect it to have junit configured
-			else {
-				fullClasspath = projectClasspath + ";" + systemClasspath;
+			
+			String projectClasspath = null;
+			projectClasspath = DocHandler.getClassPath();
+			if(projectClasspath != null && projectClasspath != "") {
+					fragments.add(projectClasspath);
 			}
 		}
-		else {
-			if(projectClasspath == null) {
-				fullClasspath = "";
-			}
-			else {
-				fullClasspath = "";
-			}
+		
+		if(testing == true) {
+			fragments.add(getJUnitClassPath());
+		}
+		
+		String fullClasspath = "";
+		for(String fragment : fragments) {
+			fullClasspath += fragment + ";";
+		}
+		if(fullClasspath != "") {
+			fullClasspath = fullClasspath.substring(0, fullClasspath.length()-1);
 		}
 		
 		//construct options
 		List<String> options = null;
-		if(fullClasspath != null) {
+		if(fullClasspath != null || fullClasspath != "") {
 			options = new ArrayList<String>(Arrays.asList("-classpath", fullClasspath));
 		}
 		

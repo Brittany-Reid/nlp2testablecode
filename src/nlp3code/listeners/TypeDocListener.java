@@ -2,7 +2,6 @@ package nlp3code.listeners;
 
 import java.util.List;
 
-import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;

@@ -1,12 +1,9 @@
 package nlp3code.tests.unittests;
 
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 import nlp3code.DocHandler;
 import nlp3code.code.Snippet;
-import nlp3code.fixer.Deleter;
 import nlp3code.fixer.Integrator;
 
 public class IntegratorTests {

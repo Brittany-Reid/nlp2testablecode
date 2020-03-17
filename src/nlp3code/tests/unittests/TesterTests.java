@@ -6,11 +6,9 @@ import java.util.List;
 import org.junit.Test;
 
 import nlp3code.DocHandler;
-import nlp3code.Evaluator;
 import nlp3code.InputHandler;
 import nlp3code.code.Snippet;
 import nlp3code.tester.Tester;
-import nlp3code.tester.TypeHandler;
 
 /**
  * Tests the code snippet tester.

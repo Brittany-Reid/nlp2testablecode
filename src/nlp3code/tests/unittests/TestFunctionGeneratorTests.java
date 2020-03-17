@@ -5,9 +5,6 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import nlp3code.tester.TestFunctionGenerator;

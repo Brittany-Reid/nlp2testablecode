@@ -411,7 +411,7 @@ public class DataHandler {
 	}
 	
 	/**
-	 * Returns the URL from the root directory of the plug-in. JUnit safe.
+	 * Returns the URL from the root directory of the plug-in.
 	 */
 	public static URL getURL(String url) {
 		
