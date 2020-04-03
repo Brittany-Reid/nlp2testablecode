@@ -1,7 +1,14 @@
 package nlp3code.tests.datagathering;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
+
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -84,7 +91,7 @@ public class ResultsTests {
 		Evaluator.deletion = false;
 		Evaluator.integrate = false;
 		
-		System.out.println("Compiling:");
+		System.out.println("COMPILING:");
 		
 		//begin timing
 		long start = System.currentTimeMillis();
@@ -107,6 +114,66 @@ public class ResultsTests {
 	}
 	
 	/**
+	 * Common error types.
+	 */
+	//@Test
+	public void testErrorTypes(){
+		int compiling = 0;
+		int errors = 0;
+		Evaluator.targetted = false;
+		Evaluator.deletion = false;
+		Evaluator.integrate = false;
+		HashMap<Integer, Integer> errorCounts = new HashMap<>();
+		HashMap<Integer, String> errorMessages = new HashMap<>();
+		
+		System.out.println("ERROR TYPES:");
+		
+		//begin timing
+		long start = System.currentTimeMillis();
+		for(String query : DataHandler.queries) {
+			List<Snippet> snippets = Searcher.getSnippets(query);
+			snippets = Evaluator.evaluate(null, snippets, before, after);
+			for(Snippet snippet : snippets) {
+				List<Diagnostic<? extends JavaFileObject>> diagnostics = snippet.getDiagnostics();
+				for(Diagnostic diagnostic : diagnostics) {
+					int errorCode = Integer.parseInt(diagnostic.getCode());
+					if(!errorCounts.containsKey(errorCode)) {
+						errorCounts.put(errorCode, 1);
+						String message = diagnostic.getMessage(null);
+						message = message.split("\n")[0];
+						errorMessages.put(errorCode, message);
+					}
+					else {
+						int count = errorCounts.get(errorCode);
+						count++;
+						errorCounts.replace(errorCode, count);
+					}
+				}
+			}
+		}
+		
+		List<Entry<Integer, Integer>> entries =  new ArrayList<Entry<Integer, Integer>>(errorCounts.entrySet());
+	    Collections.sort(entries, new ByValue<Integer, Integer>());
+		
+		for(Entry<Integer, Integer> entry : entries) {
+			int key = entry.getKey();
+			int count = errorCounts.get(key);
+			String message = errorMessages.get(key);
+			int errorCode = key;
+			System.out.println(count + ", " + message + ", " + errorCode);
+		}
+		
+		long end = System.currentTimeMillis() - start;
+		System.out.print("TIME: " + end + "ms\n");
+	}
+	
+	private static class ByValue<K, V extends Comparable<V>> implements Comparator<Entry<K, V>> {
+	    public int compare(Entry<K, V> o1, Entry<K, V> o2) {
+	        return o2.getValue().compareTo(o1.getValue());
+	    }
+	}
+	
+	/**
 	 * How many snippets compile after integration is completed.
 	 */
 	//@Test
@@ -117,7 +184,7 @@ public class ResultsTests {
 		Evaluator.targetted = false;
 		Evaluator.deletion = false;
 		
-		System.out.println("Integrating:");
+		System.out.println("INTEGRATING:");
 		
 		//begin timing
 		long start = System.currentTimeMillis();
@@ -177,7 +244,7 @@ public class ResultsTests {
 	/**
 	 * Test different deletion algorithms.
 	 */
-	@Test
+	//@Test
 	public void deletionTests() {
 		Evaluator.integrate = true;
 		Evaluator.targetted = true;
@@ -207,16 +274,16 @@ public class ResultsTests {
 				Deleter.setOptions(false, false, true);
 			}
 			if(i==5){
-				System.out.println("SETTING: ASC, NONSTRICT, LOOP\n");
-				Deleter.setOptions(true, true, true);
-			}
-			if(i==6){
 				System.out.println("SETTING: ASC, STRICT, LOOP\n");
 				Deleter.setOptions(true, false, true);
 			}
-			if(i==7){
+			if(i==6){
 				System.out.println("SETTING: DESC, NONSTRICT, LOOP\n");
 				Deleter.setOptions(false, true, true);
+			}
+			if(i==7){
+				System.out.println("SETTING: ASC, NONSTRICT, LOOP\n");
+				Deleter.setOptions(true, true, true);
 			}
 			
 			//get results for each task
@@ -241,7 +308,7 @@ public class ResultsTests {
 						compiled++;
 					}
 				}
-				//System.out.println("TASK: " + task + ", " + compiled + "\n"); //for per task breakdown
+				System.out.println("TASK: " + task + ", " + compiled + "\n"); //for per task breakdown
 				totalCompiled += compiled;
 				
 			}
@@ -263,7 +330,7 @@ public class ResultsTests {
 		Evaluator.targetted = true;
 		Evaluator.deletion = true;
 		
-		System.out.println("Deletion:");
+		System.out.println("DELETION:");
 		
 		//begin timing
 		long start = System.currentTimeMillis();
@@ -288,7 +355,7 @@ public class ResultsTests {
 	/**
 	 * Tests type recommendations.
 	 */
-	//@Test
+	@Test
 	public void testTypeRecommendations() {
 		Evaluator.integrate = true;
 		Evaluator.targetted = true;
@@ -297,7 +364,9 @@ public class ResultsTests {
 		System.out.println("Type Recommendations:");
 		
 		//begin timing
+		int tasks = 0;
 		long start = System.currentTimeMillis();
+		int totalTestable = 0;
 		for(String query : DataHandler.queries) {
 			List<Snippet> snippets = Searcher.getSnippets(query);
 			snippets = Evaluator.evaluate(null, snippets, before, after);
@@ -305,14 +374,21 @@ public class ResultsTests {
 			
 			//get type suggestions
 			snippets = TypeSuggestions.getTypeSuggestions(snippets, before, after, null);
-			
+			System.out.println("SNIPPETS WITH A SUGGESTION: " + TypeSuggestions.testable);
+			totalTestable += TypeSuggestions.testable;
 			
 			List<String> types = TypeRecommender.sortIOTypes(snippets);
+			if(types != null && !types.isEmpty()) {
+				tasks++;
+				System.out.println("SUGGESTIONS: " + types.size());
+			}
 			for(String type : types) {
 				System.out.print("TYPE: " + type + "\n");
 			}
 		}
 		long end = System.currentTimeMillis() - start;
+		System.out.print("TASKS WITH SUGGESTIONS: " + tasks + "\n");
+		System.out.print("TOTAL SNIPPETS WITH A SUGGESTION: " + totalTestable + "\n");
 		System.out.print("TIME: " + end + "ms\n");
 	}
 	

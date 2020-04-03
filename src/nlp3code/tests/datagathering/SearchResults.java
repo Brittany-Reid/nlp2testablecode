@@ -36,7 +36,7 @@ public class SearchResults {
 	 */
 	@Test
 	public void searchResultsNoProcessingNoStops() throws Exception{
-		System.out.println("NO PROCESSING: ");
+		System.out.println("NO PROCESSING NO STOPS: ");
 		DataHandler.processing = DataHandler.NONE;
 		DataHandler.loadTasks(null);
 		DataHandler.loadQuestions(null);
@@ -55,7 +55,7 @@ public class SearchResults {
 	
 	@Test
 	public void searchResultsStemmingNoStops() throws Exception{
-		System.out.println("STEMMING: ");
+		System.out.println("STEMMING NO STOPS: ");
 		DataHandler.processing = DataHandler.STEM;
 		DataHandler.loadTasks(null);
 		DataHandler.loadQuestions(null);
@@ -74,7 +74,7 @@ public class SearchResults {
 	
 	@Test
 	public void searchResultsLemmaNoStops() throws Exception{
-		System.out.println("LEMMA: ");
+		System.out.println("LEMMA NO STOPS: ");
 		DataHandler.processing = DataHandler.LEMMATIZE;
 		DataHandler.clear();
 		//DataHandler.loadStopWords();
@@ -97,7 +97,7 @@ public class SearchResults {
 	
 	@Test
 	public void searchResultsNoProcessing() throws Exception{
-		System.out.println("NO PROCESSING: ");
+		System.out.println("NO PROCESSING ONLY STOPS: ");
 		DataHandler.processing = DataHandler.NONE;
 		DataHandler.clear();
 		DataHandler.loadStopWords();

@@ -43,8 +43,12 @@ public class TypeSuggestions {
 	public static List<String> argTypes = null;
 	private static Node returnNode = null;
 	private static List<String> arguments = null;
+	//count of snippets with type suggestions
+	public static int testable = 0;
 	
 	public static List<Snippet> getTypeSuggestions(List<Snippet> snippets, String before, String after, IProgressMonitor monitor){
+		testable = 0;
+		
 		for(int i=0; i<snippets.size(); i++) {
 			Snippet snippet = snippets.get(i);
 			if(snippet.getErrors() == 0) {
@@ -78,6 +82,7 @@ public class TypeSuggestions {
 		if(argTypes.size() > 0) {
 			snippet.setArguments(argTypes);
 			snippet.setReturn(returnType);
+			testable++;
 			return snippet;
 		}
 		return snippet;
