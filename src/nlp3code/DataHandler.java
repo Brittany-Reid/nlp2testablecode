@@ -71,22 +71,32 @@ public class DataHandler {
 		
 		try {
 			//load stop words
-			if(sub != null) sub.split(5);
+			if(sub != null) {
+				sub.split(5);
+			}
 			loadStopWords();
 			
 			//load questions
 			SubMonitor subQ= null;
-			if(sub != null) subQ = sub.split(40);
+			if(sub != null) {
+				subQ = sub.split(40);
+			}
 			loadQuestions(subQ);
-			if(monitor != null) monitor.worked(1);
+			if(monitor != null) {
+				monitor.worked(1);
+			}
 			
 			//load answers
 			SubMonitor subA= null;
-			if(sub != null) subA = sub.split(50);
+			if(sub != null) {
+				subA = sub.split(50);
+			}
 			loadAnswers(subA);
 			
 			//load tasks
-			if(sub != null) sub.split(5);
+			if(sub != null) {
+				sub.split(5);
+			}
 			loadTasks(null);
 			
 	    	loaded = true;

@@ -12,8 +12,6 @@ import nlp3code.tester.Tester;
 
 /**
  * Tests the code snippet tester.
- * Run this as a plug-in test with an open workspace, project and file:
- * https://stackoverflow.com/questions/27088926/run-eclipse-plug-in-test-with-included-workspace-projects
  */
 public class TesterTests {
 	String before = "public class Main{\npublic static void main(String args[]) {\n";

@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.tools.Diagnostic;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
@@ -113,7 +115,9 @@ public class Tester {
 			//int pass = 0;
 			return pass;
 		}else {
+			//this is for debugging
 //			System.err.println("Error: Problem compiling test! Is JUnit on the project classpath?");
+//			System.out.println(code);
 //			for(Diagnostic d : compiler.getDiagnostics().getDiagnostics()) {
 //				System.out.println(d.getMessage(null));
 //			}

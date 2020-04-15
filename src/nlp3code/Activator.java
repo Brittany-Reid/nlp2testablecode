@@ -49,7 +49,7 @@ public class Activator extends AbstractUIPlugin {
 	 * Constructor.
 	 */
 	public Activator() {
-		//DataHandler.limit = 1000L;
+		//DataHandler.limit = 100000L; //for debugging
 		//initialize random generator
 		random = new Random();
 		lineSeperator = System.getProperty("line.separator");

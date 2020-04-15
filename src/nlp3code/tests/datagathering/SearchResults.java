@@ -11,6 +11,9 @@ import nlp3code.DataHandler;
 import nlp3code.Searcher;
 import nlp3code.code.Snippet;
 
+/**
+ * Results for different search processes.
+ */
 public class SearchResults {
 	
 	@After

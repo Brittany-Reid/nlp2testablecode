@@ -662,8 +662,6 @@ public class DocHandler {
 			importBlock += i +"\n";
 		}
 		
-		System.out.println(importStart);
-		
 		//if there are no existing imports handle formatting
 		if(imports == null || imports.size() == 0) {
 			//if the following character at importStart isnt a newline, add one

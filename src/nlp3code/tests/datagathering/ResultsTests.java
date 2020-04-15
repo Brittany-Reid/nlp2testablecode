@@ -28,9 +28,7 @@ import nlp3code.tests.TestEnvironment;
 
 
 /**
- * This set of tests gathers results of the plug-in. All data tests from other files should be moved here.
- * Run this as a plug-in test with an open workspace, project and file:
- * https://stackoverflow.com/questions/27088926/run-eclipse-plug-in-test-with-included-workspace-projects
+ * Compilation, fix and testing results.
  */
 public class ResultsTests {
 	static String before = TestEnvironment.before;
@@ -83,7 +81,7 @@ public class ResultsTests {
 	/**
 	 * How many snippets compile with no fixes.
 	 */
-	//@Test
+	@Test
 	public void testCompiling(){
 		int compiling = 0;
 		int errors = 0;
@@ -116,7 +114,7 @@ public class ResultsTests {
 	/**
 	 * Common error types.
 	 */
-	//@Test
+	@Test
 	public void testErrorTypes(){
 		int compiling = 0;
 		int errors = 0;
@@ -176,7 +174,7 @@ public class ResultsTests {
 	/**
 	 * How many snippets compile after integration is completed.
 	 */
-	//@Test
+	@Test
 	public void testIntegration(){
 		int compiling = 0;
 		int errors = 0;
@@ -210,7 +208,7 @@ public class ResultsTests {
 	/**
 	 * How many snippets compile after targeted fixes are applied.
 	 */
-	//@Test
+	@Test
 	public void testFixing(){
 		int compiling = 0;
 		int errors = 0;
@@ -244,7 +242,7 @@ public class ResultsTests {
 	/**
 	 * Test different deletion algorithms.
 	 */
-	//@Test
+	@Test
 	public void deletionTests() {
 		Evaluator.integrate = true;
 		Evaluator.targetted = true;
@@ -322,7 +320,7 @@ public class ResultsTests {
 	 * How many snippets compile after the best performing line deletion algorithm is applied. 
 	 * This is the final number of compilable snippets.
 	 */
-	//@Test
+	@Test
 	public void testFinalDeletion(){
 		int compiling = 0;
 		int errors = 0;
@@ -392,71 +390,72 @@ public class ResultsTests {
 		System.out.print("TIME: " + end + "ms\n");
 	}
 	
-	/**
-	 * Run tests for 47 tasks.
-	 */
-	//@Test
-	public void testing() {
-		Evaluator.integrate = true;
-		Evaluator.targetted = true;
-		Evaluator.deletion = true;
-		
-		System.out.println("Testing:");
-		
-		long start = System.currentTimeMillis();
-		for(String query : DataHandler.queries) {
-			List<Snippet> snippets = Searcher.getSnippets(query);
-			snippets = Evaluator.evaluate(null, snippets, before, after);
-			System.out.print("TASK: " + query + "\n");
-			List<String> types = new ArrayList<>();
-			String test = null;
-			
-			switch(query) {
-				case "switch statement":
-					types.add("int");
-					types.add("int");
-					test = "assertEquals(3, test(3));";
-					break;
-				case "get index of substring":
-					types.add("int");
-					types.add("String");
-					types.add("String");
-					test = "assertEquals(0, test(\"a\", \"abc\"));";
-					break;
-				case "check equality for strings":
-					types.add("boolean");
-					types.add("String");
-					types.add("String");
-					test = "assertEquals(true, test(\"a\", \"a\"));";
-					break;
-				case "add for loop":
-					types.add("int");
-					types.add("int");
-					types.add("int");
-					test = "assertEquals(10, test(0, 10));";
-					break;
-				case "split string by whitespaces":
-					types.add("String[]");
-					types.add("String");
-					test = "assertEquals(new String[] {\"a\", \"b\"};, test(\"a b\"));";
-					break;
-				case "convert string to integer":
-					types.add("Integer");
-					types.add("String");
-					test = "assertEquals(10, test(\"10\"));";
-					break;
-				default:
-					break;
-			}
-			
-			snippets = Evaluator.testSnippets(null, snippets, before, after, test, null, types);
-			
-			System.out.println("PASSED: " + Evaluator.passed);
-			
-			
-		}
-		long end = System.currentTimeMillis() - start;
-		System.out.print("TIME: " + end + "ms\n");
-	}
+
+//	/**
+//	 * Run tests for 47 tasks.
+//	 */
+//	@Test
+//	public void testing() {
+//		Evaluator.integrate = true;
+//		Evaluator.targetted = true;
+//		Evaluator.deletion = true;
+//		
+//		System.out.println("Testing:");
+//		
+//		long start = System.currentTimeMillis();
+//		for(String query : DataHandler.queries) {
+//			List<Snippet> snippets = Searcher.getSnippets(query);
+//			snippets = Evaluator.evaluate(null, snippets, before, after);
+//			System.out.print("TASK: " + query + "\n");
+//			List<String> types = new ArrayList<>();
+//			String test = null;
+//			
+//			switch(query) {
+//				case "switch statement":
+//					types.add("int");
+//					types.add("int");
+//					test = "assertEquals(3, test(3));";
+//					break;
+//				case "get index of substring":
+//					types.add("int");
+//					types.add("String");
+//					types.add("String");
+//					test = "assertEquals(0, test(\"a\", \"abc\"));";
+//					break;
+//				case "check equality for strings":
+//					types.add("boolean");
+//					types.add("String");
+//					types.add("String");
+//					test = "assertEquals(true, test(\"a\", \"a\"));";
+//					break;
+//				case "add for loop":
+//					types.add("int");
+//					types.add("int");
+//					types.add("int");
+//					test = "assertEquals(10, test(0, 10));";
+//					break;
+//				case "split string by whitespaces":
+//					types.add("String[]");
+//					types.add("String");
+//					test = "assertEquals(new String[] {\"a\", \"b\"};, test(\"a b\"));";
+//					break;
+//				case "convert string to integer":
+//					types.add("Integer");
+//					types.add("String");
+//					test = "assertEquals(10, test(\"10\"));";
+//					break;
+//				default:
+//					break;
+//			}
+//			
+//			snippets = Evaluator.testSnippets(null, snippets, before, after, test, null, types);
+//			
+//			System.out.println("PASSED: " + Evaluator.passed);
+//			
+//			
+//		}
+//		long end = System.currentTimeMillis() - start;
+//		System.out.print("TIME: " + end + "ms\n");
+//	}
 	
 }

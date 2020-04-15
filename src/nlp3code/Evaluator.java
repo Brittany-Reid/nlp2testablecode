@@ -378,8 +378,8 @@ public class Evaluator {
 			
 			if(sub != null) sub.split(1);
 		}
-		System.out.println("TESTABLE: " + Tester.testable);
-		Tester.testable = 0;
+		//System.out.println("TESTABLE: " + Tester.testable);
+		//Tester.testable = 0;
 		
 		Collections.sort(snippets);
 		

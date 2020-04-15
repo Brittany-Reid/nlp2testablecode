@@ -67,17 +67,18 @@ public class TypeHandler {
 		
 		//trim whitespace
 		query = line.trim();
-		query = query.toLowerCase();
 		
 		//extract
 		if (query.endsWith(queryChar)) query = query.substring(0, query.length()-1);
 		if (query.startsWith(queryChar)) query = query.substring(1);
 		
-		//trim any whitespace between question mark
+		//trim any whitespace between query char
 		query = query.trim();
 		
 		//if there are any invalid characters, return empty
-		if (!query.matches("[abcdefghijklmnopqrstuvwxyz,<>\\]\\[ ]*")) return "";
+		if (!query.matches("[aAbBcCdDeEfgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ,<>\\]\\[ ]*")) {
+			return "";
+		}
 		
 		return query;
 	}

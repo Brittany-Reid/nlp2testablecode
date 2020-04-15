@@ -110,7 +110,6 @@ public class ActivatorTest {
 	
 	/**
 	 * What happens if there's no active document.
-	 * @throws Exception
 	 */
 	@Test
 	public void noDocument() throws Exception{
