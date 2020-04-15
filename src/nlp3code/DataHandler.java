@@ -55,7 +55,7 @@ public class DataHandler {
 	private static String questionsFile = "data/questions.xml";
 	private static String answersFile = "data/answers.xml";
 	private static String stopWordsFile = "data/stopwords.txt";
-	private static String tasksFile = "data/task,id50.txt";
+	private static String tasksFile = "data/task,id47.txt";
 	
 	
 	/**

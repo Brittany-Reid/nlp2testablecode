@@ -26,7 +26,7 @@ public class DataHandlerTests {
 		DataHandler.setQuestionsFile("data/questions.xml");
 		DataHandler.setAnswersFile("data/answers.xml");
 		DataHandler.setStopWordsFile("data/stopwords.txt");
-		DataHandler.setTasksFile("data/task,id50.txt");
+		DataHandler.setTasksFile("data/task,id47.txt");
 	}
 	
 	/**
@@ -145,7 +145,7 @@ public class DataHandlerTests {
 	 */
 	@Test
 	public void missingTaskFile() {
-		DataHandler.setTasksFile("data/task,id501.txt");
+		DataHandler.setTasksFile("data/task,id471.txt");
 		DataHandler.loadData(null);
 		
 		assertFalse(DataHandler.loaded);
