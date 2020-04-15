@@ -1,6 +1,5 @@
-# NLP2Code Eclipse plugin
-
-[![NLP2Code video](https://img.youtube.com/vi/h-gaVYtCznI/0.jpg)](https://www.youtube.com/watch?v=h-gaVYtCznI)
+# NLP2TestableCode
+NLP2TestableCode is a plug-in for the Eclipse IDE that uses natural language tasks to search for relevent Java Stack Overflow snippets, corrects compiler errors, integrates code snippets by making changes based on existing source code and helps developers test code snippets.
 
 ## Plugin Installation Instructions:
 
@@ -8,9 +7,11 @@ To install the plugin for development:
  1. Download and install the Eclipse SDK from the Eclipse Project page.
  2. Install Git Integration (EGit) for the Eclipse SDK.
  3. File->Import->Git->Projects from Git->Clone URI.
- 4. Copy and paste the .git URI from the NLP2Code GitHub.
+ 4. Copy and paste the .git URI from the NLP2TestableCode GitHub.
  5. Press Next until you get to the project import wizard. Choose "Import exisiting Eclipse projects" and press Next and Finish.
- 6. You can now run the plugin by setting the Run Configuration to run as an Eclipse Application.
+ 6. Download CoreNLP (https://stanfordnlp.github.io/CoreNLP/) and extract into /libs
+ 7. Download the SO dataset (link soon) and extract into /data
+ 8. You can now run the plugin by right-clicking launches/NLP2TestableCode.launch and selecting Run As... > Eclipse Application.
 
 To install the plugin on your regular Eclipse environment (e.g. for personal use), you will need to package the plugin so it can be installed via the Eclipse Install New Software tool. Since this repository is purely for the development of the tool, there is currently no support in this repository for packaging the plugin for installation.
 
@@ -18,14 +19,13 @@ To install the plugin on your regular Eclipse environment (e.g. for personal use
 ## Important Plugin Configuration Settings:
 
 Content Assist:
-To get the most out of the plugin, it is strongly recommended to add a content assist binding to trigger the NLP2Code task content assist window. You can do this by navigating to: Preferences->Java->Editor->Content Assist (Path may be different depending on Eclipse version) and adding a '?' symbol to the set of symbols that trigger content assist.
+To get the most out of the plugin, it is strongly recommended to add a content assist binding to trigger the NLP2Code task content assist window. You can do this by navigating to: Preferences->Java->Editor->Content Assist (Path may be different depending on Eclipse version) and adding a '?' symbol to the set of symbols that trigger content assist. It is also recommended that you turn off auto-insertion so that test suggestions can function correctly.
 
-NLP3Code addition: Turn off auto-insertion in Preferences->Java->Editor->Content Assist so test suggestion can function correctly.
+Required Libraries:
+You will need to download Stanford CoreNLP (https://stanfordnlp.github.io/CoreNLP/) and extract the folder (stanford-corenlp-full-2018-10-05) into /libs.
 
-Google Custom Search Engine (CSE):
-Currently, the plugin uses Google's Custom Search Engine API to collect StackOverflow forum threads. The free version of this API is limited to 100 requests a day (shared between all users of the plugin). It is recommended that you either sign up for and create your own Google Custom Search Engine to relax this hard limit. To add your Google CSE to the plugin, edit the appropriate "key" and "cx" variables in Searcher.java with your Google API key and your Google CSE ID.
-Full instructions on how to get your own Google CSE is in the "GoogleCSEInstructions.txt" file.
-
+Stack Overflow Data:
+NLP2TestableCode uses an offline database of SO posts, you will need to download the pre-filtered xml files from (link soon) and extract them into /data.
 
 ## How to use the plugin:
 
@@ -55,4 +55,5 @@ Pull requests are most welcome!
 
 ## References:
 
+[Add NLP2TestableCode link here]
 See http://cs.adelaide.edu.au/~christoph/icsme17c.pdf for more information
