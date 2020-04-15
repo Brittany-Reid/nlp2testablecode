@@ -9,8 +9,8 @@ To install the plugin for development:
  3. File->Import->Git->Projects from Git->Clone URI.
  4. Copy and paste the .git URI from the NLP2TestableCode GitHub.
  5. Press Next until you get to the project import wizard. Choose "Import exisiting Eclipse projects" and press Next and Finish.
- 6. Download CoreNLP (https://stanfordnlp.github.io/CoreNLP/) and extract into /libs
- 7. Download the SO dataset (link soon) and extract into /data
+ 6. Download CoreNLP (https://stanfordnlp.github.io/CoreNLP/) and extract into /lib
+ 7. Download the SO dataset (http://doi.org/10.5281/zenodo.3752789) and extract into /data
  8. You can now run the plugin by right-clicking launches/NLP2TestableCode.launch and selecting Run As... > Eclipse Application.
 
 To install the plugin on your regular Eclipse environment (e.g. for personal use), you will need to package the plugin so it can be installed via the Eclipse Install New Software tool. Since this repository is purely for the development of the tool, there is currently no support in this repository for packaging the plugin for installation.
@@ -22,10 +22,10 @@ Content Assist:
 To get the most out of the plugin, it is strongly recommended to add a content assist binding to trigger the NLP2Code task content assist window. You can do this by navigating to: Preferences->Java->Editor->Content Assist (Path may be different depending on Eclipse version) and adding a '?' symbol to the set of symbols that trigger content assist. It is also recommended that you turn off auto-insertion so that test suggestions can function correctly.
 
 Required Libraries:
-You will need to download Stanford CoreNLP (https://stanfordnlp.github.io/CoreNLP/) and extract the folder (stanford-corenlp-full-2018-10-05) into /libs.
+You will need to download Stanford CoreNLP (https://stanfordnlp.github.io/CoreNLP/) and extract the folder (stanford-corenlp-full-2018-10-05) into /lib.
 
 Stack Overflow Data:
-NLP2TestableCode uses an offline database of SO posts, you will need to download the pre-filtered xml files from (link soon) and extract them into /data.
+NLP2TestableCode uses an offline database of SO posts, you will need to download the pre-filtered xml files from http://doi.org/10.5281/zenodo.3752789 and extract them into /data.
 
 ## How to use the plugin:
 
