@@ -1,16 +1,7 @@
 package nlp3code;
 
-import org.eclipse.core.runtime.Platform;
-import nlp3code.code.Snippet;
-import nlp3code.compiler.IMCompiler;
-import nlp3code.compiler.PatchClassLoader;
-import nlp3code.fixer.Deleter;
-import nlp3code.fixer.Fixer;
-import nlp3code.fixer.Integrator;
-
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,18 +14,23 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.internal.compiler.tool.EclipseCompiler;
 import org.eclipse.jface.text.IDocument;
 
-import com.github.javaparser.*;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
-import nlp3code.listeners.QueryDocListener;
-import nlp3code.recommenders.TaskRecommender;
+import nlp3code.code.Snippet;
+import nlp3code.compiler.IMCompiler;
+import nlp3code.compiler.PatchClassLoader;
+import nlp3code.fixer.Deleter;
+import nlp3code.fixer.Fixer;
+import nlp3code.fixer.Integrator;
 import nlp3code.recommenders.TypeRecommender;
 import nlp3code.tester.Tester;
 
@@ -61,20 +57,14 @@ public class Evaluator {
 	 * Returns an ordered list of snippets by quality, after compiling and fixing.
 	 */
 	public static List<Snippet> evaluate(IProgressMonitor monitor, List<Snippet> snippets, String before, String after){
-		//snippets = new ArrayList<Snippet>();
-		//test complex types
-//		Snippet snippet = new Snippet("import java.util.List;\nimport java.util.ArrayList;\nList<String> list = new ArrayList<String>();\r\n" + 
-//				"list.add(\"a\");\r\n" + 
-//				"String str = list.get(0);", 0);
-		//test timeouts
-//		Snippet snippet = new Snippet("int a = 0;\r\n" + 
-//				"		boolean test = true;\r\n" + 
-//				"		while(test == true) {\r\n" + 
-//				"			System.out.println(\"evil loop of death\");\r\n" + 
-//				"		}\r\n" + 
-//				"		int b = 0;\r\n" + 
-//				"		", 0);
-//		
+//		//for testing, can overrite snippet set here
+//		snippets = new ArrayList<Snippet>();
+////		test complex types
+////		Snippet snippet = new Snippet("import java.util.List;\nimport java.util.ArrayList;\nList<String> list = new ArrayList<String>();\r\n" + 
+////				"list.add(\"a\");\r\n" + 
+////				"String str = list.get(0);", 0);
+//
+//		Snippet snippet = new Snippet("int a = 0;\r\nint b = 0;\r\n", 0);
 //		snippets.add(snippet);
 		
 		SubMonitor sub = null;
@@ -113,6 +103,9 @@ public class Evaluator {
 		return compilingSnippets;
 	}
 	
+	/**
+	 * Enable testing.
+	 */
 	public static void canTest() {
 		//wait to test until evaluation is done
 		TypeRecommender.canRecommend = true;
@@ -232,7 +225,9 @@ public class Evaluator {
 				}
 			}
 			
-			if(errors > 0) nonCompSnippets.add(snippet);
+			if(errors != 0) {
+				nonCompSnippets.add(snippet);
+			}
 			
 			snippets.set(i, snippet);
 			
@@ -264,6 +259,8 @@ public class Evaluator {
 		URL url = DataHandler.getURL("lib/ecj-3.18.0_fix.jar");
 		
 		//use our patch classloader that ensures we load from this file
+		//we don't care about closing this, we need to still use the class
+		@SuppressWarnings("resource")
 		ClassLoader classLoader = new PatchClassLoader(new URL[] {url});
 		
 		//try to load the compiler class
@@ -285,6 +282,7 @@ public class Evaluator {
 	
 	/**
 	 * Initialize the compiler.
+	 * @param testing If we want to add JUnit to the compile path.
 	 */
 	public static IMCompiler initializeCompiler(boolean testing) {
 		
@@ -292,35 +290,40 @@ public class Evaluator {
 		usePatch();
 		
 		//construct classpath
-		String fullClasspath = null;
+		List<String> fragments = new ArrayList<String>();
 		
-		//get the system classpath
-		String systemClasspath = System.getProperty("java.class.path");
-		
-		//get the open projects classptah
-		String projectClasspath = null;
-		projectClasspath = DocHandler.getClassPath();
-		
-		if(testing == true) {
-			if(projectClasspath == null) {
-				fullClasspath = systemClasspath;
+	
+		//get the open projects classpath, we can turn this off to speed things up
+		if(Activator.useProjectPackages ==  true) {
+			//get the system classpath
+			String systemClasspath = System.getProperty("java.class.path");
+			//add to full
+			if(systemClasspath != null && systemClasspath != "") {
+				fragments.add(systemClasspath);
 			}
-			else {
-				fullClasspath = projectClasspath + ";" + systemClasspath;
+			
+			String projectClasspath = null;
+			projectClasspath = DocHandler.getClassPath();
+			if(projectClasspath != null && projectClasspath != "") {
+					fragments.add(projectClasspath);
 			}
 		}
-		else {
-			if(projectClasspath == null) {
-				fullClasspath = "";
-			}
-			else {
-				fullClasspath = projectClasspath;
-			}
+		
+		if(testing == true) {
+			fragments.add(getJUnitClassPath());
+		}
+		
+		String fullClasspath = "";
+		for(String fragment : fragments) {
+			fullClasspath += fragment + ";";
+		}
+		if(fullClasspath != "") {
+			fullClasspath = fullClasspath.substring(0, fullClasspath.length()-1);
 		}
 		
 		//construct options
 		List<String> options = null;
-		if(fullClasspath != null) {
+		if(fullClasspath != null || fullClasspath != "") {
 			options = new ArrayList<String>(Arrays.asList("-classpath", fullClasspath));
 		}
 		
@@ -334,9 +337,9 @@ public class Evaluator {
 	public static void initializeParser(){
 		if(parser != null) return;
 		ReflectionTypeSolver reflection = new ReflectionTypeSolver();
-		if(DocHandler.currentProject != null) {
-			JarTypeSolver jar;
-		}
+//		if(DocHandler.currentProject != null) {
+//			JarTypeSolver jar;
+//		}
 		CombinedTypeSolver solver = new CombinedTypeSolver(reflection);
 		
 		//ReflectionTypeSolver solver = new ReflectionTypeSolver();
@@ -344,10 +347,21 @@ public class Evaluator {
 		parser = new JavaParser(parserConfiguration);
 	}
 
-	public static List<Snippet> testSnippets(IProgressMonitor monitor, List<Snippet> snippets, String before, String after, String test, List<String> imports) {
+	/**
+	 * Function to test a set of snippets.
+	 * @param monitor Progress monitor, can be null.
+	 * @param snippets List of snippets to test.
+	 * @param before Surrounding code before snippet.
+	 * @param after Surrounding code after snippet.
+	 * @param test
+	 * @param imports List of import statements.
+	 * @return
+	 */
+	public static List<Snippet> testSnippets(IProgressMonitor monitor, List<Snippet> snippets, String before, String after, String test, List<String> imports, List<String> types) {
 		SubMonitor sub = null;
 		if(monitor != null) sub = SubMonitor.convert(monitor, snippets.size());
 		
+		Tester.testable = 0;
 		passed = 0;
 		for(int i=0; i<snippets.size(); i++) {
 			//get snippet
@@ -356,7 +370,7 @@ public class Evaluator {
 			if(snippet.getErrors() != 0) break;
 			
 			//otherwise test and replace
-			snippet.setPassedTests(Tester.test(snippet, before, after, test, imports));
+			snippet.setPassedTests(Tester.test(snippet, before, after, test, imports, types));
 			if(snippet.getPassedTests() > 0) {
 				passed++;
 			}
@@ -364,8 +378,8 @@ public class Evaluator {
 			
 			if(sub != null) sub.split(1);
 		}
-		System.out.println("Compilable test functions: " + Tester.testable);
-		Tester.testable = 0;
+		//System.out.println("TESTABLE: " + Tester.testable);
+		//Tester.testable = 0;
 		
 		Collections.sort(snippets);
 		

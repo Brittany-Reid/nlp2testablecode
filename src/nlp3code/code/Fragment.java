@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nlp3code.InputHandler;
-import nlp3code.listeners.QueryDocListener;
 
 /**
  * A fragment represents a collection of lines of code, as well as a context ID that informs insertion.

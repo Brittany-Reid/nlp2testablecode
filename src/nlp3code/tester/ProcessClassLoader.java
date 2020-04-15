@@ -1,12 +1,10 @@
 package nlp3code.tester;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +13,7 @@ import nlp3code.compiler.IMCompiledCode;
 
 public class ProcessClassLoader extends URLClassLoader {
     URL[] providedClassPath;
-    private static final String BRIDGE_CLASS_NAME = nlp3code.tester.JUnitBridge.class.getName();
+    private static final String BRIDGE_CLASS_NAME = nlp3code.tester.testprocess.JUnitBridge.class.getName();
 	protected Map<String, IMCompiledCode> classes = new HashMap<>();
 	/**
 	  * Constructor, taking an array of URL classPaths.

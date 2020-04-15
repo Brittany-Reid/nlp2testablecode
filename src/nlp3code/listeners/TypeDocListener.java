@@ -1,6 +1,7 @@
 package nlp3code.listeners;
 
-import org.eclipse.jface.text.Document;
+import java.util.List;
+
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
@@ -8,15 +9,24 @@ import org.eclipse.jface.text.IDocumentListener;
 import nlp3code.DocHandler;
 import nlp3code.InputHandler;
 import nlp3code.recommenders.TypeRecommender;
+import nlp3code.tester.Tester;
 import nlp3code.tester.TypeHandler;
 
 /**
  * Listens for a type query during testing. Type queries end with $, 
  * this character is defined in TypeRecommender.testChar.
+ * Stores a list of types extracted from the query.
  */
 public class TypeDocListener implements IDocumentListener {
+	//previous query, so we can ignore it on undo actions
 	public static String previousQuery = null;
+	//list of types extracted from the query
+	public static List<String> types = null;
 	
+	
+	/**
+	 * Whenever the document changes, look for a type query.
+	 */
 	@Override
 	public void documentChanged(DocumentEvent event) {
 //		QueryDocListener.currentDocument = DocHandler.getDocument();
@@ -49,8 +59,8 @@ public class TypeDocListener implements IDocumentListener {
 		//otherwise, lets check if we have a correctly formatted query
 		if (!(trimmed.endsWith(TypeRecommender.testChar))) return;
 		
-		//add test case
-		TypeHandler.constructTest(event.getOffset(), line);
+		//add test case and get types
+		types = TypeHandler.addTestFunction(event.getOffset(), line, Tester.FUNCTIONNAME);
 		
 		//remove document listener when done
 		IDocument document = event.getDocument();

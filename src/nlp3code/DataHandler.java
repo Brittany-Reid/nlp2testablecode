@@ -1,7 +1,6 @@
 package nlp3code;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -15,16 +14,14 @@ import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
-import org.jsoup.*;
+import org.jsoup.Jsoup;
 
-import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.CoreDocument;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.simple.Sentence;
-import edu.stanford.nlp.util.PropertiesUtils;
 import nlp3code.code.Snippet;
+
 /**
- * Handles offline stack overflow database. Should read in an XML file, and store contents in memory.
+ * Handles loading of data sources, including stack overflow answers, questions, stop words and task recommendations.
  */
 public class DataHandler {
 	//option to limit number of questions and answers loaded
@@ -48,11 +45,113 @@ public class DataHandler {
 	public static HashMap<String,String> queriesMap = new HashMap<String,String>();
 	// Stores the list of recommendation tasks/queries for each invocation of the content assist tool.
 	public static ArrayList<String> queries = new ArrayList<String>();
+	// number of questions loaded
 	private static int questions;
+	// CoreNLP pipeline
 	private static StanfordCoreNLP pipeline = null;
+	// if a data base has been updated
+	public static boolean loaded = false;
+	// data sources
+	private static String questionsFile = "data/questions.xml";
+	private static String answersFile = "data/answers.xml";
+	private static String stopWordsFile = "data/stopwords.txt";
+	private static String tasksFile = "data/task,id50.txt";
 	
-	public static void loadStopWords() {
-		URL url = getURL("data/stopwords.txt");
+	
+	/**
+	 * Function for loading all databases. Will report progress through a given monitor.
+	 * @param monitor Optional monitor that updates with progress.
+	 */
+	public static void loadData(IProgressMonitor monitor) {
+		//get new submonitor
+		SubMonitor sub = null;
+		if(monitor != null) {
+			sub = SubMonitor.convert(monitor, 100);
+		}
+		
+		try {
+			//load stop words
+			if(sub != null) {
+				sub.split(5);
+			}
+			loadStopWords();
+			
+			//load questions
+			SubMonitor subQ= null;
+			if(sub != null) {
+				subQ = sub.split(40);
+			}
+			loadQuestions(subQ);
+			if(monitor != null) {
+				monitor.worked(1);
+			}
+			
+			//load answers
+			SubMonitor subA= null;
+			if(sub != null) {
+				subA = sub.split(50);
+			}
+			loadAnswers(subA);
+			
+			//load tasks
+			if(sub != null) {
+				sub.split(5);
+			}
+			loadTasks(null);
+			
+	    	loaded = true;
+		} catch (IOException e) {
+			loaded = false;
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Returns a List of thread IDs that have titles containing the given word.
+	 * @param word The word to search with.
+	 * @return A List of Integers.
+	 */
+	public static List<Integer> getThreadsWith(String word){
+		return titleWords.get(word);
+	}
+	
+	/**
+	 * Set a non-default file to load from.
+	 * @param file Relative path to file to load from (eg, data/questions.xml)
+	 */
+	public static void setQuestionsFile(String file) {
+		questionsFile = file;
+	}
+	
+	/**
+	 * Set a non-default file to load from.
+	 * @param file Relative path to file to load from (eg, data/questions.xml)
+	 */
+	public static void setAnswersFile(String file) {
+		answersFile = file;
+	}
+	
+	/**
+	 * Set a non-default file to load from.
+	 * @param file Relative path to file to load from (eg, data/questions.xml)
+	 */
+	public static void setStopWordsFile(String file) {
+		stopWordsFile = file;
+	}
+	
+	/**
+	 * Set a non-default file to load from.
+	 * @param file Relative path to file to load from (eg, data/questions.xml)
+	 */
+	public static void setTasksFile(String file) {
+		tasksFile = file;
+	}
+	
+	/**
+	 * Loads stop words into memory.
+	 */
+	public static void loadStopWords() throws IOException{
+		URL url = getURL(stopWordsFile);
 		
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
@@ -67,8 +166,8 @@ public class DataHandler {
 			//remove redundant language info
 			stopWords.add("java");
 		} catch (IOException e) {
-			System.err.println("Error reading data/stopwords.txt.");
-			e.printStackTrace();
+			System.err.println("Error reading " + stopWordsFile);
+			throw(e);
 		}
 	}
 	
@@ -76,11 +175,11 @@ public class DataHandler {
 	 * Loads questions from an XML file.
 	 * @param monitor Optional monitor that updates with progress.
 	 */
-	public static void loadQuestions(IProgressMonitor monitor) {
+	public static void loadQuestions(IProgressMonitor monitor) throws IOException{
 		SubMonitor sub = null;
 		if(monitor != null) sub = SubMonitor.convert(monitor, 100);
 		
-		URL url = getURL("data/questions.xml");
+		URL url = getURL(questionsFile);
 		
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
@@ -132,8 +231,8 @@ public class DataHandler {
 			questions = num;
 			reader.close();
 		} catch (IOException e) {
-			System.err.println("Error reading data/questions.xml.");
-			e.printStackTrace();
+			System.err.println("Error reading " + questionsFile);
+			throw(e);
 		}
 		
 		if(sub != null) sub.done();
@@ -143,11 +242,11 @@ public class DataHandler {
 	 * Loads answers from an XML file.
 	 * @param monitor Optional monitor that updates with progress.
 	 */
-	public static void loadAnswers(IProgressMonitor monitor) {
+	public static void loadAnswers(IProgressMonitor monitor) throws IOException{
 		SubMonitor sub = null;
 		if(monitor != null) sub = SubMonitor.convert(monitor, 100);
 		
-		URL url = getURL("data/answers.xml");
+		URL url = getURL(answersFile);
 		String codeStart = "&lt;pre&gt;&lt;code&gt;";
 		String codeEnd = "&lt;/code&gt;&lt;/pre&gt;";
 		
@@ -219,8 +318,8 @@ public class DataHandler {
 			
 			reader.close();
 		} catch (IOException e) {
-			System.err.println("Error reading data/answers.xml.");
-			e.printStackTrace();
+			System.err.println("Error reading answersFile");
+			throw(e);
 		}
 		
 		if(sub != null) sub.done();
@@ -229,9 +328,10 @@ public class DataHandler {
 	/**
 	 * Loads in task suggestions from a text file.
 	 * @param monitor Optional monitor that updates with progress.
+	 * @throws IOException 
 	 */
-	public static void loadTasks(IProgressMonitor monitor) {
-		URL url = getURL("data/task,id50.txt");
+	public static void loadTasks(IProgressMonitor monitor) throws IOException {
+		URL url = getURL(tasksFile);
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 			
@@ -248,8 +348,8 @@ public class DataHandler {
 			
 			reader.close();
 		} catch (IOException e) {
-			System.err.println("Error reading data/task,id50.txt.");
-			e.printStackTrace();
+			System.err.println("Error reading " + tasksFile);
+			throw(e);
 		}
 	}
 	
@@ -283,9 +383,7 @@ public class DataHandler {
 		    pipeline = new StanfordCoreNLP(props);
 		}
 		
-		
 		String[] words;
-//		Sentence sentence = new Sentence(string);
 		
 		CoreDocument document = new CoreDocument(string);
 		
@@ -298,12 +396,6 @@ public class DataHandler {
 			words[i] = lemmas.get(i);
 		}
 		
-//		
-//		words = new String[sentence.lemmas().size()];
-//		for(int i=0; i<sentence.lemmas().size(); i++) {
-//			words[i] = sentence.lemma(i);
-//		}
-
 		return words;
 	}
 	
@@ -329,32 +421,19 @@ public class DataHandler {
 	}
 	
 	/**
-	 * Returns a List of thread IDs that have titles containing the given word.
-	 * @param word The word to search with.
-	 * @return A List of Integers.
-	 */
-	public static List<Integer> getThreadsWith(String word){
-		return titleWords.get(word);
-	}
-	
-	/**
-	 * Returns the URL from the root directory of the plug-in. JUnit safe.
+	 * Returns the URL from the root directory of the plug-in.
 	 */
 	public static URL getURL(String url) {
 		
+		URL result = null;
 		try {
 			//get the file from the plug-in
-			return new URL("platform:/plugin/nlp3code/" + url);
+			result = new URL("platform:/plugin/nlp3code/" + url);
 		} catch (MalformedURLException e) {
-			//this will fail in junit, so as a back up
-			try {
-				return new File(url).toURI().toURL();
-			} catch (MalformedURLException e1) {
-				e1.printStackTrace();
-			}
+			e.printStackTrace();
 		}
 		
-		return null;
+		return result;
 	}
 	
 	
@@ -375,7 +454,7 @@ public class DataHandler {
 	}
 	
 	/**
-	 * Clear all databases.
+	 * Clear all databases and resets state.
 	 */
 	public static void clear() {
 		stopWords.clear();
@@ -383,6 +462,7 @@ public class DataHandler {
 		snippets.clear();
 		queries.clear();
 		queriesMap.clear();
+		loaded = false;
 	}
 	
 	/**

@@ -32,15 +32,21 @@ public class TypeRecommender implements  IJavaCompletionProposalComputer{
 	public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context, IProgressMonitor arg1) {
 		List<ICompletionProposal> proposals = new ArrayList<>();
 		
-		if(canRecommend == false) return proposals;
+		if(canRecommend == false) {
+			return proposals;
+		}
 		
 		//need at least 1 compilable snippet
-		if(Evaluator.compiled < 1) return proposals;
+		if(Evaluator.compiled < 1) {
+			return proposals;
+		}
 		
 		suggesting = true;
 		
 		String line = TaskRecommender.extractQuery(testChar);
-		if(line ==  null) return proposals;
+		if(line ==  null) {
+			return proposals;
+		}
 		
 		//get offset from the context
 		JavaContentAssistInvocationContext javaContext= (JavaContentAssistInvocationContext) context;
@@ -119,9 +125,8 @@ public class TypeRecommender implements  IJavaCompletionProposalComputer{
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		
 		//top, format
-		String content = "Return, Input, ...., Input";
-		ICompletionProposal proposal = new CompletionProposal("", offset-line.length(), 0, 0, null, content, null, null);
-		//ICompletionProposal proposal = new CompletionProposal(content + testChar, offset-line.length(), line.length(), content.length()+1);
+		String content = "Format: Return, Input, ...., Input";
+		ICompletionProposal proposal = new CompletionProposal("", offset-line.length(), 0, 0, null, content + testChar, null, null);
 		proposals.add(proposal);
 		
 		List<Snippet> snippets = generated;
@@ -138,6 +143,7 @@ public class TypeRecommender implements  IJavaCompletionProposalComputer{
 			proposal = new CompletionProposal(content+ testChar, offset-line.length(), line.length(), content.length()+1);
 			proposals.add(proposal);
 		}
+		
 		return proposals;
 	}
 	

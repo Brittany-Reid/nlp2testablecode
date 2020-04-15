@@ -1,30 +1,11 @@
 package nlp3code.listeners;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseResult;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.comments.Comment;
-import com.github.javaparser.ast.stmt.BlockStmt;
-
-import nlp3code.Activator;
 import nlp3code.DocHandler;
-import nlp3code.Evaluator;
 import nlp3code.InputHandler;
-import nlp3code.Searcher;
-import nlp3code.code.Snippet;
-import nlp3code.fixer.Integrator;
 
 public class QueryDocListener implements IDocumentListener{
 	//the current document associated with the listener

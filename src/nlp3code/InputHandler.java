@@ -2,7 +2,6 @@ package nlp3code;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -16,13 +15,9 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.progress.UIJob;
-
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
@@ -41,6 +36,9 @@ import nlp3code.listeners.TypeDocListener;
 import nlp3code.recommenders.TaskRecommender;
 import nlp3code.recommenders.TypeRecommender;
 
+/**
+ * Controls button press
+ */
 public class InputHandler extends AbstractHandler{
 	private static JavaParser javaParser = null;
 	//listeners
@@ -88,7 +86,17 @@ public class InputHandler extends AbstractHandler{
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		if(Activator.loaded == false) return null;
+		if(Activator.initialized == false) {
+			//immediately set to true
+			Activator.initialized = true;
+			
+			Activator.setup();
+			
+			//then ignore this call
+			return null;
+		}
+		
+		if(DataHandler.loaded == false) return null;
 		
 		//get the document
 		IDocument document = DocHandler.getDocument();
@@ -132,11 +140,11 @@ public class InputHandler extends AbstractHandler{
 		editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		DocHandler.getJavaProject();
 		
-//		if(Activator.first == true) {
-//			Activator.suggestionTests();
-//			Activator.first = false;
-//		}
-//		
+		if(Activator.first == true) {
+			//Activator.deletionTests();
+			Activator.first = false;
+		}
+		
 		TypeRecommender.generated = null;
 		
 		TypeRecommender.canTest = false;

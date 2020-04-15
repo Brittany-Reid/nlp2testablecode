@@ -15,9 +15,6 @@ import nlp3code.code.Snippet;
 import nlp3code.compiler.IMCompiler;
 
 public class Fixer {
-	private static Boolean order = false;
-	private static Boolean neutrality = false;
-	private static Boolean loop = false;
 	public static Integer beforeLines; //Stores lines before code snippet
 	public static IMCompiler compiler;
 	public static int offset;
@@ -279,7 +276,6 @@ public class Fixer {
 	public static boolean isInRange(Snippet snippet, Diagnostic<?extends JavaFileObject> diagnostic, String before, String after) {
 		String code = Snippet.insert(snippet, before+after, before.length());
 		long line = diagnostic.getLineNumber();
-		long column = diagnostic.getColumnNumber();
 		
 		String[] lines = code.split("\n");
 		String toFind = "";

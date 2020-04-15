@@ -29,13 +29,25 @@ public class TaskRecommender implements  IJavaCompletionProposalComputer {
 	/** 
 	 *  Implements an interface to compile a list of proposed autocompletions for a given incomplete query.
 	 *  Each proposal is defined as a string proposal to insert into a specific section of the current editor.
+	 *  Must not return null proposals.
 	 */
 	@Override
 	public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context, IProgressMonitor arg1) {
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		
-		//if we haven't loaded yet
-		if(Activator.loaded == false) return proposals;
+		//must initialize db
+		if(Activator.initialized == false) {
+			//immediately set to true
+			Activator.initialized = true;
+			
+			Activator.setup();
+			
+			//then ignore this call
+			return proposals;
+		}
+		
+		//if we haven't finished loading yet
+		if(DataHandler.loaded == false) return proposals;
 		
 		String line = extractQuery(queryChar);
 		if(line ==  null) return proposals;

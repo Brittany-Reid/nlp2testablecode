@@ -1,15 +1,12 @@
 package nlp3code.compiler;
 
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
 /**
@@ -54,6 +51,28 @@ public class IMCompiler{
 	 */
 	public void addSource(String className, String source) {
 		sources.add(new JavaSourceFromString(className, source));
+	}
+	
+	public String getClasspath() {
+		String fullClasspath = null;
+		
+		if(options != null) {
+			for(int i=0; i<options.size(); i++) {
+				if(options.get(i).equals("-classpath")) {
+					fullClasspath = options.get(i+1);
+				}
+			}
+		}
+		
+		return fullClasspath;
+	}
+	
+	public void setClasspath(String classpath) {
+		if(classpath == null) {
+			options = null;
+			return;
+		}
+		options = new ArrayList<String>(Arrays.asList("-classpath", classpath));
 	}
 	
 	/**

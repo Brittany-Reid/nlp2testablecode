@@ -1,26 +1,18 @@
 package nlp3code.tester;
 
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 
 import nlp3code.compiler.IMCompiledCode;
+import nlp3code.tester.testprocess.JUnitBridge;
+import nlp3code.tester.testprocess.UnitTest;
+import nlp3code.tester.testprocess.UnitTestResult;
+import nlp3code.tester.testprocess.UnitTestResultSet;
 
 public class TestRunner {
 	public static final String ISOLATED_TEST_RUNNER_METHOD_NAME = "runTests";

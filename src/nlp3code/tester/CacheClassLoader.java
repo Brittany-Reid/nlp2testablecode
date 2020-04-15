@@ -22,7 +22,7 @@ import nlp3code.compiler.*;
  * 	See: https://stackoverflow.com/questions/24319697
  */
 public class CacheClassLoader extends URLClassLoader {
-	private static final String BRIDGE_CLASS_NAME = nlp3code.tester.JUnitBridge.class.getName();
+	private static final String BRIDGE_CLASS_NAME = nlp3code.tester.testprocess.JUnitBridge.class.getName();
 	 protected Map<String, IMCompiledCode> classes = new HashMap<>();
 	 private URL[] providedClassPath;
 	 

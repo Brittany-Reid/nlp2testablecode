@@ -6,9 +6,9 @@ import nlp3code.code.Snippet;
 import nlp3code.compiler.IMCompiler;
 
 public class Deleter {
-	private static Boolean order = false;
-	private static Boolean neutrality = false;
-	private static Boolean loop = false;
+	private static Boolean order = true;
+	private static Boolean neutrality = true;
+	private static Boolean loop = true;
 	public static IMCompiler compiler = null;
 	
 	/**
@@ -48,16 +48,14 @@ public class Deleter {
 		
 		//configure compiler
 		if(compiler == null) initializeCompiler();
-		//disable logging
-		IMCompiler.logging = false;
 		
 		Snippet best = new Snippet(snippet);
 		Snippet current;
-		int line = startLine;
 		while(done == false) {
 			//default end condition
 			done = true;
 			
+			int line = startLine;
 			//iterate list of lines
 			for(int j=0; j<snippet.size(); j++) {
 				
@@ -110,9 +108,6 @@ public class Deleter {
 				}
 			}
 		}
-		
-		//reenable logging
-		IMCompiler.logging = true;
 		
 		return best;
 	}

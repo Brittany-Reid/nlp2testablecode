@@ -10,11 +10,12 @@ import nlp3code.code.Snippet;
 
 /**
  * class Searcher
- * 	 Implements the required functionality to search for, and scrape Stack Overflow webpages
- *   to retrieve code snippets.
- *   Uses a combination of Goggle Custom Search Engine API and Jsoup to retrieve snippets.
+ * 	Replaces the online search functionality of NLP2Code.
+ * 	Can process natural language tasks using stemming or lemmatization, and by removing stop words.
+ * 	Interfaces with DataHandler to search for queries.
  */
 public class Searcher {
+	//optional limit on returned queries
 	public static int limit = -1;
 	
 	/**
@@ -23,7 +24,7 @@ public class Searcher {
 	 * @return A list of Snippet objects.
 	 */
 	static public List<Snippet> getSnippets(String query){
-		Set<Snippet> retrievedSet = new LinkedHashSet<>(); //preserve order
+		Set<Snippet> retrievedSet = new LinkedHashSet<>(); //preserve order using linked
 		List<Snippet> retrieved;
 		List<Snippet> snippets = null;
 		
@@ -32,16 +33,21 @@ public class Searcher {
 			//get snippets
 			retrieved = getRecommendedSnippets(query);
 			if(retrieved == null) return null;
+			
 			//add to map
 			for(Snippet s : retrieved) {
-				retrievedSet.add(s);
+				//work with copy of snippets
+				Snippet copy = new Snippet(s);
+				retrievedSet.add(copy);
 			}
 		}
 		
 		retrieved = searchSnippets(query);
 		if(retrieved == null) return null;
 		for(Snippet s : retrieved) {
-			retrievedSet.add(s);
+			//work with copy of snippets
+			Snippet copy = new Snippet(s);
+			retrievedSet.add(copy);
 		}
 		
 		//add the set to snippets
@@ -49,7 +55,9 @@ public class Searcher {
 		
 		//if we want to restrict the number of snippets per query
 		if(limit != -1) {
-			if(snippets.size() > limit) snippets = snippets.subList(0, limit);
+			if(snippets.size() > limit) {
+				snippets = snippets.subList(0, limit);
+			}
 		}
 		
 		return snippets;

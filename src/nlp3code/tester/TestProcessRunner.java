@@ -5,13 +5,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
-import java.util.concurrent.TimeoutException;
-
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
-
-import nlp3code.Evaluator;
 
 
 /**
@@ -33,7 +29,7 @@ public class TestProcessRunner {
 		String classpath = Tester.getClassPath();
 		ProcessBuilder builder = new ProcessBuilder();
 		builder.directory(Paths.get(FileLocator.resolve(FileLocator.find(Platform.getBundle("nlp3code"), new Path("bin/"), null)).toURI()).toFile());
-		builder.command(javaCommand, "-cp", "\".;" + classpath + "\"", "nlp3code.tester.TestProcess");
+		builder.command(javaCommand, "-cp", "\".;" + classpath + "\"", "nlp3code.tester.testprocess.TestProcess");
 		//System.out.println(classpath);
 		Process child = builder.start();
 		

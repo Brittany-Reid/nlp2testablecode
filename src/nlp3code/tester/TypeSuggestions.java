@@ -32,7 +32,6 @@ import nlp3code.Evaluator;
 import nlp3code.InputHandler;
 import nlp3code.code.Snippet;
 import nlp3code.fixer.UnresolvedElementFixes;
-import nlp3code.tests.SnippetTests;
 
 /**
  * This class generates type recommendations for the content assist menu.
@@ -44,8 +43,12 @@ public class TypeSuggestions {
 	public static List<String> argTypes = null;
 	private static Node returnNode = null;
 	private static List<String> arguments = null;
+	//count of snippets with type suggestions
+	public static int testable = 0;
 	
 	public static List<Snippet> getTypeSuggestions(List<Snippet> snippets, String before, String after, IProgressMonitor monitor){
+		testable = 0;
+		
 		for(int i=0; i<snippets.size(); i++) {
 			Snippet snippet = snippets.get(i);
 			if(snippet.getErrors() == 0) {
@@ -79,6 +82,7 @@ public class TypeSuggestions {
 		if(argTypes.size() > 0) {
 			snippet.setArguments(argTypes);
 			snippet.setReturn(returnType);
+			testable++;
 			return snippet;
 		}
 		return snippet;
@@ -96,6 +100,12 @@ public class TypeSuggestions {
 		int key = Activator.random.nextInt(1000000);
 		String flag = "NLP3Code_comment " + key;
 		
+		//null saved inputHandler values
+		if(InputHandler.before == null || InputHandler.after == null) {
+			System.err.println("Error: Missing surrounding code for type suggestions. (You may have forgotten to manually set them if testing!)");
+			return null;
+		}
+		
 		String before = InputHandler.before +"\n" + "//" + flag + "\n{\n";
 		String after = "}" + InputHandler.after;
 		
@@ -105,6 +115,7 @@ public class TypeSuggestions {
 			return null;
 		}
 		CompilationUnit cu = (CompilationUnit) result.getResult().get();
+		
 		
 		//get list of comments
 		for(Comment c : cu.getComments()) {
