@@ -4,49 +4,49 @@
 <plugin>
  <extension point="org.eclipse.ui.commands">
        <category
-            id="nlp3code.category"
+            id="nlp2testablecode.category"
             name="Handler Category">
       </category>
       <command
-            categoryId="nlp3code.category"
-            id="nlp3code.handler"
+            categoryId="nlp2testablecode.category"
+            id="nlp2testablecode.handler"
             name="Input Handler">
       </command>
       <command
-            categoryId="nlp3code.category"
-            id="nlp3code.cyclehandler"
+            categoryId="nlp2testablecode.category"
+            id="nlp2testablecode.cyclehandler"
             name="Cycle Answers Handler">
       </command>
       <command
-            categoryId="nlp3code.category"
-            id="nlp3code.testhandler"
+            categoryId="nlp2testablecode.category"
+            id="nlp2testablecode.testhandler"
             name="Test Handler">
       </command>
  </extension>
     <extension point="org.eclipse.ui.handlers">
       <handler
-            class="nlp3code.cycler.CycleAnswersHandler"
-            commandId="nlp3code.cyclehandler">
+            class="nlp2testablecode.cycler.CycleAnswersHandler"
+            commandId="nlp2testablecode.cyclehandler">
       </handler>
       <handler
-            class="nlp3code.InputHandler"
-            commandId="nlp3code.handler">
+            class="nlp2testablecode.InputHandler"
+            commandId="nlp2testablecode.handler">
       </handler>
       <handler
-      		class="nlp3code.tester.TestHandler"
-      		commandId="nlp3code.testhandler">
+      		class="nlp2testablecode.tester.TestHandler"
+      		commandId="nlp2testablecode.testhandler">
       </handler>
  </extension>
  <extension
          point="org.eclipse.ui.bindings">
       <key
-            commandId="nlp3code.cyclehandler"
+            commandId="nlp2testablecode.cyclehandler"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M4+`">
       </key>
       <key
-            commandId="nlp3code.cyclehandler"
+            commandId="nlp2testablecode.cyclehandler"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+`">
@@ -54,11 +54,11 @@
       <key
       		contextId="org.eclipse.ui.contexts.dialogAndWindow"
       		schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+B"
+            sequence="M1+6"
             commandId="org.eclipse.jdt.ui.specific_content_assist.command">
             <parameter
             id="org.eclipse.jdt.ui.specific_content_assist.category_id"
-            value="nlp3code.contentassist.tasks"/>
+            value="nlp2testablecode.contentassist.tasks"/>
       </key>
       <key
       		contextId="org.eclipse.ui.contexts.dialogAndWindow"
@@ -67,10 +67,10 @@
             commandId="org.eclipse.jdt.ui.specific_content_assist.command">
             <parameter
             id="org.eclipse.jdt.ui.specific_content_assist.category_id"
-            value="nlp3code.contentassist.test"/>
+            value="nlp2testablecode.contentassist.test"/>
       </key>
       <key
-      		commandId="nlp3code.testhandler"
+      		commandId="nlp2testablecode.testhandler"
       		contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
       		sequence="M1+M3+D">
@@ -80,18 +80,18 @@
       <menuContribution
             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
          <toolbar
-               id="nlp3code.toolbar">
+               id="nlp2testablecode.toolbar">
             <command
-                  commandId="nlp3code.handler"
+                  commandId="nlp2testablecode.handler"
                   icon="icons/stackoverflow.gif"
-                  id="nlp3code.toolbar.handler"
+                  id="nlp2testablecode.toolbar.handler"
                   style="push"
                   tooltip="Query Stack Overflow">
             </command>
             <command
-                  commandId="nlp3code.cyclehandler"
+                  commandId="nlp2testablecode.cyclehandler"
                   icon="icons/cycle.gif"
-                  id="nlp3code.toolbar.handler"
+                  id="nlp2testablecode.toolbar.handler"
                   style="push"
                   tooltip="Cycle Code Snippet - Press to see diferent answers to your previously made query. (CTRL + `)">
             </command>
@@ -105,16 +105,16 @@
 	</proposalCategory>
 	<proposalComputer
 		activate="true"
-		categoryId="nlp3code.contentassist.tasks"
-		class="nlp3code.recommenders.TaskRecommender"
-		id="nlp3code.proposalcomputer">      
+		categoryId="nlp2testablecode.contentassist.tasks"
+		class="nlp2testablecode.recommenders.TaskRecommender"
+		id="nlp2testablecode.proposalcomputer">      
 		<contentType id="org.eclipse.core.runtime.text"/>      
 	</proposalComputer>   
 	<proposalComputer
 	    activate="true"
-	    categoryId="nlp3code.contentassist.test"
-	    class="nlp3code.recommenders.TypeRecommender"
-	    id="nlp3code.proposalcomputer">      
+	    categoryId="nlp2testablecode.contentassist.test"
+	    class="nlp2testablecode.recommenders.TypeRecommender"
+	    id="nlp2testablecode.proposalcomputer">      
 	 	<contentType id="org.eclipse.core.runtime.text"/>      
 	 </proposalComputer>   
    </extension>

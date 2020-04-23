@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: NLP3Code
-Bundle-SymbolicName: nlp3code;singleton:=true
+Bundle-SymbolicName: nlp2testablecode;singleton:=true
 Bundle-Version: 1.0.0.0
 Require-Bundle: org.eclipse.ui;bundle-version="3.108.0",
  org.eclipse.ui.editors;bundle-version="3.10.0",
@@ -56,5 +56,5 @@ Bundle-ClassPath: .,
  lib/stanford-corenlp-full-2018-10-05/xom.jar,
  lib/javassist-3.26.0-GA.jar
 Bundle-ActivationPolicy: lazy
-Bundle-Activator: nlp3code.Activator
+Bundle-Activator: nlp2testablecode.Activator
 Automatic-Module-Name: nlp3code
