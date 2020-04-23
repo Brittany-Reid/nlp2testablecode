@@ -4,28 +4,36 @@ NLP2TestableCode is a plug-in for the Eclipse IDE that uses natural language tas
 ## Plugin Installation Instructions:
 
 To install the plugin for development:
- 1. Download and install the Eclipse SDK from the Eclipse Project page.
- 2. Install Git Integration (EGit) for the Eclipse SDK.
- 3. File->Import->Git->Projects from Git->Clone URI.
+ 1. Download and install the Java Development Kit (JDK)
+ 2. Download and install Eclipse IDE for RCP and RAP Developers from the Eclipse Project website.
+ 3. File -> Import -> Git -> Projects from Git -> Clone URI.
  4. Copy and paste the .git URI from the NLP2TestableCode GitHub.
  5. Press Next until you get to the project import wizard. Choose "Import exisiting Eclipse projects" and press Next and Finish.
  6. Download CoreNLP (https://stanfordnlp.github.io/CoreNLP/) and extract into /lib
  7. Download the SO dataset (http://doi.org/10.5281/zenodo.3752789) and extract into /data
- 8. You can now run the plugin by right-clicking launches/NLP2TestableCode.launch and selecting Run As... > Eclipse Application.
+ 8. You can now run the plugin by right-clicking launches/NLP2TestableCode.launch and selecting Run As... > NLP2TestableCode. If you recieve an error about the JRE, open 'Run Configurations...' in the Run menu and Eclipse should automatically update the JRE to your default.
 
 To install the plugin on your regular Eclipse environment (e.g. for personal use), you will need to package the plugin so it can be installed via the Eclipse Install New Software tool. Since this repository is purely for the development of the tool, there is currently no support in this repository for packaging the plugin for installation.
 
-
 ## Important Plugin Configuration Settings:
 
-Content Assist:
-To get the most out of the plugin, it is strongly recommended to add a content assist binding to trigger the NLP2Code task content assist window. You can do this by navigating to: Preferences->Java->Editor->Content Assist (Path may be different depending on Eclipse version) and adding a '?' symbol to the set of symbols that trigger content assist. It is also recommended that you turn off auto-insertion so that test suggestions can function correctly.
+### Content Assist:
 
-Required Libraries:
+To get the most out of the plugin, it is strongly recommended that you go to Window -> Preferences -> Java -> Editor -> Content Assist and:
+- Turn off 'Insert single proposals automatically' so single type suggestions do not automatically trigger.
+- Turn on 'Disable insertion triggers besides 'Enter''.
+- Add a content assist binder to trigger the NLP2Code task content assist window by adding a '?' symbol to the set of symbols that trigger content assist.
+
+### Required Libraries:
+
 You will need to download Stanford CoreNLP (https://stanfordnlp.github.io/CoreNLP/) and extract the folder (stanford-corenlp-full-2018-10-05) into /lib.
 
-Stack Overflow Data:
+### Stack Overflow Data:
+
 NLP2TestableCode uses an offline database of SO posts, you will need to download the pre-filtered xml files from http://doi.org/10.5281/zenodo.3752789 and extract them into /data.
+
+### Testing
+To prevent the execution of arbirary code from within  the SO database, NLP2TestableCode has testing disabled by default. We do not recommend turning testing on without running the plug-in within a Virtual Machine. If you would like to turn testing on, the setting can be changed in Activator.java.
 
 ## How to use the plugin:
 
@@ -49,11 +57,15 @@ Conduct a query by:
 After a query, cycle through possible solutions with ctrl + `.
 After you select a snippet, you will be prompted for feedback if feedback has been enabled in the preferences.txt
 
+
 ## How to contribute:
 
 Pull requests are most welcome!
 
 ## References:
 
-[Add NLP2TestableCode link here]
-See http://cs.adelaide.edu.au/~christoph/icsme17c.pdf for more information
+For more information see:
+
+NLP2TestableCode: Optimising the Fit of Stack Overflow Code Snippets intoExisting Code - https://arxiv.org/pdf/2004.07663.pdf
+
+NLP2Code: Code Snippet Content Assistvia Natural Language Tasks - http://cs.adelaide.edu.au/~christoph/icsme17c.pdf
