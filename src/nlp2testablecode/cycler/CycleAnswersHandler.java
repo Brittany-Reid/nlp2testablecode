@@ -20,6 +20,8 @@ public class CycleAnswersHandler extends AbstractHandler {
 	public static boolean changedDoc = false;
 	//when we are inserting, the cycle doc listener will ignore it
 	public static boolean inserting = false;
+	//last cycle
+	public static long timer = 0;
 
 	/**
 	 * Called when the cycle answer button is activated.
@@ -28,6 +30,22 @@ public class CycleAnswersHandler extends AbstractHandler {
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
+		//ignore if we're still inserting
+		if(inserting == true || DocHandler.replacing == true) {
+			return null;
+		}
+		
+		//must be a minimum time between cycles (otherwise our document gets messed up)
+		long time = System.currentTimeMillis();
+		if(timer != 0) {
+			if(time - timer < 70) {
+				timer = time;
+				return null;
+			}
+		}
+		timer = time;
+		
+		
 		//theres no document to change
 		if(InputHandler.cycleDocListener.currentDocument == null) return null;
 		
@@ -68,6 +86,7 @@ public class CycleAnswersHandler extends AbstractHandler {
 		
 		//replace
 		replaceSnippet(newSnippet);
+		
 		
 		//reset state
 		inserting = false;

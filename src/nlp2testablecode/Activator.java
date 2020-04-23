@@ -55,7 +55,7 @@ public class Activator extends AbstractUIPlugin {
 	 * Constructor.
 	 */
 	public Activator() {
-		//DataHandler.limit = 100000L; //for debugging, limit database size
+		//DataHandler.limit = 10000L; //for debugging, limit database size
 		testing = false;
 	}
 	

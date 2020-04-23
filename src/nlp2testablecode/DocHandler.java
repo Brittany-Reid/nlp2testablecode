@@ -55,6 +55,7 @@ public class DocHandler {
 	public static int importStart = -1;
 	private static String fileName = null;
 	private static IEditorPart currentEditor = null;
+	public static boolean replacing = false;
 	
 	/**
 	 * Clear the cache on document change.
@@ -144,11 +145,14 @@ public class DocHandler {
   	      public void run()
   	      {
   	    	try {
+  	    		replacing = true;
   	    		CycleAnswersHandler.inserting = true;
   	    		IDocument document = getDocument();
 				document.replace(offset, length, replacement);
 				CycleAnswersHandler.inserting = false;
+				replacing = false;
 			} catch (BadLocationException e) {
+				replacing = false;
 				e.printStackTrace();
 			}
   	      }
