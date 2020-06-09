@@ -37,16 +37,17 @@ To prevent the execution of arbirary code from within  the SO database, NLP2Test
 
 ## How to use the plugin:
 
-There are many ways to activate and use the plugin. 
-Firstly, ensure that you are connected to the internet as this is needed to get Stack Overflow data.
-To find a code snippet for a task you want to achieve, you can conduct natural language queries (note that the default language is Java for searching, however you can specifcy a different language by putting "in language" at the end of your query, e.g. "sort an array in python").
+When you first open the editor, you will need to invoke the plug-in before setup can begin. You can do this by pressing ctrl+space. Loading will be visible in the eclipse progress window.
 
+### Search for Code Snippets usig Natural Language Tasks
 Queries can be invoked in three ways:
  1. Write your query on a line (e.g. sort an array) and press the Stack Overflow button on the toolbar (or pressing ctrl+6 as a hotkey).
  2. Construct a natural language query of characters and spaces with a question mark at the end (e.g. sort an array?).
- 3. Pressing the keys you binded for the content assist during the setup to open the content assist and select one of the recommended tasks from the list. The results can be filtered by typing and similar tasks will be listed. If you chose not to set up a binding, you can cycle through content assist suppliers until you get to nlp2code.contentassist by pressing ctrl+space.
+ 3. Press ctrl+6 to open the nlp2code content assist. You can also cycle through content assist suppliers until you get to nlp2code.contentassist by pressing ctrl+space.
+ 
+Once a query is invoked, the plugin will take some time to process, evaluate and correct code snippets related to your query. During this process, the progress window will show progress. As soon as a compiling snippet is found, it will be inserted.
 
-Once a query is invoked, the plugin will take a few seconds to collect and rank code snippets by relevance to your query. Once it is finished, the top result will be pasted into your document. If you find that the first result isn't helpful, you can cycle through all of the retrieved code snippets by pressing ctrl+` (ctrl + tilde/backtick key), or by pressing the stack overflow button with the blue arrow on the toolbar. Once you edit the document after a snippet has been pasted, you will be prompted for feedback on whether the query was successful or not.
+If you find that the first result isn't helpful, you can cycle through all of the retrieved code snippets by pressing ctrl+` (ctrl + tilde/backtick key), or by pressing the stack overflow button with the blue arrow on the toolbar.
 
 tl;dr:
 Conduct a query by:
@@ -57,6 +58,16 @@ Conduct a query by:
 After a query, cycle through possible solutions with ctrl + `.
 After you select a snippet, you will be prompted for feedback if feedback has been enabled in the preferences.txt
 
+### Testing Code Snippets
+**Warning: We highly recommend running any testing within a VM. The testing process will run arbitrary code from Stack Overflow on your machine. This can be potentionally dangerous. By default, testing is disabled. You will need to enable it within Activator.java by setting the value `testing` to true.**
+
+When snippets have finished being evaluated, you can then begin the testing process.
+
+#### Argument and Return Types
+Press ctrl+Alt+T to see argument and return type suggestions based on the retrieved code snippets. When you select a type suggestion, or write your own, the plug-in will then build a skeleton JUnit test case for you.
+
+#### Customizing the JUnit test case and running tests
+When you are finished customizing the JUnit test case, press ctrl+Alt+D to run the test. When the test is finished, the inserted snippet will update with the new best.
 
 ## How to contribute:
 
