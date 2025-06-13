@@ -3,6 +3,9 @@ NLP2TestableCode is a plug-in for the Eclipse IDE that uses natural language tas
 
 ## Plugin Installation Instructions:
 
+> [!NOTE]
+> 13/06/2025: NLP2TestableCode was developed on an older version of Eclipse. The 09/18/2019 release [here](https://www.eclipse.org/downloads/packages/release/2019-09/r/eclipse-ide-rcp-and-rap-developers-includes-incubating-components) is confirmed to work.
+
 To install the plugin for development:
  1. Download and install the Java Development Kit (JDK)
  2. Download and install Eclipse IDE for RCP and RAP Developers from the Eclipse Project website.
